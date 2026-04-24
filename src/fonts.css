@@ -1,0 +1,45 @@
+@font-face {
+  font-family: iranYekan;
+  src: url("./assets/fonts/iranYekan/IRANYekan.ttf");
+}
+@font-face {
+  font-family: iranYekanBold;
+  src: url("./assets/fonts/iranYekan/IRANYekan-Bold.ttf");
+}
+@font-face {
+  font-family: iranYekanExtraBold;
+  src: url("./assets/fonts/iranYekan/IRANYekan-ExtraBold.ttf");
+}
+@font-face {
+  font-family: iranYekanLight;
+  src: url("./assets/fonts/iranYekan/IRANYekan-Light.ttf");
+}
+@font-face {
+  font-family: iranYekanThin;
+  src: url("./assets/fonts/iranYekan/IRANYekan-Thin.ttf");
+}
+@font-face {
+  font-family: iranYekanBlack;
+  src: url("./assets/fonts/iranYekan/IRANYekan-Black.ttf");
+}
+@font-face {
+  font-family: iranYekanExtraBlack;
+  src: url("./assets/fonts/iranYekan/IRANYekan-ExtraBlack.ttf");
+}
+@font-face {
+  font-family: iranYekanMedium;
+  src: url("./assets/fonts/iranYekan/IRANYekan-Medium.ttf");
+}
+
+@font-face {
+  font-family: shabnam;
+  src: url("./assets/fonts/shabnam/Shabnam.ttf");
+}
+
+*, .toast-container {
+  font-family: iranYekan, sans-serif;
+}
+
+.shab {
+  font-family: shabnam;
+}

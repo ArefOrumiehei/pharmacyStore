@@ -1,0 +1,21 @@
+@import "./fonts.css";
+
+body {
+  padding: 0;
+  margin: 0;
+  direction: rtl;
+  scroll-behavior: smooth;
+}
+
+button {
+  cursor: pointer;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
