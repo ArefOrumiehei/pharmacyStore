@@ -3,158 +3,167 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCard from "../productCard/ProductCard";
 import { Link } from "react-router";
-import { useProductStore } from "@/store/useProductsStore";
 import { IconArrowLeft, IconFlameFilled } from "@tabler/icons-react";
 import ProductCardSkeleton from "@/components/skeletons/ProductCardSkeleton";
 
-const products = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  name: `Product ${i + 1}`,
-  image: `https://picsum.photos/seed/product${i}/200/200`,
-  price: `${(Math.random() * 100 + 10).toFixed(2)}$`,
-}));
+interface ProductsCarouselProps {
+  title: string;
+  products: any[];
+  loading?: boolean;
+  viewMoreLink?: string;
+  wonderful?: boolean;
+}
 
-function ProductsCarousel() {
-  const {fetchLatestArrivals, latestArrivals, loading} = useProductStore();
+const SKELETON_COUNT = 6;
+
+function ProductsCarousel({
+  title,
+  products,
+  loading = false,
+  viewMoreLink,
+  wonderful = false,
+}: ProductsCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
 
-  useEffect(() => {
-    fetchLatestArrivals()
-  }, [])
-
   const checkScrollPosition = () => {
     const slider = scrollRef.current;
     if (!slider) return;
-
     const { scrollLeft, scrollWidth, clientWidth } = slider;
-    const maxScroll = scrollWidth - clientWidth;
-
-    setAtStart(scrollLeft <= 0);
-    setAtEnd(scrollLeft >= maxScroll - 2);
+    setAtStart(scrollLeft >= -2);
+    setAtEnd(scrollLeft <= -(scrollWidth - clientWidth) + 2);
   };
 
-
-  const handleMouseDown = (e: React.MouseEvent) => {
+  useEffect(() => {
     const slider = scrollRef.current;
     if (!slider) return;
-
-    slider.dataset.isDown = "true";
-    slider.dataset.startX = String(e.pageX - slider.offsetLeft);
-    slider.dataset.scrollLeftStart = String(slider.scrollLeft);
-  };
-
-  const handleMouseLeave = () => {
-    const slider = scrollRef.current;
-    if (slider) slider.dataset.isDown = "false";
-  };
-  const handleMouseUp = () => {
-    const slider = scrollRef.current;
-    if (slider) slider.dataset.isDown = "false";
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const slider = scrollRef.current;
-    if (!slider || slider.dataset.isDown !== "true") return;
-
-    const startX = Number(slider.dataset.startX || 0);
-    const scrollLeftStart = Number(slider.dataset.scrollLeftStart || 0);
-    const x = e.pageX - slider.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    slider.scrollLeft = scrollLeftStart - walk;
-  };
+    checkScrollPosition();
+    slider.addEventListener("scroll", checkScrollPosition);
+    return () => slider.removeEventListener("scroll", checkScrollPosition);
+  }, [products]);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    const scrollAmount = 350;
     scrollRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
+      left: direction === "left" ? 350 : -350,
       behavior: "smooth",
     });
   };
 
-  useEffect(() => {
+  const dragState = useRef({ isDown: false, startX: 0, scrollStart: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
     const slider = scrollRef.current;
     if (!slider) return;
+    dragState.current = {
+      isDown: true,
+      startX: e.pageX - slider.offsetLeft,
+      scrollStart: slider.scrollLeft,
+    };
+  };
 
-    slider.addEventListener("scroll", checkScrollPosition);
-    checkScrollPosition()
+  const handleMouseLeave = () => { dragState.current.isDown = false; };
+  const handleMouseUp = () => { dragState.current.isDown = false; };
 
-    return () => slider.removeEventListener("scroll", checkScrollPosition);
-  }, []);
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const slider = scrollRef.current;
+    if (!slider || !dragState.current.isDown) return;
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - dragState.current.startX) * 1.5;
+    slider.scrollLeft = dragState.current.scrollStart - walk;
+  };
+
+  const wonderfulStyles = {
+    wrapper: "bg-orange-50 border border-orange-200",
+    header: "text-orange-600",
+    headerBg: "bg-orange-50",
+    divider: "border-orange-200",
+    viewMore: "text-orange-600 hover:text-orange-700",
+    arrowBtn: "bg-orange-100 hover:bg-orange-200 text-orange-600 border border-orange-200",
+  };
+
+  const regularStyles = {
+    wrapper: "bg-white border border-blue-100",
+    header: "text-blue-800",
+    headerBg: "bg-white",
+    divider: "border-blue-100",
+    viewMore: "text-blue-800 hover:text-blue-600",
+    arrowBtn: "bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200",
+  };
+
+  const s = wonderful ? wonderfulStyles : regularStyles;
+
+  // show skeletons while loading OR while products haven't arrived yet
+  const showSkeletons = loading || !products || products.length === 0;
 
   return (
-    <div className="relative w-full h-100 flex flex-col justify-center gap-4 select-none bg-blue-400/70 rounded-xl overflow-hidden">
-      {/* <div className="flex justify-between items-center mb-4">
-        <h3 className="text-2xl font-semibold">محصولات پیشنهادی</h3>
-        <button className="text-foreground hover:underline">مشاهده همه</button>
-      </div> */}
-
-      <div className="flex items-stretch justify-between gap-4 p-4 h-fit">
-        <div className="w-min h-full flex flex-col items-center justify-between self-start flex-shrink-0">
-          <div className="bg-white flex flex-col items-center gap-2 w-full h-max rounded-lg py-8">
-            <IconFlameFilled size={124} className="text-primary" />
-            <span className="w-min text-center text-2xl font-bold text-primary">پیشنهاد شگفت انگیز</span>
-          </div>
-          <div className="bg-white flex flex-col items-center w-full rounded-lg transition-all duration-300 ease-in-out hover:shadow-lg">
-            {products.length > 10 && (
-              <div className="min-w-[180px] flex items-center justify-center cursor-pointer">
-                <span className="flex items-center justify-center gap-2 p-2 text-foreground">
-                  مشاهده بیشتر
-                </span>
-                <IconArrowLeft size={20} className="text-foreground" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="relative flex-2 h-[360px] pr-4 border-r-2">
-          {/* Scroll Buttons */}
-          {!atStart && (
-            <button
-              onClick={() => scroll("right")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10"
-            >
-              <ChevronRight />
-            </button>
+    <div className={`relative w-full rounded-xl overflow-hidden ${s.wrapper}`}>
+      {/* Header */}
+      <div className={`flex items-center justify-between px-6 py-4 border-b ${s.divider} ${s.headerBg}`}>
+        <div className="flex items-center gap-2">
+          {wonderful && (
+            <IconFlameFilled size={22} className="text-orange-500" />
           )}
-
-          <div
-            ref={scrollRef}
-            className="flex h-full gap-4 overflow-x-auto overflow-y-hidden scroll-smooth no-scrollbar"
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
+          <h3 className={`text-lg font-bold ${s.header}`}>{title}</h3>
+        </div>
+        {viewMoreLink && !showSkeletons && (
+          <Link
+            to={viewMoreLink}
+            className={`flex items-center gap-1 text-sm font-medium transition-colors duration-200 ${s.viewMore}`}
           >
-            {loading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <ProductCardSkeleton key={i} />
-                ))
-              : latestArrivals?.slice(0, 10).map((p: any) => (
-                  <Link
-                    key={p.id}
-                    to={`/product/${encodeURIComponent(p.categoryFullSlug)}/${encodeURIComponent(p.slug)}`}
-                  >
-                    <ProductCard
-                      productData={p}
-                      onAddToCart={(id) => console.log(`Added product ${id} to cart`)}
-                    />
-                  </Link>
-                ))}
-          </div>
+            مشاهده همه
+            <IconArrowLeft size={16} />
+          </Link>
+        )}
+      </div>
 
+      {/* Carousel */}
+      <div className="relative px-4 py-4">
+        {!atEnd && !showSkeletons && (
+          <button
+            onClick={() => scroll("left")}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full shadow-sm transition-all duration-200 ${s.arrowBtn}`}
+          >
+            <ChevronLeft size={20} />
+          </button>
+        )}
 
-          {!atEnd && (
-            <button
-              onClick={() => scroll("left")}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10"
-            >
-              <ChevronLeft />
-            </button>
-          )}
+        <div
+          ref={scrollRef}
+          dir="rtl"
+          className="flex gap-4 overflow-x-auto overflow-y-hidden scroll-smooth no-scrollbar cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+        >
+          {showSkeletons
+            ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))
+            : products.map((p: any) => (
+                <Link
+                  key={p.id}
+                  to={`/product/${encodeURIComponent(p.categoryFullSlug)}/${encodeURIComponent(p.slug)}`}
+                  className="flex-shrink-0"
+                >
+                  <ProductCard
+                    productData={p}
+                    onAddToCart={(id) => console.log(`Added product ${id} to cart`)}
+                  />
+                </Link>
+              ))}
         </div>
+
+        {!atStart && !showSkeletons && (
+          <button
+            onClick={() => scroll("right")}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full shadow-sm transition-all duration-200 ${s.arrowBtn}`}
+          >
+            <ChevronRight size={20} />
+          </button>
+        )}
       </div>
     </div>
   );
