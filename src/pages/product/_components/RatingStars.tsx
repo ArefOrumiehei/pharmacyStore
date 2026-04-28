@@ -11,17 +11,17 @@ export default function RatingStars({ rate, setRate }: RatingStarsProps) {
     const active = hovered || rate;
 
     return (
-        <div className="flex flex-row-reverse justify-start gap-2 mb-4">
+        <div className="flex flex-row-reverse justify-start gap-1.5">
             {Array.from({ length: 5 }, (_, i) => {
                 const value = 5 - i;
                 return (
                     <IconStar
                         key={value}
-                        size={24}
-                        className={`cursor-pointer transition-colors duration-100 ${
+                        size={26}
+                        className={`cursor-pointer transition-all duration-100 ${
                             value <= active
-                                ? "text-amber-400 fill-amber-400"
-                                : "text-gray-300 fill-gray-300"
+                                ? "text-amber-400 fill-amber-400 scale-110"
+                                : "text-gray-200 fill-gray-200 hover:text-amber-300 hover:fill-amber-300"
                         }`}
                         onClick={() => setRate(value)}
                         onMouseEnter={() => setHovered(value)}
