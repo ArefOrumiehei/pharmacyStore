@@ -1,45 +1,54 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useProductCategoriesStore, type ProductCategory } from "@/store/useProductCategoriesStore";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router";
+
+const SKELETON_COUNT = 16;
+
+function CategorySkeleton() {
+  return (
+    <div className="flex items-center justify-center flex-col gap-3 flex-shrink-0 w-28">
+      <Skeleton className="w-20 h-20 rounded-2xl" />
+      <Skeleton className="h-4 w-20 rounded-md" />
+    </div>
+  );
+}
 
 function Categories() {
-  const {fetchAllProductCategories, categories} = useProductCategoriesStore()
+  const { fetchAllProductCategories, categories, loading } = useProductCategoriesStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const dragState = useRef({ isDown: false, startX: 0, scrollStart: 0 });
 
   const checkScrollPosition = () => {
     const slider = scrollRef.current;
     if (!slider) return;
     const { scrollLeft, scrollWidth, clientWidth } = slider;
-
     const maxScroll = scrollWidth - clientWidth;
-
-    setAtStart(scrollLeft >= 0);
-    setAtEnd(Math.abs(scrollLeft) >= maxScroll - 1); 
+    setAtStart(scrollLeft >= -2);
+    setAtEnd(Math.abs(scrollLeft) >= maxScroll - 2);
   };
+
+  useEffect(() => {
+    fetchAllProductCategories();
+  }, []);
 
   useEffect(() => {
     const slider = scrollRef.current;
     if (!slider) return;
-
+    checkScrollPosition();
     slider.addEventListener("scroll", checkScrollPosition);
-    checkScrollPosition()
-
     return () => slider.removeEventListener("scroll", checkScrollPosition);
-  }, []);
-
-  useEffect(() => {
-    fetchAllProductCategories()
-  }, [])
+  }, [categories]);
 
   const scrollBy = (direction: "left" | "right") => {
     const slider = scrollRef.current;
     if (!slider) return;
-    const itemWidth = 160;
     slider.scrollBy({
-      left: direction === "left" ? -itemWidth : itemWidth,
+      left: direction === "left" ? 160 : -160,
       behavior: "smooth",
     });
   };
@@ -47,57 +56,101 @@ function Categories() {
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const slider = scrollRef.current;
     if (!slider) return;
-
-    slider.dataset.isDown = "true";
-    slider.dataset.startX = String(e.pageX - slider.offsetLeft);
-    slider.dataset.scrollLeftStart = String(slider.scrollLeft);
+    dragState.current = {
+      isDown: true,
+      startX: e.pageX - slider.offsetLeft,
+      scrollStart: slider.scrollLeft,
+    };
   };
-
-  const handleMouseLeave = () => {
-    const slider = scrollRef.current;
-    if (slider) slider.dataset.isDown = "false";
-  };
-
-  const handleMouseUp = () => {
-    const slider = scrollRef.current;
-    if (slider) slider.dataset.isDown = "false";
-  };
-
+  const handleMouseLeave = () => { dragState.current.isDown = false; };
+  const handleMouseUp = () => { dragState.current.isDown = false; };
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const slider = scrollRef.current;
-    if (!slider || slider.dataset.isDown !== "true") return;
-
+    if (!slider || !dragState.current.isDown) return;
     e.preventDefault();
-    const startX = Number(slider.dataset.startX || 0);
-    const scrollLeftStart = Number(slider.dataset.scrollLeftStart || 0);
     const x = e.pageX - slider.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    slider.scrollLeft = scrollLeftStart - walk;
+    const walk = (x - dragState.current.startX) * 1.5;
+    slider.scrollLeft = dragState.current.scrollStart - walk;
   };
 
-  if (!categories || categories.length === 0) return null;
+  const showSkeletons = loading || !categories || categories.length === 0;
 
   return (
-    <div className="flex items-center justify-center flex-col gap-6 my-12 select-none relative">
-      <h2 className="text-2xl font-iranYekanBold">خرید براساس دسته‌بندی</h2>
+    <div className="flex flex-col items-center gap-6 select-none w-full">
+      {/* Header */}
+      <div className="flex items-center justify-between w-full px-2">
+        <h2 className="text-xl font-bold text-blue-800">خرید براساس دسته‌بندی</h2>
+        {!showSkeletons && (
+          <Link
+            to="/categories"
+            className="flex items-center gap-1 text-sm font-medium text-blue-800 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-all duration-200"
+          >
+            مشاهده همه
+            <ChevronLeft className="w-4 h-4" />
+          </Link>
+        )}
+      </div>
 
-      {!atStart && categories?.length > 6 && <ChevronRight onClick={() => scrollBy("right")} className="absolute right-2 top-70 -translate-y-1/2 z-10 rounded-full border shadow bg-white text-neutral-400 cursor-pointer w-8 h-8" />}
-      {!atEnd && categories?.length > 6 && <ChevronLeft onClick={() => scrollBy("left")} className="absolute left-2 top-70 -translate-y-1/2 z-10 rounded-full border shadow bg-white text-neutral-400 cursor-pointer w-8 h-8" />}
+      {/* Carousel wrapper */}
+      <div className="relative w-full">
+        {/* Right arrow */}
+        {!atStart && !showSkeletons && (
+          <button
+            onClick={() => scrollBy("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-blue-100 hover:bg-blue-50 text-blue-800 shadow-sm rounded-full p-1.5 transition-all duration-200"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
 
-      <div
-        ref={scrollRef}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeave}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        className={`flex items-center justify-center w-full gap-12 p-4`}
-      >
-        {categories?.map((catg: ProductCategory) => (
-          <div key={catg.id} className="flex items-center justify-center flex-col gap-2 w-32 h-32 p-4 border rounded-3xl shadow-sm cursor-pointer transition-all duration-200 hover:shadow-lg">
-            <div className="flex items-center justify-center bg-gray-400 rounded-sm w-16 h-16 flex-shrink-0" />
-            <h3>{catg.name}</h3>
-          </div>
-        ))}
+        <div
+          ref={scrollRef}
+          dir="rtl"
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          className="flex items-start gap-6 overflow-x-auto no-scrollbar scroll-smooth px-6 py-2 cursor-grab active:cursor-grabbing"
+        >
+          {showSkeletons
+            ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <CategorySkeleton key={i} />
+              ))
+            : categories.map((catg: ProductCategory) => (
+                <Link
+                  key={catg.id}
+                  to={`/category/${catg.slug ?? catg.id}`}
+                  className="flex flex-col items-center gap-3 flex-shrink-0 w-28 group"
+                >
+                  {/* Icon box */}
+                  <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden group-hover:bg-blue-800 group-hover:border-blue-800 group-hover:shadow-lg transition-all duration-300">
+                    {catg.picture ? (
+                      <img
+                        src={`https://kj686klc-5000.euw.devtunnels.ms/pictures/${catg.picture}`}
+                        alt={catg.name}
+                        className="w-12 h-12 object-contain group-hover:brightness-0 group-hover:invert transition-all duration-300"
+                      />
+                    ) : (
+                      <span className="text-2xl">{catg.icon ?? "💊"}</span>
+                    )}
+                  </div>
+                  {/* Name */}
+                  <span className="text-sm font-medium text-gray-600 group-hover:text-blue-800 text-center leading-5 transition-colors duration-200">
+                    {catg.name}
+                  </span>
+                </Link>
+              ))}
+        </div>
+
+        {/* Left arrow */}
+        {!atEnd && !showSkeletons && (
+          <button
+            onClick={() => scrollBy("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-blue-100 hover:bg-blue-50 text-blue-800 shadow-sm rounded-full p-1.5 transition-all duration-200"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );

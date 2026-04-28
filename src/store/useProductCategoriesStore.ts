@@ -3,6 +3,7 @@ import { create } from "zustand";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ProductCategory {
+  icon: string;
   id: number;
   name: string;
   picture: string | null;
