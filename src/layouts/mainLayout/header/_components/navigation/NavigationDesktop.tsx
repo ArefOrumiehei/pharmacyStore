@@ -1,4 +1,3 @@
-import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router";
 import MegaMenu from "../mega_menu/MegaMenu";
 
@@ -14,7 +13,7 @@ function NavigationDesktop() {
 
         <MegaMenu />
 
-        <Separator orientation="vertical" className="bg-gray-500/60 h-6 mx-3" />
+        <div className="w-px h-6 bg-white/50 mx-3"></div>
 
         <ul className="flex items-center gap-1">
           {navLinks.map(({ to, label }) => (
