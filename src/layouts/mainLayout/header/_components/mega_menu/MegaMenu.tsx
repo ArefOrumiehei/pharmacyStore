@@ -58,7 +58,7 @@ function MegaMenu() {
         setActiveIndex(0);
       }}
     >
-      <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-800 font-medium hover:bg-white/40 transition-all duration-200">
+      <button className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200">
         <span>دسته‌بندی‌ها</span>
         <span
           className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}

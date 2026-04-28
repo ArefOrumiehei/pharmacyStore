@@ -9,7 +9,7 @@ const navLinks = [
 
 function NavigationDesktop() {
   return (
-    <nav className="sticky top-0 left-0 z-40 w-full px-12 rounded-b-xl bg-indigo-400/70 backdrop-blur-md text-black transition-transform duration-300">
+    <nav className="sticky top-0 left-0 z-40 w-full px-12 rounded-b-lg bg-blue-800 backdrop-blur-md text-white/90 transition-transform duration-300">
       <div className="hidden md:flex items-center py-2 gap-1">
 
         <MegaMenu />
@@ -21,7 +21,7 @@ function NavigationDesktop() {
             <li key={to}>
               <Link
                 to={to}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-800 hover:bg-white/40 hover:text-indigo-700 transition-all duration-200"
+                className="px-4 py-2 rounded-lg text-sm font-medium hover:text-white transition-all duration-200"
               >
                 {label}
               </Link>

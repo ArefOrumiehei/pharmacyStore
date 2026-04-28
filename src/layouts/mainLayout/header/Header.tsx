@@ -12,17 +12,14 @@ import { useUserStore } from "@/store/useAccountStore";
 import NavigationDesktop from "./_components/navigation/NavigationDesktop";
 import SearchBox from "./_components/search_box/SearchBox";
 
-// ─────────────────────────────────────────────
 // Sub-components
-// ─────────────────────────────────────────────
-
 function UserSection() {
     const { user } = useUserStore();
 
     if (user?.id) {
         return (
             <Link to="/profile">
-                <div className="bg-white border rounded-xl p-2 hover:bg-white/70 transition-all duration-200 cursor-pointer">
+                <div className="bg-white border border-blue-200 rounded-xl p-2 hover:bg-white/70 transition-all duration-200 cursor-pointer">
                     <IconUser size={22} color="#000" />
                 </div>
             </Link>
@@ -30,17 +27,17 @@ function UserSection() {
     }
 
     return (
-        <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-2 cursor-pointer select-none hover:bg-white/70 transition-all duration-200">
+        <div className="flex items-center gap-2 bg-white border border-blue-200 rounded-xl px-4 py-2 cursor-pointer select-none hover:bg-blue-50 hover:border-blue-300 transition-all duration-200">
             <Link
                 to="/login"
-                className="text-sm text-neutral-700 hover:text-indigo-600 transition-colors"
+                className="text-sm text-blue-800 hover:text-blue-600 transition-colors"
             >
                 ورود
             </Link>
-            <span className="text-neutral-300">|</span>
+            <span className="text-blue-200">|</span>
             <Link
                 to="/signup"
-                className="text-sm text-neutral-700 hover:text-indigo-600 transition-colors"
+                className="text-sm text-blue-800 hover:text-blue-600 transition-colors"
             >
                 ثبت‌نام
             </Link>
@@ -52,29 +49,27 @@ function UserSection() {
 function CartButton() {
     return (
         <Link to="/cart">
-            <div className="bg-white border rounded-xl p-2 hover:bg-white/70 transition-all duration-200 cursor-pointer">
-                <IconShoppingCart size={22} color="#000" />
+            <div className="bg-white border border-blue-200 rounded-xl p-2 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200 cursor-pointer">
+                <IconShoppingCart size={22} color="#1e40af " />
             </div>
         </Link>
     );
 }
 
-// ─────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────
 
+// Main Component
 function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
-        <header className="sticky top-0 z-50 w-full backdrop-blur-3xl rounded-b-xl">
+        <header className="sticky top-0 z-50 w-full backdrop-blur-3xl">
             {/* ── Top Bar ── */}
-            <div className="bg-sky-400/70 rounded-t-xl">
+            <div className="bg-white border-b border-blue-100 ">
                 <div className="w-full mx-auto flex items-center justify-between h-20 px-6 md:px-12 gap-4">
                     {/* Logo + Search */}
                     <div className="flex items-center gap-6 flex-1 min-w-0">
                         <Link to="/" className="flex-shrink-0">
-                            <h1 className="text-2xl font-bold tracking-tight text-black">
+                            <h1 className="text-2xl font-bold tracking-tight text-blue-800">
                                 فارماپلاس
                             </h1>
                         </Link>
@@ -91,7 +86,7 @@ function Header() {
 
                     {/* Mobile Toggle */}
                     <button
-                        className="md:hidden flex items-center justify-center p-2 rounded-xl hover:bg-white/30 transition-all duration-200"
+                        className="md:hidden flex items-center justify-center p-2 rounded-xl hover:bg-blue-50 transition-all duration-200"
                         onClick={() => setMobileMenuOpen((prev) => !prev)}
                         aria-label={
                             mobileMenuOpen ? "بستن منو" : "باز کردن منو"
