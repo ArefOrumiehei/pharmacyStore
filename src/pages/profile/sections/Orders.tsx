@@ -11,7 +11,6 @@ import {
   IconChevronUp,
   IconDownload,
 } from "@tabler/icons-react";
-import { useOrderStore } from "@/store/useOrderStore";
 
 const formatPrice = (price: string | number) =>
   new Intl.NumberFormat("fa-IR").format(Number(price));
@@ -44,10 +43,10 @@ export default function Orders() {
   const [filterStatus, setFilterStatus] = useState<string>("همه");
 
   // Try to use store, fall back to mock
-  let orders = MOCK_ORDERS;
+  const orders = MOCK_ORDERS;
   try {
-    const store = useOrderStore();
-    if (store?.orders?.length) orders = store.orders;
+    // const store = useOrderStore();
+    // if (store?.orders?.length) orders = store.orders;
   } catch { /* store not available */ }
 
   const statuses = ["همه", ...Array.from(new Set(orders.map((o) => o.status)))];
