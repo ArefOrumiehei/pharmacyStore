@@ -1,70 +1,178 @@
-"use client";
-
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
+import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock } from "@tabler/icons-react";
 
 const loginSchema = z.object({
-  // email: z.string().email({ message: "ایمیل معتبر وارد کنید" }),
   username: z.string().min(2, "نام کاربری الزامی است"),
-  password: z.string(),
+  password: z.string().min(1, "رمز عبور الزامی است"),
   rememberMe: z.boolean(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const {login} = useAuthStore()
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
+  const { login } = useAuthStore();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: { rememberMe: false },
   });
 
-  const navigate = useNavigate()
-
   const onSubmit = async (data: LoginFormValues) => {
-    const res = await login({
-      username: data.username,
-      password: data.password,
-      rememberMe: data.rememberMe,
-    })
-
-    if (res) navigate("/")
+    setServerError("");
+    setIsLoading(true);
+    try {
+      const res = await login({
+        username: data.username,
+        password: data.password,
+        rememberMe: data.rememberMe,
+      });
+      if (res) {
+        navigate("/");
+      } else {
+        setServerError("نام کاربری یا رمز عبور اشتباه است");
+      }
+    } catch {
+      setServerError("خطایی رخ داده است. لطفاً دوباره تلاش کنید");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-2xl shadow-lg">
-      <h1 className="text-3xl font-bold mb-6 text-center">ورود</h1>
+    <>
+      {/* Header */}
+      <div className="text-center mb-7">
+        <h1 className="text-2xl font-bold text-blue-800">خوش برگشتید!</h1>
+        <p className="text-sm text-gray-400 mt-1">برای ورود اطلاعات خود را وارد کنید</p>
+      </div>
+
+      {/* Server error */}
+      {serverError && (
+        <div className="bg-rose-50 border border-rose-100 text-rose-600 text-sm rounded-xl px-4 py-3 mb-4 text-center">
+          {serverError}
+        </div>
+      )}
+
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-        {/* <div>
-          <Input placeholder="ایمیل" {...register("email")} />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
-        </div> */}
-        <div>
-          <Input placeholder="نام کاربری" {...register("username")} />
-          {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>}
+        {/* Username */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-gray-600">نام کاربری</label>
+          <div className="relative">
+            <input
+              {...register("username")}
+              placeholder="نام کاربری خود را وارد کنید"
+              className={`w-full border rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
+                errors.username
+                  ? "border-rose-200 bg-rose-50/30"
+                  : "border-blue-100 bg-blue-50/30"
+              }`}
+            />
+            <IconUser
+              size={16}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+          </div>
+          {errors.username && (
+            <p className="text-rose-500 text-xs mt-0.5">{errors.username.message}</p>
+          )}
         </div>
-        <div>
-          <Input type="password" placeholder="رمز عبور" {...register("password")} />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+
+        {/* Password */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-gray-600">رمز عبور</label>
+            <a href="#" className="text-xs text-blue-800 hover:text-blue-600 transition-colors">
+              فراموشی رمز عبور؟
+            </a>
+          </div>
+          <div className="relative">
+            <input
+              {...register("password")}
+              type={showPassword ? "text" : "password"}
+              placeholder="رمز عبور خود را وارد کنید"
+              className={`w-full border rounded-xl px-3 py-2.5 pr-10 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
+                errors.password
+                  ? "border-rose-200 bg-rose-50/30"
+                  : "border-blue-100 bg-blue-50/30"
+              }`}
+            />
+            <IconLock
+              size={16}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+            </button>
+          </div>
+          {errors.password && (
+            <p className="text-rose-500 text-xs mt-0.5">{errors.password.message}</p>
+          )}
         </div>
+
+        {/* Remember me */}
         <div className="flex items-center gap-2">
-          <input type="checkbox" id="remember-me" {...register("rememberMe")} />
-          <label htmlFor="remember-me">مرا به خاطر بسپار</label>
+          <input
+            type="checkbox"
+            id="remember-me"
+            {...register("rememberMe")}
+            className="w-4 h-4 rounded border-blue-200 accent-blue-800 cursor-pointer"
+          />
+          <label
+            htmlFor="remember-me"
+            className="text-sm text-gray-500 cursor-pointer select-none"
+          >
+            مرا به خاطر بسپار
+          </label>
         </div>
-        <Button type="submit" className="mt-4 w-full">ورود</Button>
-      </form>
-      <p className="text-sm text-gray-600 mt-4 text-center">
-        حساب ندارید؟{" "}
-        <Link to={"/signup"}
-          className="text-blue-500 hover:underline cursor-pointer"
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-800 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 text-white font-semibold text-sm transition-all duration-150 shadow-sm shadow-blue-100 mt-2"
         >
-          ثبت نام
+          {isLoading ? (
+            <IconLoader2 size={18} className="animate-spin" />
+          ) : (
+            "ورود به حساب"
+          )}
+        </button>
+      </form>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3 my-5">
+        <div className="flex-1 h-px bg-blue-50" />
+        <span className="text-xs text-gray-400">یا</span>
+        <div className="flex-1 h-px bg-blue-50" />
+      </div>
+
+      {/* Signup link */}
+      <p className="text-sm text-gray-500 text-center">
+        حساب کاربری ندارید؟{" "}
+        <Link
+          to="/signup"
+          className="text-blue-800 font-semibold hover:text-blue-600 transition-colors"
+        >
+          ثبت‌نام کنید
         </Link>
       </p>
-    </div>
+    </>
   );
 }
