@@ -26,7 +26,7 @@ function Footer() {
                                     </a>
                                 </li>
                                 <li className="bg-blue-50 border border-blue-100 p-2 rounded-2xl hover:bg-blue-100 transition-all duration-200">
-                                    <a href="https://telegram.me">
+                                    <a href="https://linkedin.com">
                                         <IconBrandLinkedin className="text-blue-800" />
                                     </a>
                                 </li>
@@ -57,48 +57,29 @@ function Footer() {
                     </h3>
                     <ul className="space-y-4">
                         <li>
-                            <Link
-                                to="/"
-                                className="text-gray-600 hover:text-blue-800 transition"
-                            >
-                                خانه
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                to="/aboutus"
-                                className="text-gray-600 hover:text-blue-800 transition"
-                            >
+                            <Link to="/aboutus" className="text-gray-600 hover:text-blue-800 transition">
                                 درباره ما
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                to="/contactus"
-                                className="text-gray-600 hover:text-blue-800 transition"
-                            >
+                            <Link to="/contactus" className="text-gray-600 hover:text-blue-800 transition">
                                 تماس با ما
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                to="/faq"
-                                className="text-gray-600 hover:text-blue-800 transition"
-                            >
+                            <Link to="/faq" className="text-gray-600 hover:text-blue-800 transition">
                                 سوالات متداول
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                to="/terms"
-                                className="text-gray-600 hover:text-blue-800 transition"
-                            >
+                            <Link to="/terms" className="text-gray-600 hover:text-blue-800 transition">
                                 قوانین و مقررات
                             </Link>
                         </li>
                     </ul>
                 </div>
 
+                {/* ── Customer service — links now point to specific FAQ items ── */}
                 <div className="flex-1 min-w-[120px]">
                     <h3 className="text-lg font-semibold mb-4 text-blue-800">
                         خدمات مشتریان
@@ -106,15 +87,7 @@ function Footer() {
                     <ul className="space-y-4">
                         <li>
                             <Link
-                                to="/"
-                                className="text-gray-600 hover:text-blue-800 transition"
-                            >
-                                نحوه ثبت سفارش
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                to="/aboutus"
+                                to="/faq?q=q7"
                                 className="text-gray-600 hover:text-blue-800 transition"
                             >
                                 پیگیری سفارش
@@ -122,7 +95,15 @@ function Footer() {
                         </li>
                         <li>
                             <Link
-                                to="/faq"
+                                to="/faq?q=q4"
+                                className="text-gray-600 hover:text-blue-800 transition"
+                            >
+                                مدت زمان ارسال
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                to="/faq?q=q5"
                                 className="text-gray-600 hover:text-blue-800 transition"
                             >
                                 شرایط بازگشت کالا
@@ -130,10 +111,10 @@ function Footer() {
                         </li>
                         <li>
                             <Link
-                                to="/faq"
+                                to="/faq?q=q6"
                                 className="text-gray-600 hover:text-blue-800 transition"
                             >
-                                نحوه ارسال مرسولات
+                                خرید با نسخه پزشکی
                             </Link>
                         </li>
                     </ul>
@@ -147,9 +128,7 @@ function Footer() {
                     <Separator className="bg-blue-100" />
                     <div className="flex items-center gap-2">
                         <IconMail className="flex-shrink-0 text-blue-800" />
-                        <span className="text-gray-600">
-                            support@pharmacy.com
-                        </span>
+                        <span className="text-gray-600">support@pharmacy.com</span>
                     </div>
                     <Separator className="bg-blue-100" />
                     <div className="flex items-center gap-2">
@@ -163,9 +142,7 @@ function Footer() {
 
             <div className="bg-blue-800 text-white text-center py-4 text-sm">
                 ساخته شده با 💗 در{" "}
-                {new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(
-                    new Date()
-                )}
+                {new Intl.DateTimeFormat("fa-IR", { year: "numeric" }).format(new Date())}
             </div>
         </footer>
     );

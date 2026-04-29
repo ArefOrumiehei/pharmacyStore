@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import {
     Accordion,
     AccordionContent,
@@ -60,6 +62,32 @@ const FAQ_ITEMS = [
 ];
 
 export default function FAQ() {
+    const [searchParams] = useSearchParams();
+    const targetValue = searchParams.get("q");
+
+    // Open the targeted item (or first item by default)
+    const [openItem, setOpenItem] = useState<string>(targetValue ?? "");
+
+    // Refs for each accordion item so we can scroll to them
+    const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+    useEffect(() => {
+        if (!targetValue) return;
+
+        // Set the item open
+        setOpenItem(targetValue);
+
+        // Scroll to it after a short delay to let the accordion open first
+        const timer = setTimeout(() => {
+            const el = itemRefs.current[targetValue];
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }, 150);
+
+        return () => clearTimeout(timer);
+    }, [targetValue]);
+
     return (
         <div className="container mx-auto max-w-3xl px-4 py-12" dir="rtl">
             {/* Header */}
@@ -67,9 +95,7 @@ export default function FAQ() {
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto">
                     <IconHelpCircle size={28} className="text-blue-800" />
                 </div>
-                <h1 className="text-3xl font-bold text-blue-800">
-                    سوالات متداول
-                </h1>
+                <h1 className="text-3xl font-bold text-blue-800">سوالات متداول</h1>
                 <p className="text-gray-400 text-sm">
                     پاسخ سوالات رایج درباره خدمات فارماپلاس
                 </p>
@@ -77,7 +103,13 @@ export default function FAQ() {
 
             {/* Accordion */}
             <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full"
+                    value={openItem}
+                    onValueChange={setOpenItem}
+                >
                     {FAQ_ITEMS.map((item, index) => (
                         <AccordionItem
                             key={item.value}
@@ -87,8 +119,17 @@ export default function FAQ() {
                                     ? "border-b border-blue-50"
                                     : "border-none"
                             }
+                            ref={(el) => {
+                                itemRefs.current[item.value] = el;
+                            }}
                         >
-                            <AccordionTrigger className="px-6 py-4 text-sm font-semibold text-gray-700 hover:text-blue-800 hover:no-underline hover:bg-blue-50/50 transition-colors duration-150 text-right">
+                            <AccordionTrigger
+                                className={`px-6 py-4 text-sm font-semibold hover:no-underline transition-colors duration-150 text-right ${
+                                    openItem === item.value
+                                        ? "text-blue-800 bg-blue-50/70"
+                                        : "text-gray-700 hover:text-blue-800 hover:bg-blue-50/50"
+                                }`}
+                            >
                                 {item.question}
                             </AccordionTrigger>
                             <AccordionContent className="px-6 pb-4 text-sm text-gray-500 leading-7">
