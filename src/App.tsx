@@ -9,7 +9,6 @@ import Login from './pages/auth/login/Login'
 import SignUp from './pages/auth/signup/Signup'
 import AuthLayout from './layouts/authLayout/AuthLayout'
 import ProductPage from './pages/product/ProductPage'
-import ProductList from './pages/product-list/ProductList'
 import Cart from './pages/cart/Cart'
 import Checkout from './pages/checkout/Checkout'
 import OrderStatus from './pages/checkout/orderStatus/OrderStatus'
@@ -23,6 +22,7 @@ import Addresses from './pages/profile/sections/Addresses'
 import Notifications from './pages/profile/sections/Notifications'
 import Settings from './pages/profile/sections/Settings'
 import Overview from './pages/profile/sections/Overview'
+import ProductListPage from './pages/product-list/ProductListPage'
 
 function App() {
   return (
@@ -39,7 +39,7 @@ function App() {
           <Route path='aboutus' element={<AboutUs />} />
           <Route path='contactus' element={<ContactUs />} />
           <Route path='faq' element={<FAQ />} />
-          <Route path='plp' element={<ProductList />} />
+          <Route path='plp' element={<ProductListPage />} />
           <Route path='product/:catgSlug/:pSlug' element={<ProductPage />} />
           <Route path='cart' element={<Cart />} />
           <Route path='checkout' element={<Checkout />} />
