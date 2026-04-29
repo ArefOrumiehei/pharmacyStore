@@ -1,6 +1,7 @@
 import { useOrderStore } from "@/store/useOrderStore";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { IconLoader2, IconCheck, IconX, IconDownload, IconHome, IconReceipt } from "@tabler/icons-react";
 
 type PaymentStatus = "success" | "failure" | "loading";
 
@@ -8,7 +9,6 @@ interface VerifyResponse {
   success: boolean;
 }
 
-/* ---------------- HOOK ---------------- */
 function usePaymentVerification() {
   const { verifyPayment } = useOrderStore();
   const [status, setStatus] = useState<PaymentStatus>("loading");
@@ -41,7 +41,7 @@ function usePaymentVerification() {
           setMessage(rawTrackId);
         } else {
           setStatus("failure");
-          setMessage(rawOrderId);
+          setMessage("پرداخت تأیید نشد. در صورت کسر وجه، ظرف ۷۲ ساعت بازگشت داده می‌شود.");
         }
       })
       .catch(() => {
@@ -53,7 +53,6 @@ function usePaymentVerification() {
   return { status, message, orderId };
 }
 
-/* ---------------- COMPONENT ---------------- */
 export default function OrderStatus() {
   const { downloadInvoice } = useOrderStore();
   const navigate = useNavigate();
@@ -65,29 +64,7 @@ export default function OrderStatus() {
   };
 
   return (
-    <div className="min-h-[60vh] w-full flex items-center justify-center p-4" dir="rtl">
-      {/* Ambient background blobs */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div
-          className={`absolute -top-40 -right-40 h-[600px] rounded-full blur-3xl opacity-20 transition-colors duration-1000 ${
-            status === "success"
-              ? "bg-emerald-400"
-              : status === "failure"
-              ? "bg-rose-400"
-              : "bg-sky-400"
-          }`}
-        />
-        <div
-          className={`absolute -bottom-40 -left-40 h-[500px] rounded-full blur-3xl opacity-15 transition-colors duration-1000 ${
-            status === "success"
-              ? "bg-teal-300"
-              : status === "failure"
-              ? "bg-orange-300"
-              : "bg-blue-300"
-          }`}
-        />
-      </div>
-
+    <div className="min-h-[70vh] w-full flex items-center justify-center p-4" dir="rtl">
       <div className="w-full max-w-sm">
         {status === "loading" && <LoadingCard />}
         {status === "success" && (
@@ -98,27 +75,31 @@ export default function OrderStatus() {
           />
         )}
         {status === "failure" && (
-          <FailureCard message={message} onHome={() => navigate("/")} />
+          <FailureCard
+            message={message}
+            onHome={() => navigate("/")}
+            onRetry={() => navigate("/cart")}
+          />
         )}
       </div>
     </div>
   );
 }
 
-/* ---------------- SUB-COMPONENTS ---------------- */
+/* ── Loading ── */
 function LoadingCard() {
   return (
-    <div className="rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl p-8 text-center">
-      <div className="flex justify-center mb-5">
-        <div className="w-14 h-14 rounded-full border-4 border-sky-200 border-t-sky-500 animate-spin" />
+    <div className="bg-white border border-blue-100 rounded-2xl p-10 text-center shadow-sm">
+      <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-5">
+        <IconLoader2 size={28} className="text-blue-800 animate-spin" />
       </div>
-      <p className="text-gray-600 text-base font-medium">
-        در حال بررسی وضعیت پرداخت...
-      </p>
+      <p className="text-gray-700 text-base font-semibold">در حال بررسی پرداخت</p>
+      <p className="text-gray-400 text-sm mt-1">لطفاً صبر کنید...</p>
     </div>
   );
 }
 
+/* ── Success ── */
 function SuccessCard({
   trackId,
   onDownload,
@@ -129,23 +110,26 @@ function SuccessCard({
   onHome: () => void;
 }) {
   return (
-    <div className="rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 border-t-5 border-t-emerald-400 shadow-2xl overflow-hidden">
+    <div className="bg-white border border-green-100 rounded-2xl overflow-hidden shadow-sm">
+      {/* Top accent */}
+      <div className="h-1.5 bg-green-500 w-full" />
 
       <div className="p-8 text-center">
-        <div className="flex justify-center mb-5">
-          <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-100 flex items-center justify-center">
-            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
+        {/* Icon */}
+        <div className="w-16 h-16 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center mx-auto mb-5">
+          <IconCheck size={28} className="text-green-600" strokeWidth={2.5} />
         </div>
 
-        <h2 className="text-xl font-bold text-gray-800 mb-1">پرداخت موفقیت‌آمیز بود</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-1">پرداخت موفق!</h2>
         <p className="text-gray-400 text-sm mb-6">سفارش شما با موفقیت ثبت شد</p>
 
-        <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-6">
-          <p className="text-xs text-emerald-600 mb-1">کد پیگیری</p>
-          <p className="text-sm font-mono font-semibold text-emerald-800 tracking-wider">
+        {/* Track ID */}
+        <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-3 mb-6 text-right">
+          <div className="flex items-center gap-2 mb-1">
+            <IconReceipt size={14} className="text-green-600" />
+            <p className="text-xs text-green-600 font-medium">کد پیگیری</p>
+          </div>
+          <p className="text-sm font-mono font-bold text-green-800 tracking-wider">
             {trackId}
           </p>
         </div>
@@ -153,17 +137,16 @@ function SuccessCard({
         <div className="flex flex-col gap-2.5">
           <button
             onClick={onDownload}
-            className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white py-2.5 text-sm font-medium transition-all duration-150 flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-800 hover:bg-blue-700 active:scale-95 text-white py-3 text-sm font-semibold transition-all duration-150 shadow-sm shadow-blue-100"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+            <IconDownload size={16} />
             دانلود فاکتور
           </button>
           <button
             onClick={onHome}
-            className="w-full rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-600 py-2.5 text-sm font-medium transition-all duration-150"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-100 active:scale-95 text-blue-800 py-3 text-sm font-semibold transition-all duration-150"
           >
+            <IconHome size={16} />
             بازگشت به صفحه اصلی
           </button>
         </div>
@@ -172,38 +155,50 @@ function SuccessCard({
   );
 }
 
+/* ── Failure ── */
 function FailureCard({
   message,
   onHome,
+  onRetry,
 }: {
   message: string;
   onHome: () => void;
+  onRetry: () => void;
 }) {
   return (
-    <div className="rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 border-t-5 border-t-rose-400 shadow-2xl overflow-hidden">
+    <div className="bg-white border border-rose-100 rounded-2xl overflow-hidden shadow-sm">
+      {/* Top accent */}
+      <div className="h-1.5 bg-rose-500 w-full" />
 
       <div className="p-8 text-center">
-        <div className="flex justify-center mb-5">
-          <div className="w-16 h-16 rounded-full bg-rose-50 border-2 border-rose-100 flex items-center justify-center">
-            <svg className="w-8 h-8 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </div>
+        {/* Icon */}
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto mb-5">
+          <IconX size={28} className="text-rose-500" strokeWidth={2.5} />
         </div>
 
-        <h2 className="text-xl font-bold text-gray-800 mb-1">پرداخت ناموفق بود</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-1">پرداخت ناموفق</h2>
         <p className="text-gray-400 text-sm mb-6">متأسفانه پرداخت شما تأیید نشد</p>
 
-        <div className="bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 mb-6">
-          <p className="text-sm text-rose-700">{message}</p>
+        {/* Error message */}
+        <div className="bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 mb-6 text-right">
+          <p className="text-sm text-rose-700 leading-6">{message}</p>
         </div>
 
-        <button
-          onClick={onHome}
-          className="w-full rounded-xl bg-gray-800 hover:bg-gray-900 active:scale-95 text-white py-2.5 text-sm font-medium transition-all duration-150"
-        >
-          بازگشت به صفحه اصلی
-        </button>
+        <div className="flex flex-col gap-2.5">
+          <button
+            onClick={onRetry}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-800 hover:bg-blue-700 active:scale-95 text-white py-3 text-sm font-semibold transition-all duration-150 shadow-sm shadow-blue-100"
+          >
+            تلاش مجدد
+          </button>
+          <button
+            onClick={onHome}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-100 active:scale-95 text-blue-800 py-3 text-sm font-semibold transition-all duration-150"
+          >
+            <IconHome size={16} />
+            بازگشت به صفحه اصلی
+          </button>
+        </div>
       </div>
     </div>
   );

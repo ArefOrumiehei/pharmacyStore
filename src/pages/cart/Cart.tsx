@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { Trash2, Minus, Plus, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Trash2, Minus, Plus, ArrowLeft } from "lucide-react";
+import { IconShoppingCart, IconTag } from "@tabler/icons-react";
 import { useCartStore } from "@/store/useCartStore";
+import { Link } from "react-router";
 
-/* ---------------- TYPES ---------------- */
 interface CartItem {
   productId: number;
   productName: string;
@@ -12,11 +13,9 @@ interface CartItem {
 }
 
 const IMAGE_BASE = "https://tk9839fd-5000.euw.devtunnels.ms/pictures/";
-
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("fa-IR").format(price);
 
-/* ---------------- MAIN COMPONENT ---------------- */
 export default function Cart() {
   const { cart, loading, fetchCart, increaseQty, decreaseQty, removeItem } =
     useCartStore();
@@ -27,21 +26,27 @@ export default function Cart() {
 
   const items: CartItem[] = cart?.items ?? [];
   const isEmpty = !loading && items.length === 0;
+  const totalAmount = cart?.totalAmount ?? 0;
 
   return (
-    <div className="w-full min-h-[70vh] flex gap-5 py-6" dir="rtl">
+    <div className="w-full min-h-[70vh] flex flex-col lg:flex-row gap-5 py-6" dir="rtl">
+
       {/* ── Cart Items Panel ── */}
-      <div className="w-2/3 flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/80 overflow-hidden">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
-          <ShoppingCart size={20} className="text-indigo-500" />
-          <h3 className="text-lg font-bold text-gray-800">سبد خرید</h3>
+      <div className="flex-1 flex flex-col bg-white rounded-2xl border border-blue-100 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-blue-50">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+            <IconShoppingCart size={16} className="text-blue-800" />
+          </div>
+          <h3 className="text-base font-bold text-blue-800">سبد خرید</h3>
           {items.length > 0 && !loading && (
-            <span className="mr-auto text-xs font-medium text-gray-400">
+            <span className="mr-auto text-xs font-medium text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
               {items.length} محصول
             </span>
           )}
         </div>
 
+        {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {loading ? (
             <LoadingSkeleton />
@@ -65,12 +70,17 @@ export default function Cart() {
       </div>
 
       {/* ── Summary Panel ── */}
-      <div className="w-1/3 flex flex-col bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/80 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800">خلاصه سفارش</h3>
+      <div className="lg:w-80 flex flex-col bg-white rounded-2xl border border-blue-100 overflow-hidden h-fit">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-blue-50">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+            <IconTag size={16} className="text-blue-800" />
+          </div>
+          <h3 className="text-base font-bold text-blue-800">خلاصه سفارش</h3>
         </div>
 
-        <div className="flex-1 px-6 py-5 space-y-3">
+        {/* Rows */}
+        <div className="px-6 py-5 space-y-3">
           <SummaryRow
             label="تعداد اقلام"
             value={`${formatPrice(items.length)} محصول`}
@@ -78,34 +88,46 @@ export default function Cart() {
           />
           <SummaryRow
             label="جمع کالاها"
-            value={`${(cart?.totalAmount ?? 0)} تومان`}
+            value={`${formatPrice(totalAmount)} تومان`}
             loading={loading}
           />
-          <div className="border-t border-dashed border-gray-200 pt-3 mt-3">
+          <SummaryRow
+            label="هزینه ارسال"
+            value="رایگان"
+            loading={loading}
+            highlight="green"
+          />
+          <div className="border-t border-dashed border-blue-100 pt-3 mt-1">
             <SummaryRow
               label="مبلغ قابل پرداخت"
-              value={`${(cart?.totalAmount ?? 0)} تومان`}
-              bold
+              value={`${formatPrice(totalAmount)} تومان`}
               loading={loading}
+              bold
             />
           </div>
         </div>
 
-        <div className="px-6 py-4">
-          <button
-            disabled={isEmpty || loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 text-white py-3 text-sm font-semibold transition-all duration-150"
-          >
-            <span>ادامه و پرداخت</span>
-            <ArrowLeft size={16} />
-          </button>
+        {/* CTA */}
+        <div className="px-6 pb-6">
+          <Link to="/checkout">
+            <button
+              disabled={isEmpty || loading}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-800 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 text-white py-3 text-sm font-semibold transition-all duration-150 shadow-sm shadow-blue-100"
+            >
+              <span>ادامه و پرداخت</span>
+              <ArrowLeft size={15} />
+            </button>
+          </Link>
+          <p className="text-xs text-gray-400 text-center mt-3">
+            پرداخت امن با درگاه‌های معتبر بانکی
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-/* ---------------- SUB-COMPONENTS ---------------- */
+/* ── CartItemRow ── */
 function CartItemRow({
   item,
   index,
@@ -121,13 +143,13 @@ function CartItemRow({
 }) {
   return (
     <li
-      className="flex items-center gap-4 p-3 rounded-xl bg-white/80 border border-gray-100 hover:border-indigo-100 hover:shadow-sm transition-all duration-200"
+      className="flex items-center gap-4 p-3 rounded-xl bg-white border border-blue-50 hover:border-blue-200 hover:shadow-sm transition-all duration-200"
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <img
         src={`${IMAGE_BASE}${item.picture}`}
         alt={item.productName}
-        className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-gray-100"
+        className="w-16 h-16 rounded-xl object-contain flex-shrink-0 bg-blue-50/50 border border-blue-50 p-1"
         loading="lazy"
       />
 
@@ -136,30 +158,29 @@ function CartItemRow({
           {item.productName}
         </h4>
         <p className="text-xs text-gray-400 mt-0.5">
-          {(item.unitPrice)} تومان
+          {formatPrice(item.unitPrice)} تومان
         </p>
-        <p className="text-xs font-medium text-indigo-500 mt-1">
-          جمع: {(item.unitPrice * item.qty)} تومان
+        <p className="text-xs font-semibold text-blue-800 mt-1">
+          جمع: {formatPrice(item.unitPrice * item.qty)} تومان
         </p>
       </div>
 
-      <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg p-1">
+      {/* Qty controls */}
+      <div className="flex items-center gap-1 bg-blue-50 border border-blue-100 rounded-xl p-1 flex-shrink-0">
         {item.qty === 1 ? (
           <ControlButton onClick={onRemove} danger>
-            <Trash2 size={14} />
+            <Trash2 size={13} />
           </ControlButton>
         ) : (
           <ControlButton onClick={onDecrease}>
-            <Minus size={14} />
+            <Minus size={13} />
           </ControlButton>
         )}
-
-        <span className="min-w-[28px] text-center text-sm font-bold text-gray-700">
+        <span className="min-w-[28px] text-center text-sm font-bold text-blue-800">
           {item.qty}
         </span>
-
         <ControlButton onClick={onIncrease}>
-          <Plus size={14} />
+          <Plus size={13} />
         </ControlButton>
       </div>
     </li>
@@ -178,10 +199,10 @@ function ControlButton({
   return (
     <button
       onClick={onClick}
-      className={`w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150 active:scale-90 ${
+      className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-150 active:scale-90 ${
         danger
           ? "text-rose-500 hover:bg-rose-50"
-          : "text-gray-600 hover:bg-gray-200"
+          : "text-blue-800 hover:bg-blue-100"
       }`}
     >
       {children}
@@ -194,11 +215,13 @@ function SummaryRow({
   value,
   bold,
   loading,
+  highlight,
 }: {
   label: string;
   value: string;
   bold?: boolean;
   loading?: boolean;
+  highlight?: "green";
 }) {
   return (
     <div className="flex justify-between items-center text-sm">
@@ -206,15 +229,15 @@ function SummaryRow({
         {label}
       </span>
       {loading ? (
-        <div
-          className={`bg-gray-200 animate-pulse rounded ${
-            bold ? "h-4 w-28" : "h-3.5 w-20"
-          }`}
-        />
+        <div className={`bg-blue-50 animate-pulse rounded ${bold ? "h-4 w-28" : "h-3.5 w-20"}`} />
       ) : (
         <span
           className={
-            bold ? "font-bold text-indigo-600 text-base" : "text-gray-700"
+            bold
+              ? "font-bold text-blue-800 text-base"
+              : highlight === "green"
+              ? "text-green-600 font-medium"
+              : "text-gray-700"
           }
         >
           {value}
@@ -226,9 +249,20 @@ function SummaryRow({
 
 function EmptyCart() {
   return (
-    <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
-      <ShoppingCart size={40} strokeWidth={1.5} />
-      <p className="text-sm">سبد خرید شما خالی است</p>
+    <div className="flex flex-col items-center justify-center h-52 gap-4">
+      <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+        <IconShoppingCart size={28} className="text-blue-300" />
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-medium text-gray-500">سبد خرید شما خالی است</p>
+        <p className="text-xs text-gray-400 mt-1">محصولات مورد نظر را اضافه کنید</p>
+      </div>
+      <Link
+        to="/"
+        className="text-sm text-blue-800 font-medium hover:text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition-all duration-200"
+      >
+        رفتن به فروشگاه
+      </Link>
     </div>
   );
 }
@@ -239,14 +273,15 @@ function LoadingSkeleton() {
       {[1, 2, 3].map((i) => (
         <li
           key={i}
-          className="flex items-center gap-4 p-3 rounded-xl bg-white/80 border border-gray-100"
+          className="flex items-center gap-4 p-3 rounded-xl border border-blue-50"
         >
-          <div className="w-16 h-16 rounded-lg bg-gray-200 animate-pulse flex-shrink-0" />
+          <div className="w-16 h-16 rounded-xl bg-blue-50 animate-pulse flex-shrink-0" />
           <div className="flex-1 space-y-2">
-            <div className="h-3.5 bg-gray-200 animate-pulse rounded w-2/3" />
-            <div className="h-3 bg-gray-200 animate-pulse rounded w-1/3" />
+            <div className="h-3.5 bg-blue-50 animate-pulse rounded w-2/3" />
+            <div className="h-3 bg-blue-50 animate-pulse rounded w-1/3" />
+            <div className="h-3 bg-blue-50 animate-pulse rounded w-1/2" />
           </div>
-          <div className="w-24 h-8 bg-gray-200 animate-pulse rounded-lg" />
+          <div className="w-24 h-9 bg-blue-50 animate-pulse rounded-xl" />
         </li>
       ))}
     </ul>
