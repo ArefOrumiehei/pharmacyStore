@@ -98,9 +98,10 @@ function MegaMenu() {
       className="relative"
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => {
-        // setIsOpen(false);
+        setIsOpen(false);
         setActiveIndex(0);
       }}
+      
     >
       {/* Trigger button */}
       <button
@@ -112,6 +113,11 @@ function MegaMenu() {
       >
         <span>دسته‌بندی‌ها</span>
       </button>
+
+      {/* Invisible bridge */}
+      {isOpen && (
+        <div className="absolute right-0 top-full w-full h-2 bg-transparent" />
+      )}
 
       {/* Dropdown */}
       <div
@@ -127,10 +133,6 @@ function MegaMenu() {
           }
         `}
         style={{ minWidth: "640px" }}
-        onMouseLeave={() => {
-          setIsOpen(false);
-          setActiveIndex(0);
-        }}
       >
         {/* Left col — category list */}
         <div className="w-60 bg-blue-50 border-l border-blue-100 py-3 flex-shrink-0">
