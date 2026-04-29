@@ -98,7 +98,7 @@ function MegaMenu() {
       className="relative"
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => {
-        setIsOpen(false);
+        // setIsOpen(false);
         setActiveIndex(0);
       }}
     >
@@ -127,6 +127,10 @@ function MegaMenu() {
           }
         `}
         style={{ minWidth: "640px" }}
+        onMouseLeave={() => {
+          setIsOpen(false);
+          setActiveIndex(0);
+        }}
       >
         {/* Left col — category list */}
         <div className="w-60 bg-blue-50 border-l border-blue-100 py-3 flex-shrink-0">
