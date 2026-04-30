@@ -107,8 +107,7 @@ export default function NotFound() {
 
           {/* Heading */}
           <h1 className="text-4xl sm:text-5xl font-black text-gray-900 leading-tight mb-4">
-            اینجا
-            <br />
+            اینجا{" "}
             <span className="text-blue-800">چیزی نیست!</span>
           </h1>
 
