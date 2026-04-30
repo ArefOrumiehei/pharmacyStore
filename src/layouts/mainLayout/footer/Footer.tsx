@@ -57,6 +57,16 @@ function Footer() {
                     </h3>
                     <ul className="space-y-4">
                         <li>
+                            <Link to="/blog" className="text-gray-600 hover:text-blue-800 transition">
+                                مقالات
+                            </Link>
+                        </li>
+                        <li>
+                            <Link to="/faq" className="text-gray-600 hover:text-blue-800 transition">
+                                سوالات متداول
+                            </Link>
+                        </li>
+                        <li>
                             <Link to="/aboutus" className="text-gray-600 hover:text-blue-800 transition">
                                 درباره ما
                             </Link>
@@ -64,11 +74,6 @@ function Footer() {
                         <li>
                             <Link to="/contactus" className="text-gray-600 hover:text-blue-800 transition">
                                 تماس با ما
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/faq" className="text-gray-600 hover:text-blue-800 transition">
-                                سوالات متداول
                             </Link>
                         </li>
                         <li>

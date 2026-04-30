@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import MegaMenu from "../mega_menu/MegaMenu";
 
 const navLinks = [
+  { to: "/blog", label: "مقالات" },
   { to: "/aboutus", label: "درباره ما" },
   { to: "/contactus", label: "تماس با ما" },
 ];

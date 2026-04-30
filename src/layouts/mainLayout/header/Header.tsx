@@ -27,23 +27,26 @@ function UserSection() {
     }
 
     return (
-        <div className="flex items-center gap-2 bg-white border border-blue-200 rounded-xl px-4 py-2 cursor-pointer select-none hover:bg-blue-50 hover:border-blue-300 transition-all duration-200">
+        <div className="flex items-center gap-2 bg-white border border-blue-200 rounded-xl p-2 md:px-4 md:py-2 cursor-pointer select-none hover:bg-blue-50 hover:border-blue-300 transition-all duration-200">
             <Link
                 to="/login"
-                className="text-sm text-blue-800 hover:text-blue-600 transition-colors"
+                className="text-sm text-blue-800 hover:text-blue-600 transition-colors hidden md:inline"
             >
                 ورود
             </Link>
-            <span className="text-blue-200">|</span>
+            <span className="text-blue-200 hidden md:inline">|</span>
             <Link
                 to="/signup"
-                className="text-sm text-blue-800 hover:text-blue-600 transition-colors"
+                className="text-sm text-blue-800 hover:text-blue-600 transition-colors hidden md:inline"
             >
                 ثبت‌نام
             </Link>
-            <IconLogin size={20} className="text-neutral-600" />
+            <Link to="/login" className="md:hidden">
+                <IconLogin size={22} color="#1e40af" />
+            </Link>
         </div>
     );
+
 }
 
 function CartButton() {
@@ -93,9 +96,23 @@ function Header() {
                         }
                     >
                         {mobileMenuOpen ? (
-                            <IconX size={24} />
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <UserSection />
+                                    <CartButton />
+                                </div>
+
+                                <IconX size={24} />
+                            </div>
                         ) : (
-                            <IconMenu2 size={24} />
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <UserSection />
+                                    <CartButton />
+                                </div>
+
+                                <IconMenu2 size={24} />
+                            </div>
                         )}
                     </button>
                 </div>
@@ -106,23 +123,19 @@ function Header() {
 
             {/* ── Mobile Menu ── */}
             {mobileMenuOpen && (
-                <div className="md:hidden bg-sky-400/90 backdrop-blur-md px-6 py-4 flex flex-col gap-4 border-t border-white/20">
-                    <div className="flex items-center gap-3">
-                        <UserSection />
-                        <CartButton />
-                    </div>
+                <div className="md:hidden bg-blue-800/90 backdrop-blur-md px-6 py-4 flex gap-4 border-t border-white/20">
                     <nav className="flex flex-col gap-2">
                         <Link
                             to="/aboutus"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-800 hover:bg-white/40 transition-all duration-200"
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-white/40 transition-all duration-200"
                         >
                             درباره ما
                         </Link>
                         <Link
                             to="/contactus"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-800 hover:bg-white/40 transition-all duration-200"
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-200 hover:bg-white/40 transition-all duration-200"
                         >
                             تماس با ما
                         </Link>
