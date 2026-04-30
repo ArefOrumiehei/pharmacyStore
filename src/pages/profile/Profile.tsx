@@ -8,6 +8,8 @@ import {
   IconLogout,
   IconBell,
   IconChevronLeft,
+  IconHeadset,
+  IconMessage2,
 } from "@tabler/icons-react";
 import { useUserStore } from "@/store/useAccountStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -17,7 +19,9 @@ const MENU_ITEMS = [
   { path: "/profile/account", icon: IconUser, label: "حساب کاربری" },
   { path: "/profile/orders", icon: IconShoppingBag, label: "سفارش‌های من" },
   { path: "/profile/favorites", icon: IconHeart, label: "علاقه‌مندی‌ها" },
+  { path: "/profile/comments", icon: IconMessage2, label: "نظرات من" },
   { path: "/profile/addresses", icon: IconMapPin, label: "آدرس‌های من" },
+  { path: "/profile/tickets",       icon: IconHeadset,     label: "تیکت‌های پشتیبانی" },
   { path: "/profile/notifications", icon: IconBell, label: "اعلان‌ها" },
   { path: "/profile/settings", icon: IconSettings, label: "تنظیمات" },
 ];

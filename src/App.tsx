@@ -27,13 +27,18 @@ import OrderStatus from './pages/checkout/orderStatus/OrderStatus'
 import Profile from './pages/profile/Profile'
 import Overview from './pages/profile/sections/Overview'
 import Account from './pages/profile/sections/Account'
-import Orders from './pages/profile/sections/Orders'
+import Orders from './pages/profile/sections/orders/Orders'
 import Favorites from './pages/profile/sections/Favorites'
 import Addresses from './pages/profile/sections/Addresses'
 import Notifications from './pages/profile/sections/Notifications'
 import Settings from './pages/profile/sections/Settings'
 import BlogsPage from './pages/blogs/BlogsPage'
 import BlogPostPage from './pages/blog-post/BlogPostPage'
+import SendTicket from './pages/send-ticket/SendTicket'
+import Tickets from './pages/profile/sections/Tickets'
+import Comments from './pages/profile/sections/Comments'
+import NotFound from './pages/not-found/NotFound'
+import OrderDetail from './pages/profile/sections/orders/OrderDetails'
 
 function App() {
   return (
@@ -63,8 +68,12 @@ function App() {
             <Route index element={<Overview />} />
             <Route path="account" element={<Account />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="orders/:orderId" element={<OrderDetail />} />
             <Route path="favorites" element={<Favorites />} />
+            <Route path='comments' element={<Comments />} />
             <Route path="addresses" element={<Addresses />} />
+            <Route path='tickets' element={<Tickets />} />
+            <Route path='tickets/new' element={<SendTicket />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
           </Route>
@@ -76,6 +85,7 @@ function App() {
           <Route path=":slug" element={<BlogPostPage />} />
         </Route>
 
+        <Route path="*" element={<NotFound />} />  
       </Routes>
     </>
   )
