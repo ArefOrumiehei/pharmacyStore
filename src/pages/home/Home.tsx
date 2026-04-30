@@ -6,6 +6,7 @@ import Banner from "./_components/banner/Banner";
 import { useUserStore } from "@/store/useAccountStore";
 import { useProductStore } from "@/store/useProductsStore";
 import { useEffect } from "react";
+import Blogs from "./_components/blogs/Blogs";
 
 function Home() {
     const { fetchUser } = useUserStore();
@@ -62,14 +63,6 @@ function Home() {
                 viewMoreLink="/products/latest"
             />
 
-            {/* Best sellers */}
-            <ProductsCarousel
-                title="پرفروش‌ترین‌ها"
-                products={latestArrivals}
-                loading={loading}
-                viewMoreLink="/products/bestsellers"
-            />
-
             {/* Second promotional banner */}
             <Banner
                 items={[
@@ -86,6 +79,17 @@ function Home() {
                     },
                 ]}
             />
+
+            {/* Best sellers */}
+            <ProductsCarousel
+                title="پرفروش‌ترین‌ها"
+                products={latestArrivals}
+                loading={loading}
+                viewMoreLink="/products/bestsellers"
+            />
+
+            {/* Blogs Section */}
+            <Blogs />
         </div>
     );
 }
