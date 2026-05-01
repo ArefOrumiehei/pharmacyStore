@@ -18,7 +18,7 @@ export interface IAuthRegisterParams {
 }
 
 export interface IAuthLoginParams {
-  username: string;
+  usernameOrMobile: string;
   password: string;
   rememberMe: boolean;
 }
@@ -43,3 +43,20 @@ export const authLogout = async () => {
   return res.data.data;
 }
 
+export const loginSendOTP = async (mobile: string) => {
+  await apiInstance.post("/api/Auth/login/send-otp", {mobile})
+}
+
+export const loginVerifyOTP = async (mobile: string, code: string) => {
+  const res = await apiInstance.post("/api/Auth/login/verify-otp", {mobile, code})
+  return res.data;
+}
+
+export const forgotPassSendOTP = async (mobile: string) => {
+  await apiInstance.post("/api/Auth/forgot-password/send-otp", {mobile})
+}
+
+export const forgotPassVerifyAndReset = async (mobile: string, code: string, password: string, confirmPassword: string) => {
+  const res = await apiInstance.post("/api/Auth/forgot-password/verify-and-reset", {mobile, code, password, confirmPassword})
+  return res.data;
+}
