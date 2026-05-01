@@ -206,7 +206,7 @@ export default function Tickets() {
           <h1 className="text-lg font-bold text-blue-800">تیکت‌های پشتیبانی</h1>
         </div>
         <Link
-          to="/tickets/new"
+          to="/profile/tickets/new"
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-800 hover:bg-blue-700 text-white text-sm font-semibold transition-all duration-150 active:scale-95"
         >
           <IconPlus size={15} />
