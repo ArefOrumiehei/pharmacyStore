@@ -21,8 +21,8 @@ import {
 import { useProductStore } from "@/store/useProductsStore";
 import { useProductCategoriesStore } from "@/store/useProductCategoriesStore";
 import { useCartStore } from "@/store/useCartStore";
+import { IMAGE_BASE } from "@/apis/apiInstance";
 
-const IMAGE_BASE = "https://tk9839fd-5000.euw.devtunnels.ms/pictures/";
 const formatPrice = (n: number) => new Intl.NumberFormat("fa-IR").format(n);
 
 interface FilterState {

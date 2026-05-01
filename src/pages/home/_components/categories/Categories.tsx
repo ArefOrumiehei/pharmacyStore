@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
+import { IMAGE_BASE } from "@/apis/apiInstance";
 
 const SKELETON_COUNT = 16;
 
@@ -126,7 +127,7 @@ function Categories() {
                   <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden group-hover:bg-blue-800 group-hover:border-blue-800 group-hover:shadow-lg transition-all duration-300">
                     {catg.picture ? (
                       <img
-                        src={`https://kj686klc-5000.euw.devtunnels.ms/pictures/${catg.picture}`}
+                        src={`${IMAGE_BASE}/pictures/${catg.picture}`}
                         alt={catg.name}
                         className="w-12 h-12 object-contain group-hover:brightness-0 group-hover:invert transition-all duration-300"
                       />

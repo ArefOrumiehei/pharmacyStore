@@ -4,8 +4,8 @@ import { IconHeart, IconShoppingCart, IconHeartOff } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { useProductStore } from "@/store/useProductsStore";
 import { useUserStore } from "@/store/useAccountStore";
+import { IMAGE_BASE } from "@/apis/apiInstance";
 
-const IMAGE_BASE = "https://tk9839fd-5000.euw.devtunnels.ms/pictures/";
 const formatPrice = (price: number) => new Intl.NumberFormat("fa-IR").format(price);
 
 export default function Favorites() {

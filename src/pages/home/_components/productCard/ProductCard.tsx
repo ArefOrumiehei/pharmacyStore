@@ -1,3 +1,4 @@
+import { IMAGE_BASE } from "@/apis/apiInstance";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/store/useProductsStore";
 import { IconPercentage, IconStarFilled } from "@tabler/icons-react";
@@ -12,7 +13,7 @@ const ProductCard: React.FC<ProductCardProps> = ({productData}) => {
     <div className="min-w-[200px] w-70 h-full rounded-lg bg-white pb-4 transition-all duration-300 ease-out overflow-hidden flex-shrink-0">
       <div className="p-0 w-full h-fit flex items-center justify-center relative">
         <img
-          src={`https://kj686klc-5000.euw.devtunnels.ms/pictures/${productData.picture}`}
+          src={`${IMAGE_BASE}/pictures/${productData.picture}`}
           alt={productData.pictureAlt}
           className="w-[180px] bg-gray-400 h-full object-cover self-center"
         />

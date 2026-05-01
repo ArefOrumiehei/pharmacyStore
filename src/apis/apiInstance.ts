@@ -3,6 +3,7 @@ import axios, { AxiosError, AxiosHeaders, type InternalAxiosRequestConfig } from
 import { useAuthStore } from "@/store/useAuthStore";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const IMAGE_BASE = import.meta.env.VITE_IMAGE_BASE;
 
 let isRefreshing = false;
 let failedQueue: any[] = [];

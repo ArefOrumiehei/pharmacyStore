@@ -15,8 +15,6 @@ interface BlogPost {
   date: string;
 }
 
-// const IMAGE_BASE = "https://tk9839fd-5000.euw.devtunnels.ms/pictures/";
-
 const MOCK_BLOGS: BlogPost[] = [
   {
     id: 1, slug: "vitamin-d-deficiency", title: "کمبود ویتامین D و راه‌های جبران آن",

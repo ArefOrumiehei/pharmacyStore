@@ -36,8 +36,7 @@ import {
     IconPackage,
     IconPercentage,
 } from "@tabler/icons-react";
-
-const IMAGE_BASE = "https://tk9839fd-5000.euw.devtunnels.ms/pictures/";
+import { IMAGE_BASE } from "@/apis/apiInstance";
 
 /* ── Types ── */
 interface Comment {

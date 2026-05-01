@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSlideStore, type Slide } from "@/store/useSideStore";
+import { IMAGE_BASE } from "@/apis/apiInstance";
 
 export default function BannerSlider() {
   const [current, setCurrent] = useState(0);
@@ -61,7 +62,7 @@ export default function BannerSlider() {
             className="w-full h-48 md:h-86 relative flex-shrink-0"
           >
             <img
-              src={`https://kj686klc-5000.euw.devtunnels.ms/pictures/${slide.picture}`}
+              src={`${IMAGE_BASE}/pictures/${slide.picture}`}
               alt={slide.pictureAlt}
               className="w-full h-full object-cover"
             />
