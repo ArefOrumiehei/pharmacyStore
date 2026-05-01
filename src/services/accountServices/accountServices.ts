@@ -9,10 +9,9 @@ export interface ICompleteProfileParams {
   profilePhoto?: File;
 }
 
-export interface IEditProfileParams {
+export interface IUpdateProfileParams {
   fullname: string;
   username: string;
-  mobile: string;
   email?: string;
   profilePhoto?: File;
 }
@@ -32,13 +31,11 @@ export const getUserOrders = async () => {
   return res.data.data;
 }
 
-export const completeProfile = async (data: ICompleteProfileParams) => {
+export const updateProfile = async (data: IUpdateProfileParams) => {
   const form = new FormData();
 
   form.append("fullname", data.fullname);
   form.append("username", data.username);
-  form.append("password", data.password);
-  form.append("repassword", data.repassword);
 
   if (data.email) {
     form.append("email", data.email);
@@ -48,38 +45,17 @@ export const completeProfile = async (data: ICompleteProfileParams) => {
     form.append("profilePhoto", data.profilePhoto);
   }
 
-  const res = await apiInstance.post("/api/Account/complete-profile", form, {
+  const res = await apiInstance.post("/api/Account/update-profile", form, {
     isFormDataRequest: true,
   });
 
   return res.data.data;
 };
 
-export const editProfile = async (data: IEditProfileParams) => {
+export const changePassword = async (CurrentPassword: string, password: string, rePassword: string) => {
   const form = new FormData();
 
-  form.append("fullname", data.fullname);
-  form.append("username", data.username);
-  form.append("mobile", data.mobile);
-
-  if (data.email) {
-    form.append("email", data.email);
-  }
-
-  if (data.profilePhoto) {
-    form.append("profilePhoto", data.profilePhoto);
-  }
-
-  const res = await apiInstance.post("/api/Account/edit-profile", form, {
-    isFormDataRequest: true,
-  });
-
-  return res.data.data;
-};
-
-export const changePassword = async (password: string, rePassword: string) => {
-  const form = new FormData();
-
+  form.append("CurrentPassword", CurrentPassword);
   form.append("password", password);
   form.append("rePassword", rePassword);
 
@@ -89,3 +65,17 @@ export const changePassword = async (password: string, rePassword: string) => {
 
   return res.data.data;
 };
+
+export const getUserTickets = async () => {
+  const res = await apiInstance.get("/api/Account/tickets")
+  return res.data.data;
+}
+
+export const changeMobileReqOTP = async (mobile: string) => {
+  await apiInstance.post("/api/Account/change-mobile/request", {mobile})
+}
+
+export const changeMobileVerify = async (mobile: string, code: string) => {
+  const res = await apiInstance.post("/api/Account/change-mobile/verify", {mobile, code})
+  return res.data;
+}
