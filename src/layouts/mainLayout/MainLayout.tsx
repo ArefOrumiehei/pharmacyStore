@@ -7,9 +7,9 @@ function MainLayout() {
   const isProfile = pathname.startsWith("/profile");
 
   return (
-    <div className="flex flex-col min-h-screen bg-sky-100">
+    <div className="flex flex-col min-h-screen pb-18 md:pb-0 bg-sky-100">
       <Header />
-      <main className="flex-1 w-full px-[3rem]">
+      <main className="flex-1 w-full px-4 md:px-[3rem]">
         <Outlet />
       </main>
       {!isProfile && <Footer />}
