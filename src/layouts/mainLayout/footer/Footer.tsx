@@ -137,7 +137,7 @@ function Footer() {
                     </div>
                     <Separator className="bg-blue-100" />
                     <div className="flex items-center gap-2">
-                        <IconMapPin className="flex-shrink-0 text-blue-800" />
+                        <IconMapPin className="flex-shrink-0 text-rose-600" />
                         <span className="text-gray-600">
                             کرج، فلان جا، بهمان جا، نبش خیابون فلان
                         </span>
