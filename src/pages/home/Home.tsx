@@ -7,14 +7,16 @@ import { useUserStore } from "@/store/useAccountStore";
 import { useProductStore } from "@/store/useProductsStore";
 import { useEffect } from "react";
 import Blogs from "./_components/blogs/Blogs";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function Home() {
     const { fetchUser } = useUserStore();
+    const { accessToken } = useAuthStore();    
     const { fetchLatestArrivals, latestArrivals, loading } = useProductStore();
 
     useEffect(() => {
         const fetchAll = async () => {
-            await fetchUser();
+            if (accessToken) await fetchUser(); 
             await Promise.all([fetchLatestArrivals()]);
         };
         fetchAll();
