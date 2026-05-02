@@ -39,6 +39,7 @@ import Tickets from './pages/profile/sections/tickets/Tickets'
 import Comments from './pages/profile/sections/Comments'
 import NotFound from './pages/not-found/NotFound'
 import OrderDetail from './pages/profile/sections/orders/OrderDetails'
+import ForgotPassword from './pages/auth/forgot-password/ForgotPassword'
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
         <Route path="/" element={<AuthLayout />}>
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<SignUp />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
         </Route>
 
         {/* Main */}
