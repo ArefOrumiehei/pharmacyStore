@@ -7,7 +7,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock } from "@tabler/icons-react";
 
 const loginSchema = z.object({
-  username: z.string().min(2, "نام کاربری الزامی است"),
+  usernameOrMobile: z.string().min(2, "نام کاربری یا شماره موبایل الزامی است"),
   password: z.string().min(1, "رمز عبور الزامی است"),
   rememberMe: z.boolean(),
 });
@@ -35,14 +35,14 @@ export default function Login() {
     setIsLoading(true);
     try {
       const res = await login({
-        username: data.username,
+        usernameOrMobile: data.usernameOrMobile,  // ✅ fixed
         password: data.password,
         rememberMe: data.rememberMe,
       });
       if (res) {
         navigate("/");
       } else {
-        setServerError("نام کاربری یا رمز عبور اشتباه است");
+        setServerError("نام کاربری/موبایل یا رمز عبور اشتباه است");
       }
     } catch {
       setServerError("خطایی رخ داده است. لطفاً دوباره تلاش کنید");
@@ -67,15 +67,17 @@ export default function Login() {
       )}
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-        {/* Username */}
+        {/* Username or Mobile */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-gray-600">نام کاربری</label>
+          <label className="text-xs font-medium text-gray-600">
+            نام کاربری یا شماره موبایل
+          </label>
           <div className="relative">
             <input
-              {...register("username")}
-              placeholder="نام کاربری خود را وارد کنید"
+              {...register("usernameOrMobile")}
+              placeholder="نام کاربری یا شماره موبایل را وارد کنید"
               className={`w-full border rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
-                errors.username
+                errors.usernameOrMobile
                   ? "border-rose-200 bg-rose-50/30"
                   : "border-blue-100 bg-blue-50/30"
               }`}
@@ -85,8 +87,10 @@ export default function Login() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
           </div>
-          {errors.username && (
-            <p className="text-rose-500 text-xs mt-0.5">{errors.username.message}</p>
+          {errors.usernameOrMobile && (  // ✅ fixed
+            <p className="text-rose-500 text-xs mt-0.5">
+              {errors.usernameOrMobile.message}
+            </p>
           )}
         </div>
 
@@ -94,9 +98,9 @@ export default function Login() {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <label className="text-xs font-medium text-gray-600">رمز عبور</label>
-            <a href="#" className="text-xs text-blue-800 hover:text-blue-600 transition-colors">
+            <Link to="/forgot-password" className="text-xs text-blue-800 hover:text-blue-600 transition-colors">
               فراموشی رمز عبور؟
-            </a>
+            </Link>
           </div>
           <div className="relative">
             <input
