@@ -92,6 +92,7 @@ const MOCK_PRODUCTS = [
     discountRate: null,
     isBestSeller: false,
     isGoodPrice: true,
+    stockCount: 9,
   },
   {
     id: "6",
@@ -109,6 +110,7 @@ const MOCK_PRODUCTS = [
     discountRate: 20,
     isBestSeller: false,
     isGoodPrice: false,
+    stockCount: 2,
   },
   {
     id: "7",
@@ -126,6 +128,7 @@ const MOCK_PRODUCTS = [
     discountRate: 20,
     isBestSeller: true,
     isGoodPrice: false,
+    stockCount: 4,
   },
   {
     id: "8",
@@ -143,6 +146,7 @@ const MOCK_PRODUCTS = [
     discountRate: 20,
     isBestSeller: true,
     isGoodPrice: false,
+    isInStock: false,
   },
   {
     id: "9",
@@ -318,7 +322,7 @@ function ProductsCarousel({
                 <Link
                   key={p.id}
                   to={`/product/${encodeURIComponent(p.categoryFullSlug)}/${encodeURIComponent(p.slug)}`}
-                  className="flex-shrink-0"
+                  className="w-[160px] sm:w-[200px] md:w-[220px] h-[320px] sm:h-[360px] flex-shrink-0"
                 >
                   <ProductCard
                     productData={p}
