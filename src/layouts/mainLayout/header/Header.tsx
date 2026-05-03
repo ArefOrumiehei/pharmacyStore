@@ -51,7 +51,7 @@ function UserSection() {
 
 function CartButton() {
     return (
-        <Link to="/cart">
+        <Link to="/checkout/cart">
             <div className="bg-white border border-blue-200 rounded-xl p-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 cursor-pointer">
                 <IconShoppingCart size={22} color="#1e40af" />
             </div>

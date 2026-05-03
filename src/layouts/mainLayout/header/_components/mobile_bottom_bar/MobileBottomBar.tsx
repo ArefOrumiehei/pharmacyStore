@@ -27,6 +27,7 @@ export default function MobileBottomBar({
   const { user } = useUserStore();
 
   const isActive = (path: string) => location.pathname === path;
+  const isCheckoutRoute = (path: string) => location.pathname.split("/")[1] === path;
 
   return (
     <nav className="fixed bottom-0 inset-x-0 py-1 z-50 md:hidden bg-white border-t border-blue-100 shadow-[0_-4px_20px_rgba(30,64,175,0.08)]">
@@ -75,12 +76,12 @@ export default function MobileBottomBar({
 
         {/* Cart */}
         <Link
-          to="/cart"
+          to="/checkout/cart"
           className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 ${
-            isActive("/cart") ? "text-blue-800" : "text-gray-400 hover:text-blue-800"
+            isCheckoutRoute("checkout") ? "text-blue-800" : "text-gray-400 hover:text-blue-800"
           }`}
         >
-          <IconShoppingCart size={22} stroke={isActive("/cart") ? 2.2 : 1.7} />
+          <IconShoppingCart size={22} stroke={isCheckoutRoute("checkout") ? 2.2 : 1.7} />
           <span className="text-[10px] font-medium">سبد خرید</span>
         </Link>
 
