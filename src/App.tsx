@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router'
+import { Navigate, Route, Routes } from 'react-router'
 
 // Styles
 import './App.css'
@@ -21,9 +21,7 @@ import FAQ from './pages/faq/FAQ'
 import Terms from './pages/terms/Terms'
 import ProductListPage from './pages/product-list/ProductListPage'
 import ProductPage from './pages/product/ProductPage'
-import Cart from './pages/cart/Cart'
-import Checkout from './pages/checkout/Checkout'
-import OrderStatus from './pages/checkout/orderStatus/OrderStatus'
+import OrderStatus from './pages/checkout/order-status/OrderStatus'
 import Profile from './pages/profile/Profile'
 import Overview from './pages/profile/sections/Overview'
 import Account from './pages/profile/sections/Account'
@@ -40,6 +38,10 @@ import Comments from './pages/profile/sections/Comments'
 import NotFound from './pages/not-found/NotFound'
 import OrderDetail from './pages/profile/sections/orders/OrderDetails'
 import ForgotPassword from './pages/auth/forgot-password/ForgotPassword'
+import CheckoutLayout from './pages/checkout/CheckoutLayout'
+import CartStep from './pages/checkout/steps/cart/CartStep'
+import AddressStep from './pages/checkout/steps/address/AddressStep'
+import PaymentStep from './pages/checkout/steps/payment/PaymentStep'
 
 function App() {
   return (
@@ -63,8 +65,13 @@ function App() {
           <Route path="terms" element={<Terms />} />
           <Route path="plp" element={<ProductListPage />} />
           <Route path="product/:catgSlug/:pSlug" element={<ProductPage />} />
-          <Route path="cart" element={<Cart />} />
-          <Route path="checkout" element={<Checkout />} />
+          <Route path="checkout" element={<CheckoutLayout />}>
+            <Route index element={<Navigate to="cart" replace />} /> 
+            <Route path="cart" element={<CartStep />} />
+            <Route path="address" element={<AddressStep />} />
+            <Route path="payment" element={<PaymentStep />} />
+          </Route>
+          <Route path='cart' element={<Navigate to="/checkout" replace />} /> 
           <Route path="shop/orders/confirm-callback" element={<OrderStatus />} />
           <Route path="profile" element={<Profile />}>
             <Route index element={<Overview />} />
