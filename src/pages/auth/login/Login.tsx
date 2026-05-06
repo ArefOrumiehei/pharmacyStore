@@ -35,7 +35,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       const res = await login({
-        usernameOrMobile: data.usernameOrMobile,  // ✅ fixed
+        usernameOrMobile: data.usernameOrMobile,
         password: data.password,
         rememberMe: data.rememberMe,
       });
@@ -98,7 +98,7 @@ export default function Login() {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <label className="text-xs font-medium text-gray-600">رمز عبور</label>
-            <Link to="/forgot-password" className="text-xs text-blue-800 hover:text-blue-600 transition-colors">
+            <Link to="forgot-password" className="text-xs text-blue-800 hover:text-blue-600 transition-colors">
               فراموشی رمز عبور؟
             </Link>
           </div>
@@ -171,10 +171,10 @@ export default function Login() {
       <p className="text-sm text-gray-500 text-center">
         حساب کاربری ندارید؟{" "}
         <Link
-          to="/signup"
+          to="otp"
           className="text-blue-800 font-semibold hover:text-blue-600 transition-colors"
         >
-          ثبت‌نام کنید
+          ورود با شماره موبایل
         </Link>
       </p>
     </>

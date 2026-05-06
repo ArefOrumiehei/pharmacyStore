@@ -42,7 +42,7 @@ function UserSection() {
                 ورود
             </Link>
             <span className="text-blue-200">|</span>
-            <Link to="/signup" className="text-sm text-blue-800 hover:text-blue-600 transition-colors">
+            <Link to="/login/otp" className="text-sm text-blue-800 hover:text-blue-600 transition-colors">
                 ثبت‌نام
             </Link>
         </div>
