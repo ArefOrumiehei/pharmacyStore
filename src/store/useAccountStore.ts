@@ -13,6 +13,7 @@ import {
     type IChangeMobileRequestParams,
     type IChangeMobileVerifyParams,
     type IOrder,
+    type ITicket,
 } from "@/services/accountServices/accountServices";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -35,7 +36,7 @@ interface IUserStore {
     user: IUserProfile | null;
     userFavorites: unknown | null;
     userOrders: IOrder[] | null;
-    userTickets: unknown | null;
+    userTickets: ITicket[] | null;
     loading: ILoadingState;
 
     fetchUser: () => Promise<void>;

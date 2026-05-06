@@ -76,6 +76,17 @@ export interface IOrder {
     items: IOrderItem[];
 }
 
+export interface ITicket {
+  userId:         number;
+  subject:        string;
+  message:        string;
+  adminReply:     string | null;
+  creationDate:   string;
+  adminReplyDate: string | null;
+  isAnswered:     boolean;
+  trackingCode:   string;
+}
+
 export interface IApiResponse<T> {
     success: boolean;
     message: string;
@@ -128,9 +139,9 @@ export const getUserOrders = async (): Promise<IOrder[]> => {
     return res.data.data;
 };
 
-export const getUserTickets = async () => {
-    const res = await apiInstance.get("/api/Account/tickets");
-    return res.data;
+export const getUserTickets = async (): Promise<ITicket[]> => {
+  const res = await apiInstance.get<IApiResponse<ITicket[]>>("/api/Account/tickets");
+  return res.data.data;
 };
 
 export const updateProfile = async (
