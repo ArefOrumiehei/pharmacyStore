@@ -13,7 +13,6 @@ import BlogLayout from './layouts/blogLayout/BlogLayout'
 
 // Pages
 import Login from './pages/auth/login/Login'
-import SignUp from './pages/auth/signup/Signup'
 import Home from './pages/home/Home'
 import AboutUs from './pages/about-us/AboutUs'
 import ContactUs from './pages/contact-us/ContactUs'
@@ -42,6 +41,7 @@ import CheckoutLayout from './pages/checkout/CheckoutLayout'
 import CartStep from './pages/checkout/steps/cart/CartStep'
 import AddressStep from './pages/checkout/steps/address/AddressStep'
 import PaymentStep from './pages/checkout/steps/payment/PaymentStep'
+import LoginOTP from './pages/auth/login-otp/LoginOTP'
 
 function App() {
   return (
@@ -50,9 +50,9 @@ function App() {
       <Routes>
 
         {/* Auth */}
-        <Route path="/" element={<AuthLayout />}>
-          <Route path="login" element={<Login />} />
-          <Route path="signup" element={<SignUp />} />
+        <Route path="/login" element={<AuthLayout />}>
+          <Route index element={<Login />} />
+          <Route path="otp" element={<LoginOTP />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
         </Route>
 
