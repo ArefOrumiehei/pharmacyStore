@@ -1,214 +1,260 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  getUser,
-  getUserFavorites,
-  getUserOrders,
-  getUserTickets,
-  updateProfile,
-  changePassword,
-  changeMobileReqOTP,
-  changeMobileVerify,
-  type IUpdateProfileParams,
+    getUser,
+    getUserFavorites,
+    getUserOrders,
+    getUserTickets,
+    updateProfile,
+    changePassword,
+    changeMobileReqOTP,
+    changeMobileVerify,
+    type IUserProfile,
+    type IUpdateProfileParams,
+    type IChangePasswordParams,
+    type IChangeMobileRequestParams,
+    type IChangeMobileVerifyParams,
+    type IOrder,
 } from "@/services/accountServices/accountServices";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAuthStore } from "./useAuthStore";
+import { toast } from "react-toastify";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface ILoadingState {
-  user: boolean;
-  favorites: boolean;
-  orders: boolean;
-  tickets: boolean;
-  updateProfile: boolean;
-  changePassword: boolean;
-  changeMobile: boolean;
+    user: boolean;
+    favorites: boolean;
+    orders: boolean;
+    tickets: boolean;
+    updateProfile: boolean;
+    changePassword: boolean;
+    changeMobile: boolean;
 }
 
 interface IUserStore {
-  user: any | null;
-  userFavorites: any | null;
-  userOrders: any | null;
-  userTickets: any | null;
-  loading: ILoadingState;
-  error: string | null;
+    user: IUserProfile | null;
+    userFavorites: unknown | null;
+    userOrders: IOrder[] | null;
+    userTickets: unknown | null;
+    loading: ILoadingState;
 
-  fetchUser: () => Promise<void>;
-  fetchUserFavorites: () => Promise<void>;
-  fetchUserOrders: () => Promise<void>;
-  fetchUserTickets: () => Promise<void>;
-  updateProfile: (data: IUpdateProfileParams) => Promise<void>;
-  changePassword: (current: string, password: string, rePassword: string) => Promise<void>;
-  changeMobileReqOTP: (mobile: string) => Promise<void>;
-  changeMobileVerify: (mobile: string, code: string) => Promise<any>;
-  clearUser: () => void;
+    fetchUser: () => Promise<void>;
+    fetchUserFavorites: () => Promise<void>;
+    fetchUserOrders: () => Promise<void>;
+    fetchUserTickets: () => Promise<void>;
+    updateProfile: (data: IUpdateProfileParams) => Promise<void>;
+    changePassword: (data: IChangePasswordParams) => Promise<void>;
+    changeMobileReqOTP: (data: IChangeMobileRequestParams) => Promise<void>;
+    changeMobileVerify: (data: IChangeMobileVerifyParams) => Promise<void>;
+    clearUser: () => void;
 }
 
+// ─── Defaults ────────────────────────────────────────────────────────────────
+
 const DEFAULT_LOADING: ILoadingState = {
-  user: false,
-  favorites: false,
-  orders: false,
-  tickets: false,
-  updateProfile: false,
-  changePassword: false,
-  changeMobile: false,
+    user: false,
+    favorites: false,
+    orders: false,
+    tickets: false,
+    updateProfile: false,
+    changePassword: false,
+    changeMobile: false,
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const extractMessage = (err: unknown, fallback: string): string => {
+    if (err && typeof err === "object" && "response" in err) {
+        const res = (err as { response?: { data?: { message?: string } } })
+            .response;
+        return res?.data?.message ?? fallback;
+    }
+    return fallback;
 };
 
 export const useUserStore = create<IUserStore>()(
-  persist(
-    (set) => ({
-      user: null,
-      userFavorites: null,
-      userOrders: null,
-      userTickets: null,
-      loading: DEFAULT_LOADING,
-      error: null,
+    persist(
+        (set) => ({
+            user: null,
+            userFavorites: null,
+            userOrders: null,
+            userTickets: null,
+            loading: DEFAULT_LOADING,
 
-      fetchUser: async () => {
-        set((s) => ({ loading: { ...s.loading, user: true }, error: null }));
-        try {
-          const data = await getUser();
-          set((s) => ({ user: data, loading: { ...s.loading, user: false } }));
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در دریافت اطلاعات کاربر",
-            loading: { ...s.loading, user: false },
-          }));
-        }
-      },
+            fetchUser: async () => {
+                set((s) => ({ loading: { ...s.loading, user: true } }));
+                try {
+                    const data = await getUser();
+                    set((s) => ({
+                        user: data,
+                        loading: { ...s.loading, user: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, user: false } }));
+                    toast.error(
+                        extractMessage(err, "خطا در دریافت اطلاعات کاربر")
+                    );
+                }
+            },
 
-      fetchUserFavorites: async () => {
-        set((s) => ({ loading: { ...s.loading, favorites: true }, error: null }));
-        try {
-          const data = await getUserFavorites();
-          set((s) => ({ userFavorites: data, loading: { ...s.loading, favorites: false } }));
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در دریافت علاقه‌مندی‌ها",
-            loading: { ...s.loading, favorites: false },
-          }));
-        }
-      },
+            fetchUserFavorites: async () => {
+                set((s) => ({ loading: { ...s.loading, favorites: true } }));
+                try {
+                    const data = await getUserFavorites();
+                    set((s) => ({
+                        userFavorites: data,
+                        loading: { ...s.loading, favorites: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, favorites: false },
+                    }));
+                    toast.error(
+                        extractMessage(err, "خطا در دریافت علاقه‌مندی‌ها")
+                    );
+                }
+            },
 
-      fetchUserOrders: async () => {
-        set((s) => ({ loading: { ...s.loading, orders: true }, error: null }));
-        try {
-          const data = await getUserOrders();
-          set((s) => ({ userOrders: data, loading: { ...s.loading, orders: false } }));
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در دریافت سفارش‌ها",
-            loading: { ...s.loading, orders: false },
-          }));
-        }
-      },
+            fetchUserOrders: async () => {
+                set((s) => ({ loading: { ...s.loading, orders: true } }));
+                try {
+                    const data = await getUserOrders();
+                    set((s) => ({
+                        userOrders: data,
+                        loading: { ...s.loading, orders: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, orders: false } }));
+                    toast.error(extractMessage(err, "خطا در دریافت سفارش‌ها"));
+                }
+            },
 
-      fetchUserTickets: async () => {
-        set((s) => ({ loading: { ...s.loading, tickets: true }, error: null }));
-        try {
-          const data = await getUserTickets();
-          set((s) => ({ userTickets: data, loading: { ...s.loading, tickets: false } }));
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در دریافت تیکت‌ها",
-            loading: { ...s.loading, tickets: false },
-          }));
-        }
-      },
+            fetchUserTickets: async () => {
+                set((s) => ({ loading: { ...s.loading, tickets: true } }));
+                try {
+                    const data = await getUserTickets();
+                    set((s) => ({
+                        userTickets: data,
+                        loading: { ...s.loading, tickets: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, tickets: false } }));
+                    toast.error(extractMessage(err, "خطا در دریافت تیکت‌ها"));
+                }
+            },
 
-      updateProfile: async (data: IUpdateProfileParams) => {
-        set((s) => ({ loading: { ...s.loading, updateProfile: true }, error: null }));
-        try {
-          const updated = await updateProfile(data);
-          // Merge updated fields into cached user instead of a full re-fetch
-          set((s) => ({
-            user: { ...s.user, ...updated },
-            loading: { ...s.loading, updateProfile: false },
-          }));
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در بروزرسانی پروفایل",
-            loading: { ...s.loading, updateProfile: false },
-          }));
-          throw err; // re-throw so the form can catch and show field-level errors
-        }
-      },
+            updateProfile: async (data) => {
+                set((s) => ({
+                    loading: { ...s.loading, updateProfile: true },
+                }));
+                try {
+                    const updated = await updateProfile(data);
+                    set((s) => ({
+                        user: { ...s.user, ...updated },
+                        loading: { ...s.loading, updateProfile: false },
+                    }));
+                    toast.success("پروفایل با موفقیت بروزرسانی شد");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, updateProfile: false },
+                    }));
+                    toast.error(
+                        extractMessage(err, "خطا در بروزرسانی پروفایل")
+                    );
+                    throw err; // let the form handle field-level errors
+                }
+            },
 
-      changePassword: async (current: string, password: string, rePassword: string) => {
-        set((s) => ({ loading: { ...s.loading, changePassword: true }, error: null }));
-        try {
-          await changePassword(current, password, rePassword);
-          set((s) => ({ loading: { ...s.loading, changePassword: false } }));
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در تغییر رمز عبور",
-            loading: { ...s.loading, changePassword: false },
-          }));
-          throw err;
-        }
-      },
+            changePassword: async (data) => {
+                set((s) => ({
+                    loading: { ...s.loading, changePassword: true },
+                }));
+                try {
+                    await changePassword(data);
+                    set((s) => ({
+                        loading: { ...s.loading, changePassword: false },
+                    }));
+                    toast.success("رمز عبور با موفقیت تغییر یافت");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, changePassword: false },
+                    }));
+                    toast.error(extractMessage(err, "خطا در تغییر رمز عبور"));
+                    throw err;
+                }
+            },
 
-      changeMobileReqOTP: async (mobile: string) => {
-        set((s) => ({ loading: { ...s.loading, changeMobile: true }, error: null }));
-        try {
-          await changeMobileReqOTP(mobile);
-          set((s) => ({ loading: { ...s.loading, changeMobile: false } }));
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در ارسال کد تأیید",
-            loading: { ...s.loading, changeMobile: false },
-          }));
-          throw err;
-        }
-      },
+            changeMobileReqOTP: async (data) => {
+                set((s) => ({ loading: { ...s.loading, changeMobile: true } }));
+                try {
+                    await changeMobileReqOTP(data);
+                    set((s) => ({
+                        loading: { ...s.loading, changeMobile: false },
+                    }));
+                    toast.info("کد تأیید ارسال شد");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, changeMobile: false },
+                    }));
+                    toast.error(extractMessage(err, "خطا در ارسال کد تأیید"));
+                    throw err;
+                }
+            },
 
-      changeMobileVerify: async (mobile: string, code: string) => {
-        set((s) => ({ loading: { ...s.loading, changeMobile: true }, error: null }));
-        try {
-          const res = await changeMobileVerify(mobile, code);
-          // Re-fetch user so the new mobile is reflected everywhere
-          await useUserStore.getState().fetchUser();
-          set((s) => ({ loading: { ...s.loading, changeMobile: false } }));
-          return res;
-        } catch (err: any) {
-          set((s) => ({
-            error: err?.response?.data?.message ?? "خطا در تأیید شماره موبایل",
-            loading: { ...s.loading, changeMobile: false },
-          }));
-          throw err;
-        }
-      },
+            changeMobileVerify: async (data) => {
+                set((s) => ({ loading: { ...s.loading, changeMobile: true } }));
+                try {
+                    await changeMobileVerify(data);
+                    // Re-fetch so the new mobile is reflected everywhere
+                    await useUserStore.getState().fetchUser();
+                    set((s) => ({
+                        loading: { ...s.loading, changeMobile: false },
+                    }));
+                    toast.success("شماره موبایل با موفقیت تغییر یافت");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, changeMobile: false },
+                    }));
+                    toast.error(
+                        extractMessage(err, "خطا در تأیید شماره موبایل")
+                    );
+                    throw err;
+                }
+            },
 
-      clearUser: () =>
-        set({
-          user: null,
-          userFavorites: null,
-          userOrders: null,
-          userTickets: null,
-          error: null,
-          loading: DEFAULT_LOADING,
+            clearUser: () =>
+                set({
+                    user: null,
+                    userFavorites: null,
+                    userOrders: null,
+                    userTickets: null,
+                    loading: DEFAULT_LOADING,
+                }),
         }),
-    }),
-    {
-      name: "user_data",
 
-      partialize: (state) => ({
-        user: state.user,
-        userFavorites: state.userFavorites,
-      }),
-
-      onRehydrateStorage: () => (state, error) => {
-        if (error) return;
-        setTimeout(async () => {
-          try {
-            const auth = useAuthStore.getState();
-            if (!state?.user && auth?.accessToken) {
-              await useUserStore.getState().fetchUser();
-            }
-          } catch (e) {
-            console.warn("Error auto-fetching user on rehydrate:", e);
-          }
-        }, 0);
-      },
-    }
-  )
+        {
+            name: "user_data",
+            partialize: (state) => ({
+                user: state.user,
+                userFavorites: state.userFavorites,
+                userOrders: state.userOrders,
+            }),
+            onRehydrateStorage: () => (state, error) => {
+                if (error) return;
+                setTimeout(async () => {
+                    try {
+                        const auth = useAuthStore.getState();
+                        if (!state?.user && auth?.accessToken) {
+                            await useUserStore.getState().fetchUser();
+                        }
+                    } catch (e) {
+                        console.warn(
+                            "Error auto-fetching user on rehydrate:",
+                            e
+                        );
+                    }
+                }, 0);
+            },
+        }
+    )
 );
