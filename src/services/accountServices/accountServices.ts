@@ -1,81 +1,187 @@
 import apiInstance from "@/apis/apiInstance";
 
+// ─── Request param types ─────────────────────────────────────────────────────
+
 export interface ICompleteProfileParams {
-  fullname: string;
-  username: string;
-  password: string;
-  repassword: string;
-  email?: string;
-  profilePhoto?: File;
+    fullname: string;
+    username: string;
+    password: string;
+    repassword: string;
+    email?: string;
+    profilePhoto?: File;
 }
 
 export interface IUpdateProfileParams {
-  fullname: string;
-  username: string;
-  email?: string;
-  profilePhoto?: File;
+    fullname: string;
+    username: string;
+    email?: string;
+    profilePhoto?: File;
 }
 
-export const getUser = async () => {
-  const res = await apiInstance.get("/api/Account/me")
-  return res.data.data;
+export interface IChangePasswordParams {
+    currentPassword: string;
+    password: string;
+    rePassword: string;
 }
 
-export const getUserFavorites = async () => {
-  const res = await apiInstance.get("/api/Account/favorites")
-  return res.data.data;
+export interface IChangeMobileRequestParams {
+    mobile: string;
 }
 
-export const getUserOrders = async () => {
-  const res = await apiInstance.get("/api/Account/orders")
-  return res.data.data;
+export interface IChangeMobileVerifyParams {
+    mobile: string;
+    code: string;
 }
 
-export const updateProfile = async (data: IUpdateProfileParams) => {
-  const form = new FormData();
+// ─── Order types ─────────────────────────────────────────────────────────────
+export interface IOrderItem {
+    id: number;
+    orderId: number;
+    productId: number;
+    productName: string;
+    productPicture: string;
+    productFullPath: string;
+    qty: number;
+    unitPrice: number;
+    unitPriceDisplay: string;
+    discountRate: number;
+    discountRateDisplay: string;
+    totalPriceWithDiscount: number;
+    totalPriceWithDiscountDisplay: string;
+}
 
-  form.append("fullname", data.fullname);
-  form.append("username", data.username);
+export interface IOrder {
+    id: number;
+    userId: number;
+    creationDate: string;
+    creationDateDisplay: string;
+    lastModifiedDate: string;
+    lastModifiedDateDisplay: string;
+    sortDate: string;
+    status: number;
+    statusTitle: string;
+    paymentMethod: string;
+    paymentMethodInt: number;
+    postTrackingNumber: string;
+    totalAmount: number;
+    totalAmountDisplay: string;
+    discountAmount: number;
+    discountAmountDisplay: string;
+    couponCode: string;
+    appliedCouponId: number;
+    orderCouponAmount: number;
+    orderCouponAmountDisplay: string;
+    payAmount: number;
+    payAmountDisplay: string;
+    items: IOrderItem[];
+}
 
-  if (data.email) {
-    form.append("email", data.email);
-  }
+export interface IApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
+    errors: Record<string, string[]>;
+}
 
-  if (data.profilePhoto) {
-    form.append("profilePhoto", data.profilePhoto);
-  }
+// ─── Response types (extend as your API shapes become known) ─────────────────
 
-  const res = await apiInstance.post("/api/Account/update-profile", form, {
-    isFormDataRequest: true,
-  });
+export interface IUserProfile {
+    id: string;
+    fullname: string;
+    username: string;
+    email?: string;
+    mobile?: string;
+    profilePhoto?: string;
+}
 
-  return res.data.data;
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const buildProfileForm = (
+    data: IUpdateProfileParams | ICompleteProfileParams
+): FormData => {
+    const form = new FormData();
+    form.append("fullname", data.fullname);
+    form.append("username", data.username);
+    if (data.email) form.append("email", data.email);
+    if (data.profilePhoto) form.append("profilePhoto", data.profilePhoto);
+    if ("password" in data) form.append("password", data.password);
+    if ("repassword" in data) form.append("repassword", data.repassword);
+    return form;
 };
 
-export const changePassword = async (CurrentPassword: string, password: string, rePassword: string) => {
-  const form = new FormData();
+// ─── Account API calls ───────────────────────────────────────────────────────
 
-  form.append("CurrentPassword", CurrentPassword);
-  form.append("password", password);
-  form.append("rePassword", rePassword);
+export const getUser = async (): Promise<IUserProfile> => {
+    const res = await apiInstance.get("/api/Account/me");
+    return res.data;
+};
 
-  const res = await apiInstance.post("/api/Account/change-password", form, {
-    isFormDataRequest: true,
-  });
+export const getUserFavorites = async () => {
+    const res = await apiInstance.get("/api/Account/favorites");
+    return res.data;
+};
 
-  return res.data.data;
+export const getUserOrders = async (): Promise<IOrder[]> => {
+    const res = await apiInstance.get<IApiResponse<IOrder[]>>(
+        "/api/Account/orders"
+    );
+    return res.data.data;
 };
 
 export const getUserTickets = async () => {
-  const res = await apiInstance.get("/api/Account/tickets")
-  return res.data.data;
-}
+    const res = await apiInstance.get("/api/Account/tickets");
+    return res.data;
+};
 
-export const changeMobileReqOTP = async (mobile: string) => {
-  await apiInstance.post("/api/Account/change-mobile/request", {mobile})
-}
+export const updateProfile = async (
+    data: IUpdateProfileParams
+): Promise<IUserProfile> => {
+    const res = await apiInstance.post(
+        "/api/Account/update-profile",
+        buildProfileForm(data),
+        { isFormDataRequest: true }
+    );
+    return res.data;
+};
 
-export const changeMobileVerify = async (mobile: string, code: string) => {
-  const res = await apiInstance.post("/api/Account/change-mobile/verify", {mobile, code})
-  return res.data;
-}
+export const completeProfile = async (
+    data: ICompleteProfileParams
+): Promise<IUserProfile> => {
+    const res = await apiInstance.post(
+        "/api/Account/complete-profile",
+        buildProfileForm(data),
+        { isFormDataRequest: true }
+    );
+    return res.data;
+};
+
+export const changePassword = async ({
+    currentPassword,
+    password,
+    rePassword,
+}: IChangePasswordParams): Promise<void> => {
+    const form = new FormData();
+    form.append("CurrentPassword", currentPassword);
+    form.append("password", password);
+    form.append("rePassword", rePassword);
+    await apiInstance.post("/api/Account/change-password", form, {
+        isFormDataRequest: true,
+    });
+};
+
+export const changeMobileReqOTP = async ({
+    mobile,
+}: IChangeMobileRequestParams): Promise<void> => {
+    await apiInstance.post("/api/Account/change-mobile/request", { mobile });
+};
+
+export const changeMobileVerify = async ({
+    mobile,
+    code,
+}: IChangeMobileVerifyParams) => {
+    const res = await apiInstance.post("/api/Account/change-mobile/verify", {
+        mobile,
+        code,
+    });
+    return res.data;
+};
