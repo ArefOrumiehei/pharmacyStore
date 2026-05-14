@@ -7,7 +7,7 @@ const formatPrice = (price: number) =>
 
 type ProductCardProps = {
   productData: Product;
-  onAddToCart?: (id: string) => void;
+  onAddToCart?: (id: number) => void;
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) => {
@@ -93,8 +93,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
             ))}
           </div>
           <span className="text-[11px] sm:text-xs text-gray-500">
-            {Number.isInteger(productData.avgRate)
-              ? productData.avgRate
+            {Number(productData.avgRate)
+              ? formatPrice(productData.avgRate)
               : Number(productData.avgRate).toFixed(1)}
           </span>
           <span className="text-[11px] sm:text-xs text-gray-400">({formatPrice(productData.rateCount)})</span>
@@ -152,7 +152,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
             ) : productData.hasDiscount && productData.priceWithDiscount ? (
               <>
                 <span className="text-[11px] sm:text-xs text-gray-400 line-through">
-                  {formatPrice(productData.price)} تومان
+                  {formatPrice(productData.doublePrice)} تومان
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-sm sm:text-base font-black text-blue-800">
@@ -164,7 +164,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
             ) : (
               <div className="flex items-baseline gap-1">
                 <span className="text-sm sm:text-base font-black text-blue-800">
-                  {formatPrice(productData.price)}
+                  {formatPrice(productData.doublePrice)}
                 </span>
                 <span className="text-[11px] sm:text-xs text-gray-500">تومان</span>
               </div>
