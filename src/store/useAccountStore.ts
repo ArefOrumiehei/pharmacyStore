@@ -1,35 +1,50 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { toast } from "react-toastify";
+import { useAuthStore } from "./useAuthStore";
 import {
     getUser,
     getUserFavorites,
     getUserOrders,
     getUserTickets,
+    getAllUserAddresses,
+    getUserAddress,
+    createUserAddress,
+    editUserAddress,
+    deleteUserAddress,
     updateProfile,
+    completeProfile,
     changePassword,
     changeMobileReqOTP,
     changeMobileVerify,
     type IUserProfile,
+    type IAddress,
+    type IOrder,
+    type ITicket,
     type IUpdateProfileParams,
+    type ICompleteProfileParams,
     type IChangePasswordParams,
     type IChangeMobileRequestParams,
     type IChangeMobileVerifyParams,
-    type IOrder,
-    type ITicket,
+    type IAddressFormParams,
+    type IEditAddressFormParams,
 } from "@/services/accountServices/accountServices";
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { useAuthStore } from "./useAuthStore";
-import { toast } from "react-toastify";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ILoadingState {
     user: boolean;
     favorites: boolean;
     orders: boolean;
     tickets: boolean;
+    addresses: boolean;
     updateProfile: boolean;
+    completeProfile: boolean;
     changePassword: boolean;
     changeMobile: boolean;
+    createAddress: boolean;
+    editAddress: boolean;
+    deleteAddress: boolean;
 }
 
 interface IUserStore {
@@ -37,41 +52,55 @@ interface IUserStore {
     userFavorites: unknown | null;
     userOrders: IOrder[] | null;
     userTickets: ITicket[] | null;
+    userAddresses: IAddress[] | null;
     loading: ILoadingState;
 
     fetchUser: () => Promise<void>;
     fetchUserFavorites: () => Promise<void>;
     fetchUserOrders: () => Promise<void>;
     fetchUserTickets: () => Promise<void>;
+    fetchUserAddresses: () => Promise<void>;
+    fetchUserAddress: (id: number) => Promise<IAddress>;
+    createUserAddress: (data: IAddressFormParams) => Promise<void>;
+    editUserAddress: (data: IEditAddressFormParams) => Promise<void>;
+    deleteUserAddress: (id: number) => Promise<void>;
     updateProfile: (data: IUpdateProfileParams) => Promise<void>;
+    completeProfile: (data: ICompleteProfileParams) => Promise<void>;
     changePassword: (data: IChangePasswordParams) => Promise<void>;
     changeMobileReqOTP: (data: IChangeMobileRequestParams) => Promise<void>;
     changeMobileVerify: (data: IChangeMobileVerifyParams) => Promise<void>;
     clearUser: () => void;
 }
 
-// ─── Defaults ────────────────────────────────────────────────────────────────
+// ─── Defaults ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_LOADING: ILoadingState = {
     user: false,
     favorites: false,
     orders: false,
     tickets: false,
+    addresses: false,
     updateProfile: false,
+    completeProfile: false,
     changePassword: false,
     changeMobile: false,
+    createAddress: false,
+    editAddress: false,
+    deleteAddress: false,
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helper ───────────────────────────────────────────────────────────────────
 
 const extractMessage = (err: unknown, fallback: string): string => {
     if (err && typeof err === "object" && "response" in err) {
-        const res = (err as { response?: { data?: { message?: string } } })
+        const r = (err as { response?: { data?: { message?: string } } })
             .response;
-        return res?.data?.message ?? fallback;
+        return r?.data?.message ?? fallback;
     }
     return fallback;
 };
+
+// ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useUserStore = create<IUserStore>()(
     persist(
@@ -80,7 +109,10 @@ export const useUserStore = create<IUserStore>()(
             userFavorites: null,
             userOrders: null,
             userTickets: null,
+            userAddresses: null,
             loading: DEFAULT_LOADING,
+
+            // ── User ──────────────────────────────────────────────────────────────
 
             fetchUser: async () => {
                 set((s) => ({ loading: { ...s.loading, user: true } }));
@@ -95,52 +127,6 @@ export const useUserStore = create<IUserStore>()(
                     toast.error(
                         extractMessage(err, "خطا در دریافت اطلاعات کاربر")
                     );
-                }
-            },
-
-            fetchUserFavorites: async () => {
-                set((s) => ({ loading: { ...s.loading, favorites: true } }));
-                try {
-                    const data = await getUserFavorites();
-                    set((s) => ({
-                        userFavorites: data,
-                        loading: { ...s.loading, favorites: false },
-                    }));
-                } catch (err) {
-                    set((s) => ({
-                        loading: { ...s.loading, favorites: false },
-                    }));
-                    toast.error(
-                        extractMessage(err, "خطا در دریافت علاقه‌مندی‌ها")
-                    );
-                }
-            },
-
-            fetchUserOrders: async () => {
-                set((s) => ({ loading: { ...s.loading, orders: true } }));
-                try {
-                    const data = await getUserOrders();
-                    set((s) => ({
-                        userOrders: data,
-                        loading: { ...s.loading, orders: false },
-                    }));
-                } catch (err) {
-                    set((s) => ({ loading: { ...s.loading, orders: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت سفارش‌ها"));
-                }
-            },
-
-            fetchUserTickets: async () => {
-                set((s) => ({ loading: { ...s.loading, tickets: true } }));
-                try {
-                    const data = await getUserTickets();
-                    set((s) => ({
-                        userTickets: data,
-                        loading: { ...s.loading, tickets: false },
-                    }));
-                } catch (err) {
-                    set((s) => ({ loading: { ...s.loading, tickets: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت تیکت‌ها"));
                 }
             },
 
@@ -162,7 +148,27 @@ export const useUserStore = create<IUserStore>()(
                     toast.error(
                         extractMessage(err, "خطا در بروزرسانی پروفایل")
                     );
-                    throw err; // let the form handle field-level errors
+                    throw err;
+                }
+            },
+
+            completeProfile: async (data) => {
+                set((s) => ({
+                    loading: { ...s.loading, completeProfile: true },
+                }));
+                try {
+                    const updated = await completeProfile(data);
+                    set((s) => ({
+                        user: { ...s.user, ...updated },
+                        loading: { ...s.loading, completeProfile: false },
+                    }));
+                    toast.success("پروفایل با موفقیت تکمیل شد");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, completeProfile: false },
+                    }));
+                    toast.error(extractMessage(err, "خطا در تکمیل پروفایل"));
+                    throw err;
                 }
             },
 
@@ -206,7 +212,6 @@ export const useUserStore = create<IUserStore>()(
                 set((s) => ({ loading: { ...s.loading, changeMobile: true } }));
                 try {
                     await changeMobileVerify(data);
-                    // Re-fetch so the new mobile is reflected everywhere
                     await useUserStore.getState().fetchUser();
                     set((s) => ({
                         loading: { ...s.loading, changeMobile: false },
@@ -223,12 +228,154 @@ export const useUserStore = create<IUserStore>()(
                 }
             },
 
+            // ── Favorites ─────────────────────────────────────────────────────────
+
+            fetchUserFavorites: async () => {
+                set((s) => ({ loading: { ...s.loading, favorites: true } }));
+                try {
+                    const data = await getUserFavorites();
+                    set((s) => ({
+                        userFavorites: data,
+                        loading: { ...s.loading, favorites: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, favorites: false },
+                    }));
+                    toast.error(
+                        extractMessage(err, "خطا در دریافت علاقه‌مندی‌ها")
+                    );
+                }
+            },
+
+            // ── Orders ────────────────────────────────────────────────────────────
+
+            fetchUserOrders: async () => {
+                set((s) => ({ loading: { ...s.loading, orders: true } }));
+                try {
+                    const data = await getUserOrders();
+                    set((s) => ({
+                        userOrders: data,
+                        loading: { ...s.loading, orders: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, orders: false } }));
+                    toast.error(extractMessage(err, "خطا در دریافت سفارش‌ها"));
+                }
+            },
+
+            // ── Tickets ───────────────────────────────────────────────────────────
+
+            fetchUserTickets: async () => {
+                set((s) => ({ loading: { ...s.loading, tickets: true } }));
+                try {
+                    const data = await getUserTickets();
+                    set((s) => ({
+                        userTickets: data,
+                        loading: { ...s.loading, tickets: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, tickets: false } }));
+                    toast.error(extractMessage(err, "خطا در دریافت تیکت‌ها"));
+                }
+            },
+
+            // ── Addresses ─────────────────────────────────────────────────────────
+
+            fetchUserAddresses: async () => {
+                set((s) => ({ loading: { ...s.loading, addresses: true } }));
+                try {
+                    const data = await getAllUserAddresses();
+                    set((s) => ({
+                        userAddresses: data,
+                        loading: { ...s.loading, addresses: false },
+                    }));
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, addresses: false },
+                    }));
+                    toast.error(extractMessage(err, "خطا در دریافت آدرس‌ها"));
+                }
+            },
+
+            fetchUserAddress: async (id) => {
+                try {
+                    return await getUserAddress(id);
+                } catch (err) {
+                    toast.error(extractMessage(err, "خطا در دریافت آدرس"));
+                    throw err;
+                }
+            },
+
+            createUserAddress: async (data) => {
+                set((s) => ({
+                    loading: { ...s.loading, createAddress: true },
+                }));
+                try {
+                    await createUserAddress(data);
+                    await useUserStore.getState().fetchUserAddresses();
+                    set((s) => ({
+                        loading: { ...s.loading, createAddress: false },
+                    }));
+                    toast.success("آدرس با موفقیت ایجاد شد");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, createAddress: false },
+                    }));
+                    toast.error(extractMessage(err, "خطا در ایجاد آدرس"));
+                    throw err;
+                }
+            },
+
+            editUserAddress: async (data) => {
+                set((s) => ({ loading: { ...s.loading, editAddress: true } }));
+                try {
+                    await editUserAddress(data);
+                    await useUserStore.getState().fetchUserAddresses();
+                    set((s) => ({
+                        loading: { ...s.loading, editAddress: false },
+                    }));
+                    toast.success("آدرس با موفقیت ویرایش شد");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, editAddress: false },
+                    }));
+                    toast.error(extractMessage(err, "خطا در ویرایش آدرس"));
+                    throw err;
+                }
+            },
+
+            deleteUserAddress: async (id) => {
+                set((s) => ({
+                    loading: { ...s.loading, deleteAddress: true },
+                }));
+                try {
+                    await deleteUserAddress(id);
+                    // Optimistic removal — no need to re-fetch the whole list
+                    set((s) => ({
+                        userAddresses:
+                            s.userAddresses?.filter((a) => a.id !== id) ?? null,
+                        loading: { ...s.loading, deleteAddress: false },
+                    }));
+                    toast.success("آدرس با موفقیت حذف شد");
+                } catch (err) {
+                    set((s) => ({
+                        loading: { ...s.loading, deleteAddress: false },
+                    }));
+                    toast.error(extractMessage(err, "خطا در حذف آدرس"));
+                    throw err;
+                }
+            },
+
+            // ── Clear ─────────────────────────────────────────────────────────────
+
             clearUser: () =>
                 set({
                     user: null,
                     userFavorites: null,
                     userOrders: null,
                     userTickets: null,
+                    userAddresses: null,
                     loading: DEFAULT_LOADING,
                 }),
         }),
@@ -238,7 +385,7 @@ export const useUserStore = create<IUserStore>()(
             partialize: (state) => ({
                 user: state.user,
                 userFavorites: state.userFavorites,
-                userOrders: state.userOrders,
+                userAddresses: state.userAddresses,
             }),
             onRehydrateStorage: () => (state, error) => {
                 if (error) return;

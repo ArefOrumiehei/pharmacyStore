@@ -1,39 +1,24 @@
 import apiInstance from "@/apis/apiInstance";
 
-// ─── Request param types ─────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
-export interface ICompleteProfileParams {
-    fullname: string;
-    username: string;
-    password: string;
-    repassword: string;
-    email?: string;
-    profilePhoto?: File;
-}
-
-export interface IUpdateProfileParams {
+export interface IUserProfile {
+    id: string;
     fullname: string;
     username: string;
     email?: string;
-    profilePhoto?: File;
+    mobile?: string;
+    profilePhoto?: string;
 }
 
-export interface IChangePasswordParams {
-    currentPassword: string;
-    password: string;
-    rePassword: string;
+export interface IAddress {
+    id: number;
+    receiverFullName: string;
+    receiverMobile: string;
+    receiverAddress: string;
+    receiverZipCode: string;
 }
 
-export interface IChangeMobileRequestParams {
-    mobile: string;
-}
-
-export interface IChangeMobileVerifyParams {
-    mobile: string;
-    code: string;
-}
-
-// ─── Order types ─────────────────────────────────────────────────────────────
 export interface IOrderItem {
     id: number;
     orderId: number;
@@ -77,14 +62,14 @@ export interface IOrder {
 }
 
 export interface ITicket {
-  userId:         number;
-  subject:        string;
-  message:        string;
-  adminReply:     string | null;
-  creationDate:   string;
-  adminReplyDate: string | null;
-  isAnswered:     boolean;
-  trackingCode:   string;
+    userId: number;
+    subject: string;
+    message: string;
+    adminReply: string | null;
+    creationDate: string;
+    adminReplyDate: string | null;
+    isAnswered: boolean;
+    trackingCode: string;
 }
 
 export interface IApiResponse<T> {
@@ -94,43 +79,139 @@ export interface IApiResponse<T> {
     errors: Record<string, string[]>;
 }
 
-// ─── Response types (extend as your API shapes become known) ─────────────────
+// ─── Param types ──────────────────────────────────────────────────────────────
 
-export interface IUserProfile {
-    id: string;
+export interface IUpdateProfileParams {
     fullname: string;
     username: string;
     email?: string;
-    mobile?: string;
-    profilePhoto?: string;
+    profilePhoto?: File;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+export interface ICompleteProfileParams {
+    fullname: string;
+    username: string;
+    password: string;
+    repassword: string;
+    email?: string;
+    profilePhoto?: File;
+}
 
-const buildProfileForm = (
-    data: IUpdateProfileParams | ICompleteProfileParams
-): FormData => {
+export interface IChangePasswordParams {
+    currentPassword: string;
+    password: string;
+    rePassword: string;
+}
+
+export interface IChangeMobileRequestParams {
+    mobile: string;
+}
+
+export interface IChangeMobileVerifyParams {
+    mobile: string;
+    code: string;
+}
+
+export interface IAddressFormParams {
+    receiverFullName: string;
+    receiverMobile: string;
+    receiverAddress: string;
+    receiverZipCode: string;
+}
+
+export interface IEditAddressFormParams extends IAddressFormParams {
+    shippinginfoId: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const toFormData = (entries: object): FormData => {
     const form = new FormData();
-    form.append("fullname", data.fullname);
-    form.append("username", data.username);
-    if (data.email) form.append("email", data.email);
-    if (data.profilePhoto) form.append("profilePhoto", data.profilePhoto);
-    if ("password" in data) form.append("password", data.password);
-    if ("repassword" in data) form.append("repassword", data.repassword);
+    for (const [key, value] of Object.entries(entries)) {
+        if (value !== undefined && value !== null) {
+            form.append(key, value as string | File);
+        }
+    }
     return form;
 };
 
-// ─── Account API calls ───────────────────────────────────────────────────────
+const buildProfileForm = (
+    data: IUpdateProfileParams | ICompleteProfileParams
+): FormData =>
+    toFormData({
+        fullname: data.fullname,
+        username: data.username,
+        email: data.email,
+        profilePhoto: data.profilePhoto,
+        ...("password" in data ? { password: data.password } : {}),
+        ...("repassword" in data ? { repassword: data.repassword } : {}),
+    });
+
+// ─── User ─────────────────────────────────────────────────────────────────────
 
 export const getUser = async (): Promise<IUserProfile> => {
-    const res = await apiInstance.get("/api/Account/me");
-    return res.data;
+    const res = await apiInstance.get<IApiResponse<IUserProfile>>(
+        "/api/Account/me"
+    );
+    return res.data.data;
 };
+
+export const updateProfile = async (
+    data: IUpdateProfileParams
+): Promise<IUserProfile> => {
+    const res = await apiInstance.post<IApiResponse<IUserProfile>>(
+        "/api/Account/update-profile",
+        buildProfileForm(data),
+        { isFormDataRequest: true }
+    );
+    return res.data.data;
+};
+
+export const completeProfile = async (
+    data: ICompleteProfileParams
+): Promise<IUserProfile> => {
+    const res = await apiInstance.post<IApiResponse<IUserProfile>>(
+        "/api/Account/complete-profile",
+        buildProfileForm(data),
+        { isFormDataRequest: true }
+    );
+    return res.data.data;
+};
+
+export const changePassword = async (
+    data: IChangePasswordParams
+): Promise<void> => {
+    await apiInstance.post(
+        "/api/Account/change-password",
+        toFormData({
+            CurrentPassword: data.currentPassword,
+            password: data.password,
+            rePassword: data.rePassword,
+        }),
+        { isFormDataRequest: true }
+    );
+};
+
+export const changeMobileReqOTP = async (
+    data: IChangeMobileRequestParams
+): Promise<void> => {
+    await apiInstance.post("/api/Account/change-mobile/request", data);
+};
+
+export const changeMobileVerify = async (
+    data: IChangeMobileVerifyParams
+): Promise<void> => {
+    await apiInstance.post("/api/Account/change-mobile/verify", data);
+};
+
+// ─── Favorites ────────────────────────────────────────────────────────────────
 
 export const getUserFavorites = async () => {
     const res = await apiInstance.get("/api/Account/favorites");
-    return res.data;
+    return res.data.data;
 };
+
+// ─── Orders ───────────────────────────────────────────────────────────────────
 
 export const getUserOrders = async (): Promise<IOrder[]> => {
     const res = await apiInstance.get<IApiResponse<IOrder[]>>(
@@ -139,60 +220,47 @@ export const getUserOrders = async (): Promise<IOrder[]> => {
     return res.data.data;
 };
 
+// ─── Tickets ──────────────────────────────────────────────────────────────────
+
 export const getUserTickets = async (): Promise<ITicket[]> => {
-  const res = await apiInstance.get<IApiResponse<ITicket[]>>("/api/Account/tickets");
-  return res.data.data;
-};
-
-export const updateProfile = async (
-    data: IUpdateProfileParams
-): Promise<IUserProfile> => {
-    const res = await apiInstance.post(
-        "/api/Account/update-profile",
-        buildProfileForm(data),
-        { isFormDataRequest: true }
+    const res = await apiInstance.get<IApiResponse<ITicket[]>>(
+        "/api/Account/tickets"
     );
-    return res.data;
+    return res.data.data;
 };
 
-export const completeProfile = async (
-    data: ICompleteProfileParams
-): Promise<IUserProfile> => {
-    const res = await apiInstance.post(
-        "/api/Account/complete-profile",
-        buildProfileForm(data),
-        { isFormDataRequest: true }
+// ─── Addresses ────────────────────────────────────────────────────────────────
+
+export const getAllUserAddresses = async (): Promise<IAddress[]> => {
+    const res = await apiInstance.get<IApiResponse<IAddress[]>>(
+        "/api/Account/ShippingInfos"
     );
-    return res.data;
+    return res.data.data;
 };
 
-export const changePassword = async ({
-    currentPassword,
-    password,
-    rePassword,
-}: IChangePasswordParams): Promise<void> => {
-    const form = new FormData();
-    form.append("CurrentPassword", currentPassword);
-    form.append("password", password);
-    form.append("rePassword", rePassword);
-    await apiInstance.post("/api/Account/change-password", form, {
+export const getUserAddress = async (addressId: number): Promise<IAddress> => {
+    const res = await apiInstance.get<IApiResponse<IAddress>>(
+        `/api/Account/ShippingInfos/${addressId}`
+    );
+    return res.data.data;
+};
+
+export const createUserAddress = async (
+    data: IAddressFormParams
+): Promise<void> => {
+    await apiInstance.post("/api/Account/ShippingInfos", toFormData(data), {
         isFormDataRequest: true,
     });
 };
 
-export const changeMobileReqOTP = async ({
-    mobile,
-}: IChangeMobileRequestParams): Promise<void> => {
-    await apiInstance.post("/api/Account/change-mobile/request", { mobile });
+export const editUserAddress = async (
+    data: IEditAddressFormParams
+): Promise<void> => {
+    await apiInstance.put("/api/Account/ShippingInfos", toFormData(data), {
+        isFormDataRequest: true,
+    });
 };
 
-export const changeMobileVerify = async ({
-    mobile,
-    code,
-}: IChangeMobileVerifyParams) => {
-    const res = await apiInstance.post("/api/Account/change-mobile/verify", {
-        mobile,
-        code,
-    });
-    return res.data;
+export const deleteUserAddress = async (addressId: number): Promise<void> => {
+    await apiInstance.delete(`/api/Account/ShippingInfos/${addressId}`); // was: .get ← bug fixed
 };
