@@ -1,0 +1,1 @@
+export const formatNumberToFa = (n: number | string) => new Intl.NumberFormat("fa-IR").format(Number(n));
