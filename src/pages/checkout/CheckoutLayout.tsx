@@ -8,6 +8,7 @@ export interface AddressData {
   receiverMobile: string;
   receiverAddress: string;
   receiverZipCode: string;
+  shippingId?: number;
 }
 
 const STEPS = [

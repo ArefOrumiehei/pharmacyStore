@@ -1,88 +1,137 @@
 import { create } from "zustand";
+import { toast } from "react-toastify";
 import {
   createOrder,
-  downloadInvoice,
   verifyPayment,
+  downloadInvoice,
+  getCheckoutPreview,
   type CreatePaymentRequest,
+  type IOrderResponse,
+  type ICheckoutPreview,
+  type IVerifyPaymentParams,
 } from "@/services/orderServices/orderServices";
 
-/* ---------------- TYPES ---------------- */
-interface OrderResponse {
-  data: {
-    orderId: number;
-    redirectUrl?: string;
-    shouldRedirect?: boolean;
-  };
-  message?: string;
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ILoadingState {
+  createOrder:     boolean;
+  verifyPayment:   boolean;
+  downloadInvoice: boolean;
+  preview:         boolean;
 }
 
-interface PaymentState {
-  loading: boolean;
-  orderId: number | null;
-  redirectUrl: string | null;
-  error: string | null;
+interface IOrderStore {
+  orderId:         number | null;
+  redirectUrl:     string | null;
+  preview:         ICheckoutPreview | null;
+  loading:         ILoadingState;
 
-  createOrder: (data: CreatePaymentRequest) => Promise<OrderResponse>;
-  verifyPayment: (orderId: number, trackId: string) => Promise<void>;
-  downloadInvoice: (orderId: number) => Promise<void>;
-  reset: () => void;
+  createOrder:        (data: CreatePaymentRequest)     => Promise<IOrderResponse>;
+  verifyPayment:      (params: IVerifyPaymentParams)   => Promise<void>;
+  downloadInvoice:    (orderId: number)                => Promise<void>;
+  fetchPreview:       (coupon?: string)                => Promise<void>;
+  reset:              ()                               => void;
 }
 
-/* ---------------- HELPERS ---------------- */
-const handleError = (err: unknown, fallback: string): string =>
-  err instanceof Error ? err.message : fallback;
+// ─── Defaults ─────────────────────────────────────────────────────────────────
+
+const DEFAULT_LOADING: ILoadingState = {
+  createOrder:     false,
+  verifyPayment:   false,
+  downloadInvoice: false,
+  preview:         false,
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const extractMessage = (err: unknown, fallback: string): string => {
+  if (err && typeof err === "object" && "response" in err) {
+    const r = (err as { response?: { data?: { message?: string } } }).response;
+    return r?.data?.message ?? fallback;
+  }
+  return fallback;
+};
 
 const triggerDownload = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement("a"), { href: url, download: filename });
+  const a   = Object.assign(document.createElement("a"), { href: url, download: filename });
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 };
 
-/* ---------------- STORE ---------------- */
-export const useOrderStore = create<PaymentState>((set) => ({
-  loading: false,
-  orderId: null,
+// ─── Store ────────────────────────────────────────────────────────────────────
+
+export const useOrderStore = create<IOrderStore>((set) => ({
+  orderId:     null,
   redirectUrl: null,
-  error: null,
+  preview:     null,
+  loading:     DEFAULT_LOADING,
+
+  // ── Create order ───────────────────────────────────────────────────────────
 
   createOrder: async (data) => {
-    set({ loading: true, error: null });
+    set((s) => ({ loading: { ...s.loading, createOrder: true } }));
     try {
-      const res: OrderResponse = await createOrder(data);
-      set({
-        orderId: res.data.orderId,
+      const res = await createOrder(data);
+      set((s) => ({
+        orderId:     res.data.orderId,
         redirectUrl: res.data.redirectUrl ?? null,
-        loading: false,
-      });
+        loading:     { ...s.loading, createOrder: false },
+      }));
       return res;
     } catch (err) {
-      set({ loading: false, error: handleError(err, "خطا در ثبت سفارش") });
+      set((s) => ({ loading: { ...s.loading, createOrder: false } }));
+      toast.error(extractMessage(err, "خطا در ثبت سفارش"));
       throw err;
     }
   },
 
-  verifyPayment: async (orderId, trackId) => {
-    set({ loading: true, error: null });
+  // ── Verify payment ─────────────────────────────────────────────────────────
+
+  verifyPayment: async (params) => {
+    set((s) => ({ loading: { ...s.loading, verifyPayment: true } }));
     try {
-      const res  = await verifyPayment({ orderId, trackId });
-      set({ loading: false });
-      return res;
+      await verifyPayment(params);
+      set((s) => ({ loading: { ...s.loading, verifyPayment: false } }));
+      toast.success("پرداخت با موفقیت تأیید شد");
     } catch (err) {
-      set({ loading: false, error: handleError(err, "خطا در تایید پرداخت") });
+      set((s) => ({ loading: { ...s.loading, verifyPayment: false } }));
+      toast.error(extractMessage(err, "خطا در تأیید پرداخت"));
       throw err;
     }
   },
+
+  // ── Download invoice ───────────────────────────────────────────────────────
 
   downloadInvoice: async (orderId) => {
+    set((s) => ({ loading: { ...s.loading, downloadInvoice: true } }));
     try {
       const blob = await downloadInvoice(orderId);
       triggerDownload(blob, `invoice-${orderId}.pdf`);
+      set((s) => ({ loading: { ...s.loading, downloadInvoice: false } }));
+      toast.success("فاکتور با موفقیت دانلود شد");
     } catch (err) {
-      set({ error: handleError(err, "خطا در دانلود فاکتور") });
+      set((s) => ({ loading: { ...s.loading, downloadInvoice: false } }));
+      toast.error(extractMessage(err, "خطا در دانلود فاکتور"));
     }
   },
 
-  reset: () =>
-    set({ loading: false, orderId: null, redirectUrl: null, error: null }),
+  // ── Checkout preview ───────────────────────────────────────────────────────
+
+  fetchPreview: async (coupon) => {
+    set((s) => ({ loading: { ...s.loading, preview: true } }));
+    try {
+      const data = await getCheckoutPreview(coupon);
+      set((s) => ({ preview: data, loading: { ...s.loading, preview: false } }));
+    } catch (err) {
+      set((s) => ({ loading: { ...s.loading, preview: false } }));
+      toast.error(extractMessage(err, "خطا در دریافت اطلاعات سبد خرید"));
+    }
+  },
+
+  // ── Reset ──────────────────────────────────────────────────────────────────
+
+  reset: () => set({ orderId: null, redirectUrl: null, preview: null, loading: DEFAULT_LOADING }),
 }));
