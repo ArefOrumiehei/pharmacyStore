@@ -18,8 +18,8 @@ export interface Product {
   pictureTitle: string;
   name: string;
   doublePrice: number;
-  price: number | null;
-  priceWithDiscount: number | null;
+  price: number;
+  priceWithDiscount: number;
   discountRate: number;
   category: string;
   categoryName: string;
@@ -36,7 +36,7 @@ export interface Product {
   isInStock: boolean;
   comments: any | null;
   pictures: any | null;
-  categorySlug: string | null;
+  categorySlug: string;
   avgRate: number;
   rateCount: number;
   currentUserFaved: boolean;
