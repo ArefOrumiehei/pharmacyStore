@@ -31,15 +31,6 @@
   src: url("./assets/fonts/iranYekan/IRANYekan-Medium.ttf");
 }
 
-@font-face {
-  font-family: shabnam;
-  src: url("./assets/fonts/shabnam/Shabnam.ttf");
-}
-
 *, .toast-container {
   font-family: iranYekan, sans-serif;
-}
-
-.shab {
-  font-family: shabnam;
 }
