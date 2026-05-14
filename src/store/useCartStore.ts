@@ -1,151 +1,181 @@
 import { create } from "zustand";
 import { toast } from "react-toastify";
 import {
-  addProductToCart,
-  decreaseCartItemQty,
-  deleteCart,
-  deleteCartItem,
-  getCart,
-  increaseCartItemQty,
-  type Cart,
-  type CartItem,
+    addProductToCart,
+    decreaseCartItemQty,
+    deleteCart,
+    deleteCartItem,
+    getCart,
+    increaseCartItemQty,
+    type Cart,
+    type CartItem,
 } from "@/services/cartServices/cartServices";
 
 /* ---------------- TYPES ---------------- */
 export type { Cart, CartItem };
 
 type CartState = {
-  cart: Cart | null;
-  loading: boolean;
-  error: string | null;
+    cart: Cart | null;
+    loading: boolean;
 
-  fetchCart: (force?: boolean) => Promise<void>;
-  addToCart: (productId: number, qty: number) => Promise<void>;
-  increaseQty: (productId: number) => Promise<void>;
-  decreaseQty: (productId: number) => Promise<void>;
-  removeItem: (productId: number) => Promise<void>;
-  clearCart: () => Promise<void>;
+    fetchCart: (force?: boolean) => Promise<void>;
+    addToCart: (productId: number, qty: number) => Promise<void>;
+    increaseQty: (productId: number) => Promise<void>;
+    decreaseQty: (productId: number) => Promise<void>;
+    removeItem: (productId: number) => Promise<void>;
+    clearCart: () => Promise<void>;
 };
 
 /* ---------------- HELPERS ---------------- */
-const handleError = (err: unknown, fallback: string): string =>
-  err instanceof Error ? err.message : fallback;
+
+const extractMessage = (err: unknown, fallback: string): string => {
+    if (err && typeof err === "object" && "response" in err) {
+        const r = (err as { response?: { data?: { message?: string } } })
+            .response;
+        return r?.data?.message ?? fallback;
+    }
+    return fallback;
+};
 
 const updateItems = (
-  cart: Cart,
-  productId: number,
-  updater: (item: CartItem) => CartItem
+    cart: Cart,
+    productId: number,
+    updater: (item: CartItem) => CartItem
 ): Cart => ({
-  ...cart,
-  items: cart.items.map((item) =>
-    item.productId === productId ? updater(item) : item
-  ),
+    ...cart,
+    items: cart.items.map((item) =>
+        item.productId === productId ? updater(item) : item
+    ),
 });
 
 /* ---------------- STORE ---------------- */
+
 export const useCartStore = create<CartState>((set, get) => ({
-  cart: null,
-  loading: false,
-  error: null,
+    cart: null,
+    loading: false,
 
-  fetchCart: async (force = false) => {
-    const { cart } = get();
-    if (cart && !force) return; // already loaded — skip re-fetch
+    // ── Fetch ────────────────────────────────────────────────────────────────
 
-    set({ loading: true, error: null });
-    try {
-      const data = await getCart();
-      set({ cart: data, loading: false });
-    } catch (err) {
-      const message = handleError(err, "خطا در دریافت سبد خرید");
-      set({ error: message, loading: false });
-      toast.error(message);
-    }
-  },
+    fetchCart: async (force = false) => {
+        if (get().cart && !force) return;
 
-  addToCart: async (productId, qty) => {
-    set({ loading: true, error: null });
-    try {
-      await addProductToCart(productId, qty);
-      await get().fetchCart(true); // force refresh after mutation
-      toast.success("محصول به سبد خرید اضافه شد");
-    } catch (err) {
-      const message = handleError(err, "خطا در افزودن محصول");
-      set({ error: message, loading: false });
-      toast.error(message);
-    } finally {
-      set({ loading: false });
-    }
-  },
+        set({ loading: true });
+        try {
+            const res = await getCart();
+            set({ cart: res.data, loading: false });
+        } catch (err) {
+            set({ loading: false });
+            toast.error(extractMessage(err, "خطا در دریافت سبد خرید"));
+        }
+    },
 
-  increaseQty: async (productId) => {
-    const { cart } = get();
-    if (!cart) return;
+    // ── Add ──────────────────────────────────────────────────────────────────
 
-    // Optimistic update
-    set({ cart: updateItems(cart, productId, (i) => ({ ...i, qty: i.qty + 1 })) });
+    addToCart: async (productId, qty) => {
+        set({ loading: true });
+        try {
+            const res = await addProductToCart(productId, qty);
+            await get().fetchCart(true);
+            toast.success(res.message || "محصول به سبد خرید اضافه شد");
+        } catch (err) {
+            toast.error(extractMessage(err, "خطا در افزودن محصول"));
+        } finally {
+            set({ loading: false });
+        }
+    },
 
-    try {
-      await increaseCartItemQty(productId);
-      await get().fetchCart(true);
-    } catch (err) {
-      get().fetchCart(true);
-      toast.error(handleError(err, "خطا در افزایش تعداد"));
-    }
-  },
+    // ── Increase ─────────────────────────────────────────────────────────────
 
-  decreaseQty: async (productId) => {
-    const { cart } = get();
-    if (!cart) return;
+    increaseQty: async (productId) => {
+        const { cart } = get();
+        if (!cart) return;
 
-    const item = cart.items.find((i) => i.productId === productId);
-    if (!item) return;
+        // Optimistic update
+        set({
+            cart: updateItems(cart, productId, (i) => ({
+                ...i,
+                qty: i.qty + 1,
+            })),
+        });
 
-    if (item.qty === 1) {
-      await get().removeItem(productId);
-      return;
-    }
+        try {
+            const res = await increaseCartItemQty(productId);
+            await get().fetchCart(true);
+            if (res.message) toast.success(res.message);
+        } catch (err) {
+            await get().fetchCart(true);
+            toast.error(extractMessage(err, "خطا در افزایش تعداد"));
+        }
+    },
 
-    // Optimistic update
-    set({ cart: updateItems(cart, productId, (i) => ({ ...i, qty: i.qty - 1 })) });
+    // ── Decrease ─────────────────────────────────────────────────────────────
 
-    try {
-      await decreaseCartItemQty(productId);
-      await get().fetchCart(true);
-    } catch (err) {
-      get().fetchCart(true);
-      toast.error(handleError(err, "خطا در کاهش تعداد"));
-    }
-  },
+    decreaseQty: async (productId) => {
+        const { cart } = get();
+        if (!cart) return;
 
-  removeItem: async (productId) => {
-    const { cart } = get();
-    if (!cart) return;
+        const item = cart.items.find((i) => i.productId === productId);
+        if (!item) return;
 
-    const prevItems = cart.items;
+        if (item.qty === 1) {
+            await get().removeItem(productId);
+            return;
+        }
 
-    // Optimistic update
-    set({ cart: { ...cart, items: prevItems.filter((i) => i.productId !== productId) } });
+        // Optimistic update
+        set({
+            cart: updateItems(cart, productId, (i) => ({
+                ...i,
+                qty: i.qty - 1,
+            })),
+        });
 
-    try {
-      await deleteCartItem(productId);
-      toast.success("محصول از سبد خرید حذف شد");
-    } catch (err) {
-      set({ cart: { ...cart, items: prevItems } });
-      toast.error(handleError(err, "خطا در حذف محصول"));
-    }
-  },
+        try {
+            const res = await decreaseCartItemQty(productId);
+            await get().fetchCart(true);
+            if (res.message) toast.success(res.message);
+        } catch (err) {
+            await get().fetchCart(true);
+            toast.error(extractMessage(err, "خطا در کاهش تعداد"));
+        }
+    },
 
-  clearCart: async () => {
-    set({ loading: true, error: null });
-    try {
-      await deleteCart();
-      set({ cart: null, loading: false });
-      toast.success("سبد خرید پاک شد");
-    } catch (err) {
-      const message = handleError(err, "خطا در حذف سبد خرید");
-      set({ error: message, loading: false });
-      toast.error(message);
-    }
-  },
+    // ── Remove item ───────────────────────────────────────────────────────────
+
+    removeItem: async (productId) => {
+        const { cart } = get();
+        if (!cart) return;
+
+        const prevItems = cart.items;
+
+        // Optimistic update
+        set({
+            cart: {
+                ...cart,
+                items: prevItems.filter((i) => i.productId !== productId),
+            },
+        });
+
+        try {
+            const res = await deleteCartItem(productId);
+            toast.success(res.message || "محصول از سبد خرید حذف شد");
+        } catch (err) {
+            set({ cart: { ...cart, items: prevItems } });
+            toast.error(extractMessage(err, "خطا در حذف محصول"));
+        }
+    },
+
+    // ── Clear ─────────────────────────────────────────────────────────────────
+
+    clearCart: async () => {
+        set({ loading: true });
+        try {
+            const res = await deleteCart();
+            set({ cart: null, loading: false });
+            toast.success(res.message || "سبد خرید پاک شد");
+        } catch (err) {
+            set({ loading: false });
+            toast.error(extractMessage(err, "خطا در حذف سبد خرید"));
+        }
+    },
 }));
