@@ -1,5 +1,5 @@
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa } from "@/helpers/formaters";
+import { formatNumberToFa, toPersianNums } from "@/helpers/formaters";
 import type { Product } from "@/store/useProductsStore";
 import { IconShoppingCartPlus, IconStarFilled, IconPackageOff } from "@tabler/icons-react";
 
@@ -65,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
         <div className="flex flex-col gap-0.5">
           <h3 className={`text-xs sm:text-sm font-bold line-clamp-2 leading-snug
             ${inStock ? "text-gray-800" : "text-gray-400"}`}>
-            {productData.name}
+            {toPersianNums(productData.name)}
           </h3>
           <span className={`text-[11px] sm:text-xs font-medium
             ${inStock ? "text-blue-600" : "text-gray-400"}`}>
