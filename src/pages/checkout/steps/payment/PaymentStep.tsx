@@ -212,16 +212,18 @@ export default function PaymentStep() {
                 const payload: CreatePaymentRequest =
                     payMethod === 2
                         ? {
-                              ShippingInfoId: addressData!.shippingId!,
-                              payMethod: 2,
-                              cardOwnerName: data.cardOwnerName!,
-                              nationalCode: data.nationalCode!,
-                              paymentReceiptPic: data.paymentReceiptPic!,
-                          }
+                            shippingInfoId: addressData!.shippingId!,
+                            payMethod: 2,
+                            cardOwnerName: data.cardOwnerName!,
+                            nationalCode: data.nationalCode!,
+                            paymentReceiptPic: receiptFile!,
+                            couponCode: appliedCoupon ?? undefined,
+                        }
                         : {
-                              ShippingInfoId: addressData!.shippingId!,
-                              payMethod: 1,
-                          };
+                            shippingInfoId: addressData!.shippingId!,
+                            payMethod: 1,
+                            couponCode: appliedCoupon ?? undefined,
+                        };
 
                 const res = await createOrder(payload);
                 if (res?.data?.shouldRedirect && res.data.redirectUrl) {
@@ -235,7 +237,7 @@ export default function PaymentStep() {
                 // toast already shown in store
             }
         },
-        [createOrder, payMethod, addressData, receiptFile]
+        [createOrder, payMethod, addressData, receiptFile, appliedCoupon]
     );
 
     // ── Guard: no address = go back ────────────────────────────────────────────
