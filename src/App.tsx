@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 
 // Styles
 import './App.css'
@@ -42,8 +42,19 @@ import CartStep from './pages/checkout/steps/cart/CartStep'
 import AddressStep from './pages/checkout/steps/address/AddressStep'
 import PaymentStep from './pages/checkout/steps/payment/PaymentStep'
 import LoginOTP from './pages/auth/login-otp/LoginOTP'
+import { useAuthStore } from './store/useAuthStore'
+import type { ReactNode } from 'react'
 
 function App() {
+
+  function ProtectedRoute({ children }: { children: ReactNode }) {
+    const { accessToken } = useAuthStore();
+    const location = useLocation();
+    if (!accessToken)
+      return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />;
+    return <>{children}</>;
+  }
+  
   return (
     <>
       <ScrollToTop />
@@ -73,7 +84,7 @@ function App() {
           </Route>
           <Route path='cart' element={<Navigate to="/checkout" replace />} /> 
           <Route path="shop/orders/confirm-callback" element={<OrderStatus />} />
-          <Route path="profile" element={<Profile />}>
+          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}>
             <Route index element={<Overview />} />
             <Route path="account" element={<Account />} />
             <Route path="orders" element={<Orders />} />
@@ -91,7 +102,7 @@ function App() {
         {/* Blog */}
         <Route path="blog" element={<BlogLayout />}>
           <Route index element={<BlogsPage />} />
-          <Route path=":slug" element={<BlogPostPage />} />
+          <Route path=":catgSlug/:slug" element={<BlogPostPage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />  
