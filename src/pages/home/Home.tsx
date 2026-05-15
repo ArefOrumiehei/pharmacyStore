@@ -6,7 +6,7 @@ import Banner from "./_components/banner/Banner";
 import { useUserStore } from "@/store/useAccountStore";
 import { useProductStore } from "@/store/useProductsStore";
 import { useEffect } from "react";
-import Blogs from "./_components/blogs/Blogs";
+import Blogs from "./_components/latest-articles/LatestArticles";
 import { useAuthStore } from "@/store/useAuthStore";
 
 function Home() {
