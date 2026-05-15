@@ -1,159 +1,134 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
 import {
-  IconClock,
-  IconCalendar,
-  IconEye,
-  IconBookmark,
-  IconBookmarkFilled,
-  IconArrowLeft,
-  IconChevronLeft,
-  IconHeartFilled,
-  IconHeart,
-  IconCopy,
-  IconCheck,
+  IconCalendar, IconEye, IconBookmark, IconBookmarkFilled,
+  IconArrowLeft, IconChevronLeft, IconHeartFilled, IconHeart,
+  IconCopy, IconCheck, IconStar, IconMessageCircle,
 } from "@tabler/icons-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { IMAGE_BASE } from "@/apis/apiInstance";
+import type { IArticle } from "@/services/articleServices/articleServices";
+import { useArticleStore } from "@/store/useArticlsStore";
 
-interface BlogPost {
-  id: number;
-  slug: string;
-  title: string;
-  excerpt: string;
-  cover: string;
-  category: string;
-  author: string;
-  authorBio?: string;
-  readTime: number;
-  date: string;
-  views?: number;
-  content: string;
-  tags?: string[];
-  related?: number[];
-}
+// ─── Content renderer ─────────────────────────────────────────────────────────
 
-const MOCK_POSTS: BlogPost[] = [
-  {
-    id: 1,
-    slug: "vitamin-d-deficiency",
-    title: "کمبود ویتامین D و راه‌های جبران آن",
-    excerpt: "ویتامین D یکی از مهم‌ترین ویتامین‌ها برای سلامت استخوان و سیستم ایمنی است.",
-    cover: "https://picsum.photos/seed/blog1/1200/600",
-    category: "تغذیه و سلامت",
-    author: "دکتر علی رضایی",
-    authorBio: "متخصص تغذیه و دیابت، دارای بیش از ۱۵ سال سابقه بالینی",
-    readTime: 5,
-    date: "۱۴۰۳/۰۲/۱۵",
-    views: 1240,
-    tags: ["ویتامین D", "استخوان", "سیستم ایمنی", "مکمل"],
-    related: [2, 4],
-    content: `
-## ویتامین D چیست؟
-
-ویتامین D یک ویتامین محلول در چربی است که نقش اساسی در جذب کلسیم و فسفر از روده دارد. بدن انسان قادر است با قرار گرفتن در معرض نور خورشید، این ویتامین را در پوست بسازد.
-
-## علائم کمبود ویتامین D
-
-کمبود ویتامین D می‌تواند علائم متعددی داشته باشد که عبارتند از:
-
-- **خستگی مزمن** و ضعف عضلانی
-- **دردهای استخوانی** به‌ویژه در کمر و زانو
-- **افسردگی** و تغییرات خلقی
-- **ضعف سیستم ایمنی** و بیماری‌های مکرر
-
-## چه کسانی بیشتر در معرض خطر هستند؟
-
-افراد زیر بیشتر در معرض کمبود ویتامین D هستند:
-
-افراد مسن‌تر پوست ضعیف‌تری در ساختن ویتامین D دارند. کسانی که کمتر در معرض آفتاب هستند، مانند کارمندان اداری، نیز در معرض خطر بالاتری قرار دارند. افراد با پوست تیره به نور خورشید بیشتری نیاز دارند.
-
-## منابع غذایی ویتامین D
-
-بهترین منابع غذایی ویتامین D شامل موارد زیر می‌شود:
-
-- ماهی چرب مانند سالمون، ماکرل و ساردین
-- زرده تخم‌مرغ
-- لبنیات غنی‌شده با ویتامین D
-- قارچ‌هایی که در معرض نور UV قرار گرفته‌اند
-
-## چه زمانی باید مکمل مصرف کنیم؟
-
-اگر آزمایش خون سطح ویتامین D شما کمتر از ۳۰ نانوگرم در میلی‌لیتر نشان دهد، پزشک احتمالاً مکمل تجویز خواهد کرد. دوز معمول بین ۱۰۰۰ تا ۴۰۰۰ IU در روز است، اما این مقدار باید توسط پزشک تعیین شود.
-
-## نتیجه‌گیری
-
-کمبود ویتامین D یک مشکل شایع است که می‌توان آن را با تغذیه مناسب، قرار گرفتن در معرض آفتاب و در صورت نیاز مصرف مکمل، برطرف کرد. در صورت مشاهده علائم، حتماً با پزشک مشورت کنید.
-    `,
-  },
-  {
-    id: 2, slug: "blood-pressure-tips",
-    title: "۱۰ راهکار طبیعی برای کنترل فشار خون",
-    excerpt: "فشار خون بالا یکی از شایع‌ترین بیماری‌های قلبی‌عروقی است.",
-    cover: "https://picsum.photos/seed/blog2/1200/600",
-    category: "قلب و عروق", author: "دکتر مریم احمدی",
-    authorBio: "متخصص قلب و عروق، عضو هیئت علمی دانشگاه",
-    readTime: 7, date: "۱۴۰۳/۰۲/۱۰", views: 980,
-    tags: ["فشار خون", "قلب", "سبک زندگی"],
-    related: [1, 4],
-    content: `## فشار خون بالا چیست؟\n\nفشار خون بالا یا هیپرتانسیون زمانی رخ می‌دهد که فشار خون در شریان‌ها به طور مداوم بالاتر از حد طبیعی باشد.\n\n## راهکارهای طبیعی\n\n- **کاهش مصرف نمک**: سدیم باعث احتباس آب و افزایش فشار خون می‌شود.\n- **ورزش منظم**: حداقل ۳۰ دقیقه فعالیت هوازی در روز.\n- **کاهش وزن**: هر کیلوگرم کاهش وزن، فشار خون را تا ۱ میلی‌متر جیوه کاهش می‌دهد.`,
-  },
-  {
-    id: 4, slug: "omega3-benefits",
-    title: "فواید امگا ۳ برای سلامت مغز و قلب",
-    excerpt: "اسیدهای چرب امگا ۳ نقش حیاتی در عملکرد مغز و سلامت قلب دارند.",
-    cover: "https://picsum.photos/seed/blog4/1200/600",
-    category: "مکمل‌ها", author: "دکتر حسین کریمی",
-    authorBio: "دکترای داروسازی، متخصص تغذیه بالینی",
-    readTime: 6, date: "۱۴۰۳/۰۱/۲۸", views: 634,
-    tags: ["امگا ۳", "مغز", "قلب", "مکمل"],
-    related: [1, 2],
-    content: `## امگا ۳ چیست؟\n\nامگا ۳ نوعی اسید چرب غیراشباع ضروری است که بدن قادر به ساخت آن نیست و باید از طریق غذا یا مکمل دریافت شود.\n\n## فواید اصلی\n\n- **سلامت قلب**: کاهش تری‌گلیسیرید و التهاب\n- **عملکرد مغز**: بهبود حافظه و کاهش خطر افسردگی\n- **سلامت مفاصل**: کاهش درد و التهاب آرتریت`,
-  },
-];
-
-// Simple markdown-like renderer
-function renderContent(content: string) {
-  return content
-    .trim()
-    .split("\n")
-    .map((line, i) => {
-      if (line.startsWith("## ")) {
-        return <h2 key={i} className="text-xl font-bold text-blue-800 mt-8 mb-4 flex items-center gap-2">
-          <span className="w-1 h-6 bg-blue-800 rounded-full inline-block flex-shrink-0" />
-          {line.replace("## ", "")}
-        </h2>;
-      }
-      if (line.startsWith("- ")) {
-        const html = line.replace("- ", "").replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        return <li key={i} className="flex items-start gap-2 text-gray-700 text-sm leading-7">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-300 flex-shrink-0 mt-2.5" />
-          <span dangerouslySetInnerHTML={{ __html: html }} />
-        </li>;
-      }
-      if (line.trim() === "") return <div key={i} className="h-2" />;
-      const html = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-800">$1</strong>');
-      return <p key={i} className="text-gray-600 text-sm leading-8" dangerouslySetInnerHTML={{ __html: html }} />;
-    });
-}
-
-function AuthorAvatar({ name, size = "lg" }: { name: string; size?: "sm" | "lg" }) {
-  const s = size === "lg" ? "w-12 h-12 text-base" : "w-6 h-6 text-[10px]";
+function RenderBody({ html }: { html: string }) {
   return (
-    <div className={`${s} rounded-full bg-blue-800 flex items-center justify-center text-white font-bold flex-shrink-0`}>
-      {name[2] ?? name[0]}
+    <div
+      className="prose prose-sm prose-blue max-w-none text-gray-600 leading-8
+        prose-headings:text-blue-800 prose-headings:font-bold
+        prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4
+        prose-h3:text-base prose-h3:mt-6 prose-h3:mb-3
+        prose-p:text-sm prose-p:leading-8 prose-p:text-gray-600
+        prose-li:text-sm prose-li:text-gray-700 prose-li:leading-7
+        prose-strong:text-gray-800
+        prose-a:text-blue-800 prose-a:no-underline hover:prose-a:underline
+        prose-img:rounded-xl prose-img:border prose-img:border-blue-100"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function PostSkeleton() {
+  return (
+    <div className="max-w-3xl mx-auto flex flex-col gap-5">
+      <div className="w-full h-72 bg-blue-50 animate-pulse rounded-2xl" />
+      <div className="bg-white border border-blue-50 rounded-2xl p-6 flex flex-col gap-4">
+        <div className="h-4 w-20 bg-blue-50 animate-pulse rounded-full" />
+        <div className="h-7 w-full bg-blue-50 animate-pulse rounded" />
+        <div className="h-7 w-3/4 bg-blue-50 animate-pulse rounded" />
+        <div className="flex gap-3 pt-4 border-t border-blue-50">
+          <div className="w-10 h-10 rounded-full bg-blue-50 animate-pulse" />
+          <div className="flex flex-col gap-2 flex-1">
+            <div className="h-3.5 w-32 bg-blue-50 animate-pulse rounded" />
+            <div className="h-3 w-48 bg-blue-50 animate-pulse rounded" />
+          </div>
+        </div>
+      </div>
+      <div className="bg-white border border-blue-50 rounded-2xl p-6 flex flex-col gap-3">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className={`h-3.5 bg-blue-50 animate-pulse rounded ${i % 5 === 4 ? "w-2/3" : "w-full"}`} />
+        ))}
+      </div>
     </div>
   );
 }
 
-export default function BlogPostPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const [bookmarked, setBookmarked] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [likeCount, setLikeCount] = useState(42);
+// ─── Author avatar ────────────────────────────────────────────────────────────
 
-  const post = MOCK_POSTS.find((p) => p.slug === slug);
-  const related = MOCK_POSTS.filter((p) => post?.related?.includes(p.id));
+function AuthorAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const s = size === "lg" ? "w-12 h-12 text-lg" : size === "md" ? "w-9 h-9 text-sm" : "w-6 h-6 text-[10px]";
+  return (
+    <div className={`${s} rounded-full bg-blue-800 flex items-center justify-center text-white font-bold flex-shrink-0`}>
+      م
+    </div>
+  );
+}
+
+// ─── Related card ─────────────────────────────────────────────────────────────
+
+function RelatedCard({ article }: { article: IArticle }) {
+  return (
+    <Link
+      to={`/blog/${article.categorySlug}/${article.slug}`}
+      className="group bg-white border border-blue-100 rounded-2xl overflow-hidden flex gap-3 p-3 hover:shadow-sm hover:border-blue-200 transition-all duration-200"
+    >
+      <img
+        src={`${IMAGE_BASE}/${article.picture}`}
+        alt={article.pictureAlt}
+        className="w-20 h-20 object-cover rounded-xl flex-shrink-0 bg-blue-50"
+        loading="lazy"
+      />
+      <div className="flex flex-col gap-1.5 min-w-0">
+        <span className="text-xs text-blue-800 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full w-fit">
+          {article.categoryName}
+        </span>
+        <h3 className="text-xs font-semibold text-gray-700 line-clamp-2 leading-5 group-hover:text-blue-800 transition-colors">
+          {article.title}
+        </h3>
+        <div className="flex items-center gap-2 text-xs text-gray-400 mt-auto">
+          <span className="flex items-center gap-1 text-amber-500">
+            <IconStar size={10} />{article.avgRateStr || article.avgRate}
+          </span>
+          <span className="flex items-center gap-1">
+            <IconEye size={10} />{article.viewsLabel || article.viewCount}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export default function BlogPostPage() {
+  const { catgSlug, slug } = useParams<{ catgSlug: string; slug: string }>();
+
+  const {
+    selectedArticle: article,
+    latestArticles,
+    loading, error,
+    fetchArticle,
+    fetchLatestArticles,
+    clearSelectedArticle,
+  } = useArticleStore();
+
+  const [bookmarked, setBookmarked] = useState(false);
+  const [liked,      setLiked]      = useState(false);
+  const [likeCount,  setLikeCount]  = useState(0);
+  const [copied,     setCopied]     = useState(false);
+
+  useEffect(() => {
+    if (slug && catgSlug) fetchArticle(slug, catgSlug);
+    if (!latestArticles.length) fetchLatestArticles();
+    return () => clearSelectedArticle();
+  }, [slug, catgSlug]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync like count with article data
+  useEffect(() => {
+    if (article) setLikeCount(article.rateCount);
+  }, [article]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -166,69 +141,89 @@ export default function BlogPostPage() {
     setLikeCount((c) => liked ? c - 1 : c + 1);
   };
 
-  if (!post) {
+  // Related = latest excluding current
+  const related = latestArticles
+    .filter((a) => a.slug !== slug)
+    .slice(0, 2);
+
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (loading.article) return <PostSkeleton />;
+
+  // ── Error ──────────────────────────────────────────────────────────────────
+  if (error.article) {
     return (
-      <div className="flex flex-col gap-6 max-w-3xl mx-auto">
-        <Skeleton className="w-full h-80 rounded-2xl" />
-        <Skeleton className="h-8 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className={`h-4 ${i % 4 === 3 ? "w-2/3" : "w-full"}`} />
-        ))}
+      <div className="max-w-3xl mx-auto flex flex-col items-center justify-center py-24 gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center">
+          <IconMessageCircle size={28} className="text-rose-300" />
+        </div>
+        <p className="text-sm text-rose-500 font-medium">{error.article}</p>
+        <Link to="/blog" className="text-sm text-blue-800 hover:text-blue-600 transition-colors">
+          بازگشت به مجله
+        </Link>
       </div>
     );
   }
 
+  // ── Not found ──────────────────────────────────────────────────────────────
+  if (!article) return <PostSkeleton />;
+
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-0">
+    <div className="max-w-3xl mx-auto flex flex-col gap-5">
 
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-xs text-gray-400 mb-6 flex-wrap">
+      <nav className="flex items-center gap-1 text-xs text-gray-400 flex-wrap">
         <Link to="/blog" className="hover:text-blue-800 transition-colors">مجله سلامت</Link>
         <IconChevronLeft size={12} />
-        <Link to={`/blog?category=${encodeURIComponent(post.category)}`} className="hover:text-blue-800 transition-colors">
-          {post.category}
+        <Link
+          to={`/blog?category=${encodeURIComponent(article.categoryName)}`}
+          className="hover:text-blue-800 transition-colors"
+        >
+          {article.categoryName}
         </Link>
         <IconChevronLeft size={12} />
-        <span className="text-gray-600 truncate max-w-[200px]">{post.title}</span>
+        <span className="text-gray-600 truncate max-w-[200px]">{article.title}</span>
       </nav>
 
-      {/* Cover image */}
-      <div className="w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-blue-50 mb-8">
+      {/* Cover */}
+      <div className="w-full h-64 sm:h-80 rounded-2xl overflow-hidden bg-blue-50">
         <img
-          src={post.cover}
-          alt={post.title}
+          src={`${IMAGE_BASE}/${article.picture}`}
+          alt={article.pictureAlt}
+          title={article.pictureTitle}
           className="w-full h-full object-cover"
         />
       </div>
 
       {/* Article header */}
-      <div className="bg-white border border-blue-100 rounded-2xl p-6 mb-6">
+      <div className="bg-white border border-blue-100 rounded-2xl p-6 flex flex-col gap-4">
+
         {/* Category */}
-        <span className="text-xs font-medium text-blue-800 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
-          {post.category}
+        <span className="text-xs font-medium text-blue-800 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full w-fit">
+          {article.categoryName}
         </span>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-gray-800 leading-9 mt-3 mb-4">
-          {post.title}
+        <h1 className="text-2xl font-bold text-gray-800 leading-9">
+          {article.title}
         </h1>
 
-        {/* Meta row */}
+        {/* Meta */}
         <div className="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-blue-50">
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <AuthorAvatar name={post.author} />
-              <div>
-                <p className="text-sm font-semibold text-gray-800">{post.author}</p>
-                {post.authorBio && <p className="text-xs text-gray-400 mt-0.5 max-w-[200px] truncate">{post.authorBio}</p>}
-              </div>
-            </div>
-            <div className="w-px h-8 bg-blue-50" />
-            <div className="flex items-center gap-3 text-xs text-gray-400">
-              <span className="flex items-center gap-1"><IconCalendar size={12} />{post.date}</span>
-              <span className="flex items-center gap-1"><IconClock size={12} />{post.readTime} دقیقه مطالعه</span>
-              {post.views && <span className="flex items-center gap-1"><IconEye size={12} />{post.views.toLocaleString("fa-IR")} بازدید</span>}
+            <AuthorAvatar size="md" />
+            <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
+              <span className="flex items-center gap-1">
+                <IconCalendar size={12} />{article.publishDate}
+              </span>
+              <span className="flex items-center gap-1">
+                <IconEye size={12} />{article.viewsLabel || article.viewCount} بازدید
+              </span>
+              <span className="flex items-center gap-1 text-amber-500">
+                <IconStar size={12} />{article.avgRateStr || article.avgRate}
+              </span>
+              <span className="flex items-center gap-1">
+                <IconMessageCircle size={12} />{article.commentCountStr || article.commentCount} نظر
+              </span>
             </div>
           </div>
 
@@ -237,7 +232,9 @@ export default function BlogPostPage() {
             <button
               onClick={handleLike}
               className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl border transition-all duration-200 ${
-                liked ? "bg-rose-50 border-rose-200 text-rose-600" : "bg-white border-blue-100 text-gray-500 hover:border-rose-200 hover:text-rose-500"
+                liked
+                  ? "bg-rose-50 border-rose-200 text-rose-600"
+                  : "bg-white border-blue-100 text-gray-500 hover:border-rose-200 hover:text-rose-500"
               }`}
             >
               {liked ? <IconHeartFilled size={14} /> : <IconHeart size={14} />}
@@ -245,44 +242,46 @@ export default function BlogPostPage() {
             </button>
             <button
               onClick={() => setBookmarked((p) => !p)}
-              className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-all duration-200 ${
-                bookmarked ? "bg-blue-50 border-blue-200 text-blue-800" : "bg-white border-blue-100 text-gray-400 hover:border-blue-200 hover:text-blue-800"
-              }`}
               title="ذخیره"
+              className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-all duration-200 ${
+                bookmarked
+                  ? "bg-blue-50 border-blue-200 text-blue-800"
+                  : "bg-white border-blue-100 text-gray-400 hover:border-blue-200 hover:text-blue-800"
+              }`}
             >
               {bookmarked ? <IconBookmarkFilled size={15} /> : <IconBookmark size={15} />}
             </button>
             <button
               onClick={handleCopy}
-              className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-all duration-200 ${
-                copied ? "bg-green-50 border-green-200 text-green-600" : "bg-white border-blue-100 text-gray-400 hover:border-blue-200 hover:text-blue-800"
-              }`}
               title="کپی لینک"
+              className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-all duration-200 ${
+                copied
+                  ? "bg-green-50 border-green-200 text-green-600"
+                  : "bg-white border-blue-100 text-gray-400 hover:border-blue-200 hover:text-blue-800"
+              }`}
             >
               {copied ? <IconCheck size={15} /> : <IconCopy size={15} />}
             </button>
           </div>
         </div>
 
-        {/* Excerpt */}
-        <p className="text-sm text-gray-500 leading-7 mt-4 bg-blue-50/50 border border-blue-50 rounded-xl p-4 italic">
-          {post.excerpt}
+        {/* Short description */}
+        <p className="text-sm text-gray-500 leading-7 bg-blue-50/50 border border-blue-50 rounded-xl p-4 italic">
+          {article.shortDescription}
         </p>
       </div>
 
-      {/* Article content */}
-      <div className="bg-white border border-blue-100 rounded-2xl p-6 mb-6">
-        <ul className="space-y-1">
-          {renderContent(post.content)}
-        </ul>
+      {/* Body */}
+      <div className="bg-white border border-blue-100 rounded-2xl p-6">
+        <RenderBody html={article.body} />
       </div>
 
-      {/* Tags */}
-      {post.tags && post.tags.length > 0 && (
-        <div className="bg-white border border-blue-100 rounded-2xl p-5 mb-6">
+      {/* Keywords / tags */}
+      {article.keywordList && article.keywordList.length > 0 && (
+        <div className="bg-white border border-blue-100 rounded-2xl p-5">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">برچسب‌ها</p>
           <div className="flex items-center gap-2 flex-wrap">
-            {post.tags.map((tag) => (
+            {article.keywordList.map((tag) => (
               <Link
                 key={tag}
                 to={`/blog?q=${encodeURIComponent(tag)}`}
@@ -295,57 +294,88 @@ export default function BlogPostPage() {
         </div>
       )}
 
-      {/* Author card */}
-      <div className="bg-white border border-blue-100 rounded-2xl p-5 mb-6 flex items-start gap-4">
-        <AuthorAvatar name={post.author} size="lg" />
-        <div>
-          <p className="text-sm font-bold text-blue-800">{post.author}</p>
-          {post.authorBio && <p className="text-xs text-gray-500 mt-1 leading-5">{post.authorBio}</p>}
-          <Link
-            to={`/blog?author=${encodeURIComponent(post.author)}`}
-            className="inline-flex items-center gap-1 text-xs text-blue-800 hover:text-blue-600 mt-2 transition-colors"
-          >
-            مشاهده سایر مقالات
-            <IconArrowLeft size={12} />
-          </Link>
-        </div>
-      </div>
-
-      {/* Related posts */}
-      {related.length > 0 && (
-        <div className="mb-4">
-          <h2 className="text-base font-bold text-blue-800 flex items-center gap-2 mb-4">
-            <span className="w-1 h-5 bg-blue-800 rounded-full inline-block" />
-            مقالات مرتبط
+      {/* Comments */}
+      {article.comments && article.comments.length > 0 && (
+        <div className="bg-white border border-blue-100 rounded-2xl p-6 flex flex-col gap-4">
+          <h2 className="text-base font-bold text-blue-800 flex items-center gap-2">
+            <span className="w-1 h-5 bg-blue-800 rounded-full inline-block flex-shrink-0" />
+            نظرات ({article.commentCountStr || article.commentCount})
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {related.map((rp) => (
-              <Link
-                key={rp.id}
-                to={`/blog/${rp.slug}`}
-                className="group bg-white border border-blue-100 rounded-2xl overflow-hidden flex gap-3 p-3 hover:shadow-sm hover:border-blue-200 transition-all duration-200"
-              >
-                <img
-                  src={rp.cover}
-                  alt={rp.title}
-                  className="w-20 h-20 object-cover rounded-xl flex-shrink-0 bg-blue-50"
-                />
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <span className="text-xs text-blue-800 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full w-fit">
-                    {rp.category}
-                  </span>
-                  <h3 className="text-xs font-semibold text-gray-700 line-clamp-2 leading-5 group-hover:text-blue-800 transition-colors">
-                    {rp.title}
-                  </h3>
-                  <span className="text-xs text-gray-400 flex items-center gap-1 mt-auto">
-                    <IconClock size={10} />{rp.readTime} دقیقه
-                  </span>
+
+          <div className="flex flex-col gap-4">
+            {article.comments.map((comment) => (
+              <div key={comment.id} className="flex flex-col gap-2">
+                <div className="flex items-start gap-3 bg-blue-50/40 border border-blue-50 rounded-xl p-4">
+                  <div className="w-8 h-8 rounded-full bg-blue-800 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    {comment.username?.[0] ?? "؟"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-800">{comment.username}</span>
+                        {comment.isBuyer && (
+                          <span className="text-[10px] font-medium text-green-700 bg-green-50 border border-green-100 px-1.5 py-0.5 rounded-full">
+                            خریدار
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {comment.rate > 0 && (
+                          <span className="flex items-center gap-0.5 text-xs text-amber-500">
+                            <IconStar size={11} />{comment.rate}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400">{comment.creationDate}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 leading-6 mt-1.5">{comment.message}</p>
+                  </div>
                 </div>
-              </Link>
+
+                {/* Admin reply */}
+                {comment.reply && (
+                  <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-xl p-4 mr-8">
+                    <div className="w-8 h-8 rounded-full bg-blue-800 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-[10px] font-bold">ادمین</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-blue-800">پشتیبانی فارماپلاس</span>
+                        {comment.replyDate && (
+                          <span className="text-xs text-gray-400">{comment.replyDate}</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 leading-6 mt-1.5">{comment.reply}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* Related articles */}
+      {related.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h2 className="text-base font-bold text-blue-800 flex items-center gap-2">
+            <span className="w-1 h-5 bg-blue-800 rounded-full inline-block" />
+            مقالات مرتبط
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {related.map((a) => <RelatedCard key={a.id} article={a} />)}
+          </div>
+        </div>
+      )}
+
+      {/* Back link */}
+      <Link
+        to="/blog"
+        className="self-start flex items-center gap-2 text-sm text-blue-800 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-100 px-4 py-2.5 rounded-xl transition-all duration-200 mb-4"
+      >
+        <IconArrowLeft size={15} />
+        بازگشت به مجله سلامت
+      </Link>
     </div>
   );
 }

@@ -1,24 +1,43 @@
 import { Outlet, Link, useLocation } from "react-router";
 import {
-  IconPill,
-  IconSearch,
-  IconBrandInstagram,
-  IconBrandTelegram,
-  IconMail,
-  IconRss,
+  IconPill, IconSearch, IconBrandInstagram,
+  IconBrandTelegram, IconMail, IconRss, IconChevronDown,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { useArticleCategoriesStore } from "@/store/useArticleCategoriesStore";
 
 export default function BlogLayout() {
-  const [search, setSearch] = useState("");
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isBlogPost = location.pathname.split("/").length > 2;
+  const [search,       setSearch]       = useState("");
+  const [catMenuOpen,  setCatMenuOpen]  = useState(false);
+  const catMenuRef                      = useRef<HTMLDivElement>(null);
+  const navigate                        = useNavigate();
+  const location                        = useLocation();
+  const isBlogPost = location.pathname.split("/").filter(Boolean).length > 1;
+
+  const { categories, loading, fetchAllCategories } = useArticleCategoriesStore();
+
+  useEffect(() => {
+    fetchAllCategories();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (catMenuRef.current && !catMenuRef.current.contains(e.target as Node)) {
+        setCatMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (search.trim()) navigate(`/blog?q=${encodeURIComponent(search.trim())}`);
+    if (search.trim()) {
+      navigate(`/blog?q=${encodeURIComponent(search.trim())}`);
+      setSearch("");
+    }
   };
 
   return (
@@ -27,10 +46,12 @@ export default function BlogLayout() {
       {/* ── Blog Header ── */}
       <header className="bg-white border-b border-blue-100 sticky top-0 z-40">
         <div className="container mx-auto px-4">
-          {/* Top strip */}
+
+          {/* Top bar */}
           <div className="flex items-center justify-between h-16 gap-4">
-            {/* Logo + back to main site */}
-            <div className="flex items-center gap-4">
+
+            {/* Logo + breadcrumb */}
+            <div className="flex items-center gap-3">
               <Link to="/" className="flex items-center gap-2 flex-shrink-0">
                 <div className="w-8 h-8 rounded-xl bg-blue-800 flex items-center justify-center">
                   <IconPill size={16} className="text-white" />
@@ -38,7 +59,10 @@ export default function BlogLayout() {
                 <span className="font-bold text-blue-800 text-sm hidden sm:block">فارماپلاس</span>
               </Link>
               <div className="w-px h-5 bg-blue-100" />
-              <Link to="/blog" className="text-sm font-bold text-gray-700 hover:text-blue-800 transition-colors">
+              <Link
+                to="/blog"
+                className="text-sm font-bold text-gray-700 hover:text-blue-800 transition-colors"
+              >
                 مجله سلامت
               </Link>
               {isBlogPost && (
@@ -69,17 +93,88 @@ export default function BlogLayout() {
 
             {/* Social + RSS */}
             <div className="flex items-center gap-2">
-              <a href="https://instagram.com" className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center hover:bg-blue-100 transition-colors">
+              <a href="https://instagram.com" aria-label="اینستاگرام"
+                className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center hover:bg-blue-100 transition-colors">
                 <IconBrandInstagram size={15} className="text-pink-500" />
               </a>
-              <a href="https://telegram.me" className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center hover:bg-blue-100 transition-colors">
+              <a href="https://telegram.me" aria-label="تلگرام"
+                className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center hover:bg-blue-100 transition-colors">
                 <IconBrandTelegram size={15} className="text-blue-500" />
               </a>
-              <a href="/blog/rss" className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center hover:bg-blue-100 transition-colors">
+              <a href="/blog/rss" aria-label="RSS"
+                className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center hover:bg-blue-100 transition-colors">
                 <IconRss size={15} className="text-orange-500" />
               </a>
             </div>
           </div>
+
+          {/* ── Category nav strip ── */}
+          <nav className="flex items-center gap-1 h-10 overflow-x-auto scrollbar-hide border-t border-blue-50">
+            <Link
+              to="/blog"
+              className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-150 ${
+                location.pathname === "/blog"
+                  ? "bg-blue-800 text-white"
+                  : "text-gray-600 hover:text-blue-800 hover:bg-blue-50"
+              }`}
+            >
+              همه
+            </Link>
+
+            {loading.all ? (
+              // Skeleton tabs
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 h-6 w-20 bg-blue-50 animate-pulse rounded-lg" />
+              ))
+            ) : (
+              categories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  to={`/blog?category=${encodeURIComponent(cat.name)}`}
+                  className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-150 whitespace-nowrap ${
+                    location.search.includes(`category=${encodeURIComponent(cat.name)}`)
+                      ? "bg-blue-800 text-white"
+                      : "text-gray-600 hover:text-blue-800 hover:bg-blue-50"
+                  }`}
+                >
+                  {cat.name}
+                  {cat.articlesCount > 0 && (
+                    <span className="mr-1 text-[10px] opacity-60">({cat.articlesCount})</span>
+                  )}
+                </Link>
+              ))
+            )}
+
+            {/* More dropdown — shown if many categories */}
+            {categories.length > 6 && (
+              <div className="relative flex-shrink-0" ref={catMenuRef}>
+                <button
+                  onClick={() => setCatMenuOpen((p) => !p)}
+                  className="flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all duration-150"
+                >
+                  بیشتر
+                  <IconChevronDown size={12} className={`transition-transform duration-200 ${catMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+                {catMenuOpen && (
+                  <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-blue-100 rounded-xl shadow-lg shadow-blue-100/40 py-1.5 z-50">
+                    {categories.slice(6).map((cat) => (
+                      <Link
+                        key={cat.slug}
+                        to={`/blog?category=${encodeURIComponent(cat.name)}`}
+                        onClick={() => setCatMenuOpen(false)}
+                        className="flex items-center justify-between px-4 py-2 text-xs text-gray-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                      >
+                        <span>{cat.name}</span>
+                        {cat.articlesCount > 0 && (
+                          <span className="text-[10px] text-gray-400">{cat.articlesCount}</span>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </nav>
         </div>
       </header>
 
@@ -101,11 +196,29 @@ export default function BlogLayout() {
             </div>
           </div>
 
+          {/* Category quick links in footer */}
+          {categories.length > 0 && (
+            <div className="flex items-center gap-3 flex-wrap justify-center">
+              {categories.slice(0, 4).map((cat) => (
+                <Link
+                  key={cat.slug}
+                  to={`/blog?category=${encodeURIComponent(cat.name)}`}
+                  className="text-xs text-gray-400 hover:text-blue-800 transition-colors"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center gap-4 text-xs text-gray-400">
             <Link to="/" className="hover:text-blue-800 transition-colors">فروشگاه</Link>
             <Link to="/aboutus" className="hover:text-blue-800 transition-colors">درباره ما</Link>
             <Link to="/contactus" className="hover:text-blue-800 transition-colors">تماس با ما</Link>
-            <a href="mailto:blog@pharmaplus.com" className="flex items-center gap-1 hover:text-blue-800 transition-colors">
+            <a
+              href="mailto:blog@pharmaplus.com"
+              className="flex items-center gap-1 hover:text-blue-800 transition-colors"
+            >
               <IconMail size={12} />
               blog@pharmaplus.com
             </a>
