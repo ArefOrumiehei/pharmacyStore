@@ -1,82 +1,100 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { getAllArticleCategories, getArticleCategoriesByName } from "@/services/categoriesServices/articleCategoriesServices";
 import { create } from "zustand";
+import {
+  getAllArticleCategories,
+  getArticleCategoryBySlug,
+  type IArticleCategory,
+} from "@/services/categoriesServices/articleCategoriesServices";
 
-export interface ArticleCategory {
-  name: string;
-  picture: string | null;
-  pictureAlt: string | null;
-  pictureTitle: string | null;
-  description: string | null;
-  showOrder: number;
-  slug: string;
-  keywords: string | null;
-  keywordList: string[] | null;
-  metaDescription: string | null;
-  canonicalAddress: string | null;
-  articlesCount: number;
-  articles: Article[] | null;
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ILoadingState {
+  all:      boolean;
+  selected: boolean;
 }
 
-export interface Article {
-  id: number;
-  title: string;
-  shortDescription: string;
-  body: string | null;
-  picture: string;
-  pictureAlt: string;
-  pictureTitle: string;
-  publishDate: string;
-  slug: string;
-  keywords: string | null;
-  keywordList: string[] | null;
-  metaDescription: string | null;
-  canonicalAddress: string | null;
-  categoryId: number;
-  categoryName: string;
-  categorySlug: string;
-  comments: any | null;
-  avgRate: number;
+interface IErrorState {
+  all:      string | null;
+  selected: string | null;
 }
 
+interface IArticleCategoriesStore {
+  categories:       IArticleCategory[];
+  selectedCategory: IArticleCategory | null;
+  loading:          ILoadingState;
+  error:            IErrorState;
 
-
-interface ArticleCategoryStore {
-  categories: ArticleCategory[];
-  selectedCategory: ArticleCategory | null;
-  loading: boolean;
-  error: string | null;
-
-  fetchAllCategories: () => Promise<void>;
-  fetchCategoryByName: (catgName: string) => Promise<void>;
-  clearSelectedCategory: () => void;
+  fetchAllCategories:    ()             => Promise<void>;
+  fetchCategoryBySlug:   (slug: string) => Promise<void>;
+  clearSelectedCategory: ()             => void;
 }
 
-export const useArticleCategoryStore = create<ArticleCategoryStore>((set) => ({
-  categories: [],
+// ─── Defaults ─────────────────────────────────────────────────────────────────
+
+const DEFAULT_LOADING: ILoadingState = {
+  all:      false,
+  selected: false,
+};
+
+const DEFAULT_ERROR: IErrorState = {
+  all:      null,
+  selected: null,
+};
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+const extractMessage = (err: unknown, fallback: string): string => {
+  if (err && typeof err === "object" && "response" in err) {
+    const r = (err as { response?: { data?: { message?: string } } }).response;
+    return r?.data?.message ?? fallback;
+  }
+  return fallback;
+};
+
+// ─── Store ────────────────────────────────────────────────────────────────────
+
+export const useArticleCategoriesStore = create<IArticleCategoriesStore>((set) => ({
+  categories:       [],
   selectedCategory: null,
-  loading: false,
-  error: null,
+  loading:          DEFAULT_LOADING,
+  error:            DEFAULT_ERROR,
 
   fetchAllCategories: async () => {
-    set({ loading: true, error: null });
+    set((s) => ({
+      loading: { ...s.loading, all: true  },
+      error:   { ...s.error,   all: null  },
+    }));
     try {
       const data = await getAllArticleCategories();
-      set({ categories: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+      set((s) => ({
+        categories: data,
+        loading:    { ...s.loading, all: false },
+      }));
+    } catch (err) {
+      set((s) => ({
+        loading: { ...s.loading, all: false },
+        error:   { ...s.error,   all: extractMessage(err, "خطا در دریافت دسته‌بندی مقالات") },
+      }));
     }
   },
 
-  fetchCategoryByName: async (catgName: string) => {
-    set({ loading: true, error: null });
+  fetchCategoryBySlug: async (slug) => {
+    set((s) => ({
+      loading: { ...s.loading, selected: true  },
+      error:   { ...s.error,   selected: null  },
+    }));
     try {
-      const data = await getArticleCategoriesByName(catgName);
-      set({ selectedCategory: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+      const data = await getArticleCategoryBySlug(slug);
+      set((s) => ({
+        selectedCategory: data,
+        loading:          { ...s.loading, selected: false },
+      }));
+    } catch (err) {
+      set((s) => ({
+        loading: { ...s.loading, selected: false },
+        error:   { ...s.error,   selected: extractMessage(err, "خطا در دریافت دسته‌بندی") },
+      }));
     }
   },
 
-  clearSelectedCategory: () => set({ selectedCategory: null }),
+  clearSelectedCategory: () => set({ selectedCategory: null, error: DEFAULT_ERROR }),
 }));
