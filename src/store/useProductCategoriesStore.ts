@@ -1,7 +1,9 @@
-import { getAllProductCategories, getProductCategoriesByName } from "@/services/categoriesServices/productCategoriesServices";
+import {
+  getAllProductCategories,
+  getProductCategoriesByName,
+} from "@/services/categoriesServices/productCategoriesServices";
 import { create } from "zustand";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ProductCategory {
   icon: string;
   id: number;
@@ -14,44 +16,51 @@ export interface ProductCategory {
   keywords: string | null;
   metaDescription: string | null;
   description: string | null;
-  products: any[] | null;
+  products: unknown[] | null;
   parentId: number | null;
   children: ProductCategory[];
   productsCount: number;
 }
 
 interface ProductCategoriesStore {
-  categories: ProductCategory | null | any;
+  categories: ProductCategory[] | null;
+  selectedCategory: ProductCategory | null;
   loading: boolean;
   error: string | null;
   fetchAllProductCategories: () => Promise<void>;
-  clearSlides: () => void;
+  fetchProductCategoriesByName: (catgName: string) => Promise<void>;
+  clearCategories: () => void;
 }
 
-export const useProductCategoriesStore = create<ProductCategoriesStore>((set) => ({
-  categories: null,
-  loading: false,
-  error: null,
+export const useProductCategoriesStore = create<ProductCategoriesStore>(
+  (set) => ({
+    categories: null,
+    selectedCategory: null,
+    loading: false,
+    error: null,
 
-  fetchAllProductCategories: async () => {
-    set({ loading: true, error: null });
-    try {
-      const categories = await getAllProductCategories();
-      set({ categories, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
-    }
-  },
+    fetchAllProductCategories: async () => {
+      set({ loading: true, error: null });
+      try {
+        const categories = await getAllProductCategories();
+        set({ categories, loading: false });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        set({ error: message, loading: false });
+      }
+    },
 
-  fetchProductCategoriesByName: async (catgName: string) => {
-    set({ loading: true, error: null });
-    try {
-      const categories = await getProductCategoriesByName(catgName);
-      set({ categories, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
-    }
-  },
+    fetchProductCategoriesByName: async (catgName: string) => {
+      set({ loading: true, error: null });
+      try {
+        const selectedCategory = await getProductCategoriesByName(catgName);
+        set({ selectedCategory, loading: false });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        set({ error: message, loading: false });
+      }
+    },
 
-  clearSlides: () => set({ categories: null }),
-}))
+    clearCategories: () => set({ categories: null, selectedCategory: null }),
+  })
+);

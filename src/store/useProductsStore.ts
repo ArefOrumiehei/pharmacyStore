@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   getLatestArrivalsProduct,
   getProductByName,
@@ -13,44 +12,51 @@ import { create } from "zustand";
 
 export interface Product {
   id: number;
+  name: string;
   picture: string;
   pictureAlt: string;
   pictureTitle: string;
-  name: string;
-  doublePrice: number;
-  price: number;
-  priceWithDiscount: number;
-  discountRate: number;
-  category: string;
-  categoryName: string;
-  categoryFullSlug: string;
-  hasDiscount: boolean;
-  discountExpireDate: string | null;
-  code: string | null;
-  shortDescription: string | null;
   slug: string;
+  code: string | null;
+  brand: string;
+  shortDescription: string | null;
   description: string | null;
   specifications: string | null;
   keywords: string | null;
   metaDescription: string;
+  doublePrice: number;
+  price: number;
+  priceWithDiscount: number;
+  discountRate: number;
+  hasDiscount: boolean;
+  discountExpireDate: string | null;
   isInStock: boolean;
-  comments: any | null;
-  pictures: any | null;
+  inStockQty: number;
+  category: string;
+  categoryId: number;
+  categoryName: string;
   categorySlug: string;
+  categoryFullSlug: string;
   avgRate: number;
   rateCount: number;
-  currentUserFaved: boolean;
+  commentCount: number;
+  viewCount: number;
+  isCurrentUserFaved: boolean;
+  currentUserFavedDate: string | null;
+  comments: unknown | null;
+  pictures: unknown | null;
 }
 
 interface ProductStore {
-  product: Product | any;
-  latestArrivals: Product[] | any;
-  searchResults: Product[] | any;
-  randomRecommendation: Product[] | any;
-  topRated: Product[] | any;
-  mostViewed: Product[] | any;
+  product: Product | null;
+  latestArrivals: Product[];
+  searchResults: Product[];
+  randomRecommendation: Product[];
+  topRated: Product[];
+  mostViewed: Product[];
 
   loading: boolean;
+  searchLoading: boolean;
   error: string | null;
 
   fetchProductByName: (productName: string) => Promise<void>;
@@ -68,13 +74,14 @@ interface ProductStore {
 
 export const useProductStore = create<ProductStore>((set) => ({
   product: null,
-  latestArrivals: null,
-  searchResults: null,
-  randomRecommendation: null,
-  topRated: null,
-  mostViewed: null,
+  latestArrivals: [],
+  searchResults: [],
+  randomRecommendation: [],
+  topRated: [],
+  mostViewed: [],
 
   loading: false,
+  searchLoading: false,
   error: null,
 
   fetchProductByName: async (productName: string) => {
@@ -82,8 +89,9 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const data = await getProductByName(productName);
       set({ product: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message, loading: false });
     }
   },
 
@@ -92,18 +100,20 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const data = await getLatestArrivalsProduct();
       set({ latestArrivals: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message, loading: false });
     }
   },
 
   fetchProductsBySearch: async (query: string) => {
-    set({ loading: true, error: null });
+    set({ searchLoading: true, error: null });
     try {
       const data = await getProductsBySearch(query);
-      set({ searchResults: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+      set({ searchResults: data, searchLoading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message, searchLoading: false });
     }
   },
 
@@ -112,8 +122,9 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const data = await getRandomRecommendation();
       set({ randomRecommendation: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message, loading: false });
     }
   },
 
@@ -122,8 +133,9 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const data = await getTopRatedProducts();
       set({ topRated: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message, loading: false });
     }
   },
 
@@ -132,18 +144,19 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const data = await getMostViewedProducts();
       set({ mostViewed: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message, loading: false });
     }
   },
 
   addToFavorites: async (productId: number) => {
     set({ error: null });
     try {
-      const res = await addProductToFavorites(productId);
-      console.log(res);
-    } catch (err: any) {
-      set({ error: err.message });
+      await addProductToFavorites(productId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message });
     }
   },
 
@@ -151,10 +164,11 @@ export const useProductStore = create<ProductStore>((set) => ({
     set({ error: null });
     try {
       await removeProductFromFavorites(productId);
-    } catch (err: any) {
-      set({ error: err.message });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "خطای ناشناخته";
+      set({ error: message });
     }
   },
 
-  clearSearchResults: () => set({ searchResults: null }),
+  clearSearchResults: () => set({ searchResults: [] }),
 }));

@@ -1,41 +1,40 @@
-import apiInstance from "@/apis/apiInstance"
+import apiInstance from "@/apis/apiInstance";
+import type { Product } from "@/store/useProductsStore";
 
-export const getProductByName = async (productName: string) => {
-  const res = await apiInstance.get(`/api/Product/${productName}`)
+export const getProductByName = async (productName: string): Promise<Product> => {
+  const res = await apiInstance.get(`/api/Product/${productName}`);
   return res.data.data;
-}
+};
 
-export const getLatestArrivalsProduct = async () => {
-  const res = await apiInstance.get("/api/Product/latest-arrivals")
+export const getLatestArrivalsProduct = async (): Promise<Product[]> => {
+  const res = await apiInstance.get("/api/Product/latest-arrivals");
   return res.data.data;
-}
+};
 
-export const getProductsBySearch = async (query: string) => {
-  const res = await apiInstance.get(`/api/Product/search?value=${query}`)
+export const getProductsBySearch = async (query: string): Promise<Product[]> => {
+  const res = await apiInstance.get(`/api/Product/search?value=${encodeURIComponent(query)}`);
   return res.data.data;
-}
+};
 
-export const addProductToFavorites = async (productId: number) => {
-  const res = await apiInstance.post(`/api/Product/favorite/${productId}`)
-  return res.data;
-}
+export const addProductToFavorites = async (productId: number): Promise<void> => {
+  await apiInstance.post(`/api/Product/favorite/${productId}`);
+};
 
-export const removeProductFromFavorites = async (productId: number) => {
-  const res = await apiInstance.delete(`/api/Product/favorite/${productId}`)
+export const removeProductFromFavorites = async (productId: number): Promise<void> => {
+  await apiInstance.delete(`/api/Product/favorite/${productId}`);
+};
+
+export const getRandomRecommendation = async (): Promise<Product[]> => {
+  const res = await apiInstance.get("/api/Product/random-recommendations");
   return res.data.data;
-}
+};
 
-export const getRandomRecommendation = async () => {
-  const res = await apiInstance.get("/api/Product/random-recommendations")
+export const getTopRatedProducts = async (): Promise<Product[]> => {
+  const res = await apiInstance.get("/api/Product/top-rated");
   return res.data.data;
-}
+};
 
-export const getTopRatedProducts = async () => {
-  const res = await apiInstance.get("/api/Product/top-rated")
+export const getMostViewedProducts = async (): Promise<Product[]> => {
+  const res = await apiInstance.get("/api/Product/most-viewed");
   return res.data.data;
-}
-
-export const getMostViewedProducts = async () => {
-  const res = await apiInstance.get("/api/Product/most-viewed")
-  return res.data.data;
-}
+};
