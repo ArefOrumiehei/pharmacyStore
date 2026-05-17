@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 
-const SKELETON_COUNT = 16;
+const SKELETON_COUNT = 10;
 
 function CategorySkeleton() {
   return (
@@ -120,7 +120,7 @@ function Categories() {
             : categories.map((catg: ProductCategory) => (
                 <Link
                   key={catg.id}
-                  to={`/category/${catg.slug ?? catg.id}`}
+                  to={`/plp/${catg.slug}`}
                   className="flex flex-col items-center gap-3 flex-shrink-0 w-28 group"
                 >
                   {/* Icon box */}
