@@ -9,6 +9,7 @@ export interface IUserProfile {
     email?: string;
     mobile?: string;
     profilePhoto?: string;
+    hasPassword: boolean;
 }
 
 export interface IAddress {
@@ -103,6 +104,11 @@ export interface IChangePasswordParams {
     rePassword: string;
 }
 
+export interface ISetPasswordParams {
+    password: string;
+    rePassword: string;
+}
+
 export interface IChangeMobileRequestParams {
     mobile: string;
 }
@@ -139,26 +145,22 @@ const buildProfileForm = (
     data: IUpdateProfileParams | ICompleteProfileParams
 ): FormData =>
     toFormData({
-        fullname: data.fullname,
-        username: data.username,
-        email: data.email,
+        fullname:     data.fullname,
+        username:     data.username,
+        email:        data.email,
         profilePhoto: data.profilePhoto,
-        ...("password" in data ? { password: data.password } : {}),
+        ...("password"   in data ? { password:   data.password   } : {}),
         ...("repassword" in data ? { repassword: data.repassword } : {}),
     });
 
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 export const getUser = async (): Promise<IUserProfile> => {
-    const res = await apiInstance.get<IApiResponse<IUserProfile>>(
-        "/api/Account/me"
-    );
+    const res = await apiInstance.get<IApiResponse<IUserProfile>>("/api/Account/me");
     return res.data.data;
 };
 
-export const updateProfile = async (
-    data: IUpdateProfileParams
-): Promise<IUserProfile> => {
+export const updateProfile = async (data: IUpdateProfileParams): Promise<IUserProfile> => {
     const res = await apiInstance.post<IApiResponse<IUserProfile>>(
         "/api/Account/update-profile",
         buildProfileForm(data),
@@ -167,9 +169,7 @@ export const updateProfile = async (
     return res.data.data;
 };
 
-export const completeProfile = async (
-    data: ICompleteProfileParams
-): Promise<IUserProfile> => {
+export const completeProfile = async (data: ICompleteProfileParams): Promise<IUserProfile> => {
     const res = await apiInstance.post<IApiResponse<IUserProfile>>(
         "/api/Account/complete-profile",
         buildProfileForm(data),
@@ -178,29 +178,31 @@ export const completeProfile = async (
     return res.data.data;
 };
 
-export const changePassword = async (
-    data: IChangePasswordParams
-): Promise<void> => {
+export const changePassword = async (data: IChangePasswordParams): Promise<void> => {
     await apiInstance.post(
         "/api/Account/change-password",
         toFormData({
             CurrentPassword: data.currentPassword,
-            password: data.password,
-            rePassword: data.rePassword,
+            password:        data.password,
+            rePassword:      data.rePassword,
         }),
         { isFormDataRequest: true }
     );
 };
 
-export const changeMobileReqOTP = async (
-    data: IChangeMobileRequestParams
-): Promise<void> => {
+export const setPassword = async (data: ISetPasswordParams): Promise<void> => {
+    await apiInstance.post(
+        "/api/Account/set-password",
+        toFormData({ password: data.password, rePassword: data.rePassword }),
+        { isFormDataRequest: true }
+    );
+};
+
+export const changeMobileReqOTP = async (data: IChangeMobileRequestParams): Promise<void> => {
     await apiInstance.post("/api/Account/change-mobile/request", data);
 };
 
-export const changeMobileVerify = async (
-    data: IChangeMobileVerifyParams
-): Promise<void> => {
+export const changeMobileVerify = async (data: IChangeMobileVerifyParams): Promise<void> => {
     await apiInstance.post("/api/Account/change-mobile/verify", data);
 };
 
@@ -214,46 +216,44 @@ export const getUserFavorites = async () => {
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
 export const getUserOrders = async (): Promise<IOrder[]> => {
-    const res = await apiInstance.get<IApiResponse<IOrder[]>>(
-        "/api/Account/orders"
-    );
+    const res = await apiInstance.get<IApiResponse<IOrder[]>>("/api/Account/orders");
+    return res.data.data;
+};
+
+export const getUserOrder = async (orderId: number): Promise<IOrder> => {
+    const res = await apiInstance.get<IApiResponse<IOrder>>(`/api/Account/orders/${orderId}`);
     return res.data.data;
 };
 
 // ─── Tickets ──────────────────────────────────────────────────────────────────
 
 export const getUserTickets = async (): Promise<ITicket[]> => {
-    const res = await apiInstance.get<IApiResponse<ITicket[]>>(
-        "/api/Account/tickets"
-    );
+    const res = await apiInstance.get<IApiResponse<ITicket[]>>("/api/Account/tickets");
+    return res.data.data;
+};
+
+export const getTicketDetails = async (ticketId: string): Promise<ITicket> => {
+    const res = await apiInstance.get<IApiResponse<ITicket>>(`/api/Account/ticket/${ticketId}`);
     return res.data.data;
 };
 
 // ─── Addresses ────────────────────────────────────────────────────────────────
 
 export const getAllUserAddresses = async (): Promise<IAddress[]> => {
-    const res = await apiInstance.get<IApiResponse<IAddress[]>>(
-        "/api/Account/ShippingInfos"
-    );
+    const res = await apiInstance.get<IApiResponse<IAddress[]>>("/api/Account/ShippingInfos");
     return res.data.data;
 };
 
 export const getUserAddress = async (addressId: number): Promise<IAddress> => {
-    const res = await apiInstance.get<IApiResponse<IAddress>>(
-        `/api/Account/ShippingInfos/${addressId}`
-    );
+    const res = await apiInstance.get<IApiResponse<IAddress>>(`/api/Account/ShippingInfos/${addressId}`);
     return res.data.data;
 };
 
-export const createUserAddress = async (
-    data: IAddressFormParams
-): Promise<void> => {
+export const createUserAddress = async (data: IAddressFormParams): Promise<void> => {
     await apiInstance.post("/api/Account/ShippingInfos", data, { isFormDataRequest: true });
 };
 
-export const editUserAddress = async (
-    data: IEditAddressFormParams
-): Promise<void> => {
+export const editUserAddress = async (data: IEditAddressFormParams): Promise<void> => {
     await apiInstance.put("/api/Account/ShippingInfos", data, { isFormDataRequest: true });
 };
 
