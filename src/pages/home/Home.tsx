@@ -11,13 +11,32 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 function Home() {
     const { fetchUser } = useUserStore();
-    const { accessToken } = useAuthStore();    
-    const { fetchLatestArrivals, latestArrivals, loading } = useProductStore();
+    const { accessToken } = useAuthStore();
+    const {
+        fetchLatestArrivals,
+        fetchTopRated,
+        fetchMostViewed,
+        fetchRandomRecommendation,
+        latestArrivals,
+        topRated,
+        mostViewed,
+        randomRecommendation,
+        loading,
+    } = useProductStore();
 
     useEffect(() => {
         const fetchAll = async () => {
-            if (accessToken) await fetchUser(); 
-            await Promise.all([fetchLatestArrivals()]);
+            const productFetches = [
+                fetchLatestArrivals(),
+                fetchTopRated(),
+                fetchMostViewed(),
+                fetchRandomRecommendation(),
+            ];
+            if (accessToken) {
+                await Promise.all([fetchUser(), ...productFetches]);
+            } else {
+                await Promise.all(productFetches);
+            }
         };
         fetchAll();
     }, []);
@@ -36,25 +55,25 @@ function Home() {
                     {
                         src: "https://picsum.photos/seed/product5/800/400",
                         alt: "تخفیف ویژه مکمل‌ها",
-                        href: "/products/supplements",
+                        href: "/plp?discount=1",
                         badge: "تخفیف ویژه",
                     },
                     {
                         src: "https://picsum.photos/seed/product8/800/400",
                         alt: "محصولات مراقبت پوست",
-                        href: "/products/skincare",
+                        href: "/plp/skincare",
                         badge: "جدید",
                     },
                 ]}
             />
 
-            {/* Wonderful products */}
+            {/* Top rated — wonderful style */}
             <ProductsCarousel
                 title="پیشنهاد شگفت‌انگیز"
-                products={latestArrivals}
+                products={topRated}
                 loading={loading}
-                viewMoreLink="/products/wonderful"
-                wonderful
+                viewMoreLink="/plp?sort=rating"
+                variant="topRated"
             />
 
             {/* Latest arrivals */}
@@ -62,7 +81,8 @@ function Home() {
                 title="جدیدترین محصولات"
                 products={latestArrivals}
                 loading={loading}
-                viewMoreLink="/products/latest"
+                viewMoreLink="/plp?sort=newest"
+                variant="latest"
             />
 
             {/* Second promotional banner */}
@@ -71,26 +91,35 @@ function Home() {
                     {
                         src: "https://picsum.photos/seed/product2/800/400",
                         alt: "داروهای بدون نسخه",
-                        href: "/products/medications",
+                        href: "/plp/medications",
                     },
                     {
                         src: "https://picsum.photos/seed/product7/800/400",
                         alt: "تجهیزات پزشکی",
-                        href: "/products/medical-equipment",
+                        href: "/plp/medical-equipment",
                         badge: "پرفروش",
                     },
                 ]}
             />
 
-            {/* Best sellers */}
+            {/* Most viewed — recommended */}
             <ProductsCarousel
                 title="پرفروش‌ترین‌ها"
-                products={latestArrivals}
+                products={mostViewed}
                 loading={loading}
-                viewMoreLink="/products/bestsellers"
+                viewMoreLink="/plp?sort=popular"
+                variant="recommended"
             />
 
-            {/* Blogs Section */}
+            {/* Random recommendation — for you */}
+            <ProductsCarousel
+                title="پیشنهاد ویژه برای شما"
+                products={randomRecommendation}
+                loading={loading}
+                variant="forYou"
+            />
+
+            {/* Blogs section */}
             <Blogs />
         </div>
     );
