@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useAccountStore";
 import {
@@ -132,6 +132,7 @@ type Step = "mobile" | "otp";
 
 export default function LoginOTP() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { sendLoginOTP, verifyLoginOTP, loading } = useAuthStore();
     const { fetchUser } = useUserStore();
 
@@ -186,7 +187,8 @@ export default function LoginOTP() {
         const res = await verifyLoginOTP(mobile, otp);
         if (res) {
             await fetchUser();
-            navigate("/");
+            const returnTo = (location.state as { returnTo?: string })?.returnTo ?? "/";
+            navigate(returnTo, { replace: true });
         }
     };
 
@@ -250,11 +252,11 @@ export default function LoginOTP() {
                                 placeholder="۰۹۱۲۳۴۵۶۷۸۹"
                                 autoFocus
                                 className={`w-full border rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200
-                  ${
-                      mobileError
-                          ? "border-rose-200 bg-rose-50/30"
-                          : "border-blue-100 bg-blue-50/30"
-                  }`}
+                    ${
+                        mobileError
+                            ? "border-rose-200 bg-rose-50/30"
+                            : "border-blue-100 bg-blue-50/30"
+                    }`}
                             />
                         </div>
                         {mobileError && (

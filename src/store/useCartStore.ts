@@ -7,16 +7,29 @@ import {
     deleteCartItem,
     getCart,
     increaseCartItemQty,
+    syncCart,
     type Cart,
     type CartItem,
+    type SyncCartItem,
 } from "@/services/cartServices/cartServices";
 
-/* ---------------- TYPES ---------------- */
+/* ──── TYPES ─────── */
 export type { Cart, CartItem };
+
+export interface GuestCartItem {
+    productId: number;
+    productName: string;
+    picture: string;
+    unitPrice: number;
+    qty: number;
+}
 
 type CartState = {
     cart: Cart | null;
     loading: boolean;
+    syncing: boolean;
+    errorMsg: string | null;
+    guestCart: GuestCartItem[];
 
     fetchCart: (force?: boolean) => Promise<void>;
     addToCart: (productId: number, qty: number) => Promise<void>;
@@ -24,14 +37,22 @@ type CartState = {
     decreaseQty: (productId: number) => Promise<void>;
     removeItem: (productId: number) => Promise<void>;
     clearCart: () => Promise<void>;
+    syncGuestCart: () => Promise<void>;
+
+    addToGuestCart: (item: GuestCartItem) => void;
+    increaseGuestQty: (productId: number) => void;
+    decreaseGuestQty: (productId: number) => void;
+    removeGuestItem: (productId: number) => void;
+    clearGuestCart: () => void;
+    loadGuestCart: () => void;
 };
 
-/* ---------------- HELPERS ---------------- */
+const GUEST_CART_KEY = "guest_cart";
 
+/* ────────── HELPERS ───────── */
 const extractMessage = (err: unknown, fallback: string): string => {
     if (err && typeof err === "object" && "response" in err) {
-        const r = (err as { response?: { data?: { message?: string } } })
-            .response;
+        const r = (err as { response?: { data?: { message?: string } } }).response;
         return r?.data?.message ?? fallback;
     }
     return fallback;
@@ -48,29 +69,77 @@ const updateItems = (
     ),
 });
 
-/* ---------------- STORE ---------------- */
+const saveGuestCart = (items: GuestCartItem[]) => {
+    try {
+        localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+    } catch { /* localStorage unavailable */ }
+};
 
+const readGuestCart = (): GuestCartItem[] => {
+    try {
+        const raw = localStorage.getItem(GUEST_CART_KEY);
+        return raw ? (JSON.parse(raw) as GuestCartItem[]) : [];
+    } catch {
+        return [];
+    }
+};
+
+/* ───── STORE ────── */
 export const useCartStore = create<CartState>((set, get) => ({
     cart: null,
     loading: false,
+    syncing: false,
+    errorMsg: null,
+    guestCart: [],
 
-    // ── Fetch ────────────────────────────────────────────────────────────────
+    // ── Load guest cart from localStorage ────────────────────────────────────
+    loadGuestCart: () => {
+        set({ guestCart: readGuestCart() });
+    },
 
+    // ── Fetch server cart ─────────────────────────────────────────────────────
     fetchCart: async (force = false) => {
         if (get().cart && !force) return;
-
         set({ loading: true });
         try {
             const res = await getCart();
             set({ cart: res.data, loading: false });
         } catch (err) {
-            set({ loading: false });
-            toast.error(extractMessage(err, "خطا در دریافت سبد خرید"));
+            set({ loading: false, errorMsg: extractMessage(err, "خطا در دریافت سبد خرید") });
         }
     },
 
-    // ── Add ──────────────────────────────────────────────────────────────────
+    // ── Sync guest cart → server then clear guest cart ────────────────────────
+    // Called at the start of AddressStep when user is authenticated
+    syncGuestCart: async () => {
+        const { guestCart, clearGuestCart, fetchCart } = get();
 
+        if (guestCart.length === 0) {
+            await fetchCart(true);
+            return;
+        }
+
+        set({ syncing: true });
+        try {
+            // Map guest cart to the shape the API expects
+            const items: SyncCartItem[] = guestCart.map((i) => ({
+                productId: i.productId,
+                qty: i.qty,
+            }));
+
+            await syncCart(items);
+            clearGuestCart();
+            await fetchCart(true);
+            toast.success("سبد خرید مهمان با حساب شما ادغام شد");
+        } catch (err) {
+            await fetchCart(true);
+            toast.error(extractMessage(err, "خطا در همگام‌سازی سبد خرید"));
+        } finally {
+            set({ syncing: false });
+        }
+    },
+
+    // ── Server cart: add ──────────────────────────────────────────────────────
     addToCart: async (productId, qty) => {
         set({ loading: true });
         try {
@@ -84,20 +153,11 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
     },
 
-    // ── Increase ─────────────────────────────────────────────────────────────
-
+    // ── Server cart: increase ─────────────────────────────────────────────────
     increaseQty: async (productId) => {
         const { cart } = get();
         if (!cart) return;
-
-        // Optimistic update
-        set({
-            cart: updateItems(cart, productId, (i) => ({
-                ...i,
-                qty: i.qty + 1,
-            })),
-        });
-
+        set({ cart: updateItems(cart, productId, (i) => ({ ...i, qty: i.qty + 1 })) });
         try {
             const res = await increaseCartItemQty(productId);
             await get().fetchCart(true);
@@ -108,28 +168,14 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
     },
 
-    // ── Decrease ─────────────────────────────────────────────────────────────
-
+    // ── Server cart: decrease ─────────────────────────────────────────────────
     decreaseQty: async (productId) => {
         const { cart } = get();
         if (!cart) return;
-
         const item = cart.items.find((i) => i.productId === productId);
         if (!item) return;
-
-        if (item.qty === 1) {
-            await get().removeItem(productId);
-            return;
-        }
-
-        // Optimistic update
-        set({
-            cart: updateItems(cart, productId, (i) => ({
-                ...i,
-                qty: i.qty - 1,
-            })),
-        });
-
+        if (item.qty === 1) { await get().removeItem(productId); return; }
+        set({ cart: updateItems(cart, productId, (i) => ({ ...i, qty: i.qty - 1 })) });
         try {
             const res = await decreaseCartItemQty(productId);
             await get().fetchCart(true);
@@ -140,22 +186,12 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
     },
 
-    // ── Remove item ───────────────────────────────────────────────────────────
-
+    // ── Server cart: remove ───────────────────────────────────────────────────
     removeItem: async (productId) => {
         const { cart } = get();
         if (!cart) return;
-
         const prevItems = cart.items;
-
-        // Optimistic update
-        set({
-            cart: {
-                ...cart,
-                items: prevItems.filter((i) => i.productId !== productId),
-            },
-        });
-
+        set({ cart: { ...cart, items: prevItems.filter((i) => i.productId !== productId) } });
         try {
             const res = await deleteCartItem(productId);
             toast.success(res.message || "محصول از سبد خرید حذف شد");
@@ -165,8 +201,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
     },
 
-    // ── Clear ─────────────────────────────────────────────────────────────────
-
+    // ── Server cart: clear ────────────────────────────────────────────────────
     clearCart: async () => {
         set({ loading: true });
         try {
@@ -177,5 +212,57 @@ export const useCartStore = create<CartState>((set, get) => ({
             set({ loading: false });
             toast.error(extractMessage(err, "خطا در حذف سبد خرید"));
         }
+    },
+
+    // ── Guest cart: add ───────────────────────────────────────────────────────
+    addToGuestCart: (newItem) => {
+        const { guestCart } = get();
+        const existing = guestCart.find((i) => i.productId === newItem.productId);
+        const updated = existing
+            ? guestCart.map((i) =>
+                  i.productId === newItem.productId
+                      ? { ...i, qty: i.qty + newItem.qty }
+                      : i
+              )
+            : [...guestCart, newItem];
+        saveGuestCart(updated);
+        set({ guestCart: updated });
+        toast.success("محصول به سبد خرید اضافه شد");
+    },
+
+    // ── Guest cart: increase ──────────────────────────────────────────────────
+    increaseGuestQty: (productId) => {
+        const updated = get().guestCart.map((i) =>
+            i.productId === productId ? { ...i, qty: i.qty + 1 } : i
+        );
+        saveGuestCart(updated);
+        set({ guestCart: updated });
+    },
+
+    // ── Guest cart: decrease ──────────────────────────────────────────────────
+    decreaseGuestQty: (productId) => {
+        const { guestCart, removeGuestItem } = get();
+        const item = guestCart.find((i) => i.productId === productId);
+        if (!item) return;
+        if (item.qty === 1) { removeGuestItem(productId); return; }
+        const updated = guestCart.map((i) =>
+            i.productId === productId ? { ...i, qty: i.qty - 1 } : i
+        );
+        saveGuestCart(updated);
+        set({ guestCart: updated });
+    },
+
+    // ── Guest cart: remove ────────────────────────────────────────────────────
+    removeGuestItem: (productId) => {
+        const updated = get().guestCart.filter((i) => i.productId !== productId);
+        saveGuestCart(updated);
+        set({ guestCart: updated });
+        toast.success("محصول از سبد خرید حذف شد");
+    },
+
+    // ── Guest cart: clear ─────────────────────────────────────────────────────
+    clearGuestCart: () => {
+        localStorage.removeItem(GUEST_CART_KEY);
+        set({ guestCart: [] });
     },
 }));

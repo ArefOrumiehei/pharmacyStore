@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { ArrowLeft, ArrowRight, Plus, Check, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router";
-import { IconUser, IconPhone, IconMapPin, IconMail } from "@tabler/icons-react";
+import { IconUser, IconPhone, IconMapPin, IconMail, IconShoppingCart } from "@tabler/icons-react";
 import type { AddressData } from "../../CheckoutLayout";
 import type { IAddress, IAddressFormParams, IEditAddressFormParams } from "@/services/accountServices/accountServices";
 import { useUserStore } from "@/store/useAccountStore";
+import { useCartStore } from "@/store/useCartStore";
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
@@ -13,6 +14,26 @@ const inputClass = (hasError: boolean) =>
   `w-full border rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
     hasError ? "border-rose-200 bg-rose-50/30" : "border-blue-100 bg-blue-50/30"
   }`;
+
+// ─── Syncing overlay ──────────────────────────────────────────────────────────
+// Shown while guest cart is being merged into the server cart
+
+function SyncingOverlay() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-20 bg-white rounded-2xl border border-blue-100">
+      <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+        <IconShoppingCart size={24} className="text-blue-400" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2">
+          <Loader2 size={15} className="animate-spin text-blue-800" />
+          <p className="text-sm font-semibold text-blue-800">در حال انتقال سبد خرید...</p>
+        </div>
+        <p className="text-xs text-gray-400">اقلام انتخابی شما در حال ادغام با حساب شماست</p>
+      </div>
+    </div>
+  );
+}
 
 // ─── Field ────────────────────────────────────────────────────────────────────
 
@@ -36,20 +57,18 @@ function Field({
   );
 }
 
-// ─── Address form (shared for create + edit) ──────────────────────────────────
+// ─── Address form ─────────────────────────────────────────────────────────────
 
 type AddressFormMode =
   | { mode: "create"; onSave: (data: IAddressFormParams) => Promise<void> }
   | { mode: "edit";   onSave: (data: IAddressFormParams) => Promise<void>; defaults: IAddress };
 
 function AddressForm({
-  config,
-  onCancel,
-  loading,
+  config, onCancel, loading,
 }: {
-  config:   AddressFormMode;
+  config:    AddressFormMode;
   onCancel?: () => void;
-  loading:  boolean;
+  loading:   boolean;
 }) {
   const { register, handleSubmit, formState: { errors } } = useForm<IAddressFormParams>({
     defaultValues: config.mode === "edit" ? {
@@ -62,7 +81,6 @@ function AddressForm({
 
   return (
     <form onSubmit={handleSubmit(config.onSave)} className="flex flex-col gap-4">
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="نام و نام خانوادگی" error={errors.receiverFullName?.message} icon={IconUser}>
           <input
@@ -129,12 +147,7 @@ function AddressForm({
 // ─── Address card ─────────────────────────────────────────────────────────────
 
 function AddressCard({
-  address,
-  selected,
-  onSelect,
-  onEdit,
-  onDelete,
-  deleting,
+  address, selected, onSelect, onEdit, onDelete, deleting,
 }: {
   address:  IAddress;
   selected: boolean;
@@ -151,19 +164,12 @@ function AddressCard({
         ? "border-blue-800 bg-blue-50 shadow-sm shadow-blue-100"
         : "border-blue-100 bg-white hover:border-blue-200"
     }`}>
-      {/* Main row */}
-      <button
-        type="button"
-        onClick={onSelect}
-        className="w-full text-right flex items-start gap-3 p-4"
-      >
-        {/* Radio */}
+      <button type="button" onClick={onSelect} className="w-full text-right flex items-start gap-3 p-4">
         <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
           selected ? "border-blue-800 bg-blue-800" : "border-gray-300"
         }`}>
           {selected && <Check size={11} className="text-white" strokeWidth={3} />}
         </div>
-
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-gray-800">{address.receiverFullName}</p>
           <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{address.receiverAddress}</p>
@@ -175,9 +181,7 @@ function AddressCard({
         </div>
       </button>
 
-      {/* Action row */}
       <div className="flex items-center gap-2 px-4 pb-3">
-        {/* Edit */}
         <button
           type="button"
           onClick={onEdit}
@@ -187,7 +191,6 @@ function AddressCard({
           ویرایش
         </button>
 
-        {/* Delete — with inline confirm */}
         {confirmDelete ? (
           <div className="flex items-center gap-2 mr-auto">
             <span className="text-xs text-gray-500">حذف شود؟</span>
@@ -224,7 +227,7 @@ function AddressCard({
   );
 }
 
-// ─── Loading skeleton ─────────────────────────────────────────────────────────
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function AddressSkeleton() {
   return (
@@ -255,16 +258,24 @@ type FormState =
 export default function AddressStep() {
   const navigate = useNavigate();
   const { userAddresses, loading, fetchUserAddresses, createUserAddress, editUserAddress, deleteUserAddress } = useUserStore();
+  const { syncGuestCart, syncing } = useCartStore();
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [formState, setFormState]   = useState<FormState>({ type: "hidden" });
 
-  // Fetch on mount
+  // ── On mount: sync guest cart first, then fetch addresses ─────────────────
+  // syncGuestCart is safe to call always:
+  //   - if guestCart is empty → just fetches server cart
+  //   - if guestCart has items → POSTs to /api/Cart/sync then clears localStorage
   useEffect(() => {
-    fetchUserAddresses();
+    const init = async () => {
+      await syncGuestCart();
+      await fetchUserAddresses();
+    };
+    init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addresses = userAddresses ?? [];
+  const addresses    = userAddresses ?? [];
   const hasAddresses = addresses.length > 0;
 
   // Auto-select first address once loaded
@@ -282,9 +293,9 @@ export default function AddressStep() {
   }, [loading.addresses, hasAddresses]);
 
   const selectedAddress = addresses.find((a) => a.id === selectedId) ?? null;
-  const canProceed      = selectedAddress !== null && formState.type === "hidden";
+  const canProceed      = selectedAddress !== null && formState.type === "hidden" && !syncing;
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleCreate = async (data: IAddressFormParams) => {
     await createUserAddress(data);
@@ -303,7 +314,6 @@ export default function AddressStep() {
 
   const handleDelete = async (id: number) => {
     await deleteUserAddress(id);
-    // If the deleted address was selected, clear selection
     if (selectedId === id) setSelectedId(null);
   };
 
@@ -319,13 +329,26 @@ export default function AddressStep() {
     navigate("/checkout/payment", { state: { addressData } });
   };
 
+  // ── Show syncing overlay while merging guest cart ─────────────────────────
+  if (syncing) {
+    return (
+      <div className="flex flex-col lg:flex-row gap-5 items-start" dir="rtl">
+        <div className="flex-1">
+          <SyncingOverlay />
+        </div>
+        <div className="w-full lg:w-72 bg-white rounded-2xl border border-blue-100 p-5">
+          <div className="h-4 w-24 bg-blue-50 animate-pulse rounded mb-3" />
+          <div className="h-3 w-full bg-blue-50 animate-pulse rounded" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col lg:flex-row gap-5 items-start" dir="rtl">
 
-      {/* ── Address card ── */}
+      {/* ── Address panel ── */}
       <div className="flex-1 bg-white rounded-2xl border border-blue-100 overflow-hidden">
-
-        {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-blue-50">
           <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
             <IconMapPin size={16} className="text-blue-800" />
@@ -334,11 +357,8 @@ export default function AddressStep() {
         </div>
 
         <div className="px-6 py-6 flex flex-col gap-4">
-
-          {/* Loading */}
           {loading.addresses && <AddressSkeleton />}
 
-          {/* Saved address list */}
           {!loading.addresses && hasAddresses && (
             <div className="flex flex-col gap-3">
               {addresses.map((addr) => (
@@ -348,14 +368,13 @@ export default function AddressStep() {
                   selected={selectedId === addr.id}
                   deleting={loading.deleteAddress}
                   onSelect={() => { setSelectedId(addr.id); setFormState({ type: "hidden" }); }}
-                  onEdit={()   => { setFormState({ type: "edit", address: addr }); }}
-                  onDelete={()  => handleDelete(addr.id)}
+                  onEdit={() => setFormState({ type: "edit", address: addr })}
+                  onDelete={() => handleDelete(addr.id)}
                 />
               ))}
             </div>
           )}
 
-          {/* Inline form — create or edit */}
           {!loading.addresses && formState.type !== "hidden" && (
             <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/30">
               <p className="text-xs font-semibold text-blue-800 mb-4">
@@ -373,7 +392,6 @@ export default function AddressStep() {
             </div>
           )}
 
-          {/* Add new button — hidden while form is open */}
           {!loading.addresses && formState.type === "hidden" && (
             <button
               type="button"

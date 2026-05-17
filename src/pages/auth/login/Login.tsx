@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock } from "@tabler/icons-react";
 
@@ -17,6 +17,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const { login } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +41,8 @@ export default function Login() {
         rememberMe: data.rememberMe,
       });
       if (res) {
-        navigate("/");
+        const returnTo = (location.state as { returnTo?: string })?.returnTo ?? "/";
+        navigate(returnTo, { replace: true });
       } else {
         setServerError("نام کاربری/موبایل یا رمز عبور اشتباه است");
       }

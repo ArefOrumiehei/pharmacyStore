@@ -21,6 +21,11 @@ export interface ICartApiResponse<T> {
     data: T;
 }
 
+export interface SyncCartItem {
+    productId: number;
+    qty: number;
+}
+
 /* ---------------- SERVICES ---------------- */
 
 export const getCart = async (): Promise<ICartApiResponse<Cart>> => {
@@ -84,9 +89,7 @@ export const deleteCartItem = async (
     return res.data;
 };
 
-export const syncCart = async (): Promise<ICartApiResponse<Cart>> => {
-    const res = await apiInstance.post<ICartApiResponse<Cart>>(
-        "/api/Cart/sync"
-    );
+export const syncCart = async (items: SyncCartItem[]): Promise<ICartApiResponse<Cart>> => {
+    const res = await apiInstance.post<ICartApiResponse<Cart>>("/api/Cart/sync", { items });
     return res.data;
 };
