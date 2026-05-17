@@ -1,31 +1,12 @@
 import { useState } from "react";
 import {
-  IconLock,
   IconBell,
   IconMail,
   IconShieldCheck,
   IconTrash,
-  IconLoader2,
-  IconCheck,
-  IconEye,
-  IconEyeOff,
   IconDeviceMobile,
   IconAlertTriangle,
 } from "@tabler/icons-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1, "رمز فعلی الزامی است"),
-  newPassword: z.string().min(6, "حداقل ۶ کاراکتر"),
-  confirmPassword: z.string().min(6, "حداقل ۶ کاراکتر"),
-}).refine((d) => d.newPassword === d.confirmPassword, {
-  message: "رمز عبور و تکرار آن یکسان نیستند",
-  path: ["confirmPassword"],
-});
-
-type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -33,40 +14,6 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
       <span className="w-1 h-5 bg-blue-800 rounded-full inline-block flex-shrink-0" />
       {children}
     </h2>
-  );
-}
-
-const inputClass = (hasError?: boolean) =>
-  `w-full border rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
-    hasError ? "border-rose-200 bg-rose-50/30" : "border-blue-100 bg-blue-50/30"
-  }`;
-
-function PasswordField({
-  label,
-  error,
-  show,
-  onToggle,
-  inputProps,
-}: {
-  label: string;
-  error?: string;
-  show: boolean;
-  onToggle: () => void;
-  inputProps: React.InputHTMLAttributes<HTMLInputElement>;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-gray-600">{label}</label>
-      <div className="relative">
-        <IconLock size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-        <input {...inputProps} type={show ? "text" : "password"} className={`${inputClass(!!error)} pl-10`} />
-        <button type="button" onClick={onToggle}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-          {show ? <IconEyeOff size={15} /> : <IconEye size={15} />}
-        </button>
-      </div>
-      {error && <p className="text-rose-500 text-xs">{error}</p>}
-    </div>
   );
 }
 
@@ -103,11 +50,6 @@ function ToggleRow({ icon: Icon, iconBg, iconColor, label, desc, checked, onChan
 }
 
 export default function Settings() {
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [pwSaving, setPwSaving] = useState(false);
-  const [pwSuccess, setPwSuccess] = useState(false);
 
   const [notifSettings, setNotifSettings] = useState({
     orderUpdates: true,
@@ -119,23 +61,6 @@ export default function Settings() {
   const toggle = (key: keyof typeof notifSettings) =>
     setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<PasswordFormValues>({ resolver: zodResolver(passwordSchema) });
-
-  const onSave = async (data: PasswordFormValues) => {
-    setPwSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    console.log("change password", data);
-    setPwSuccess(true);
-    reset();
-    setPwSaving(false);
-    setTimeout(() => setPwSuccess(false), 3000);
-  };
-
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
@@ -143,52 +68,7 @@ export default function Settings() {
         <h1 className="text-xl font-bold text-blue-800">تنظیمات</h1>
         <p className="text-sm text-gray-400 mt-0.5">حساب کاربری و ترجیحات خود را مدیریت کنید</p>
       </div>
-
-      {/* Change password */}
-      <div className="bg-white border border-blue-100 rounded-2xl p-6">
-        <SectionTitle>تغییر رمز عبور</SectionTitle>
-
-        {pwSuccess && (
-          <div className="flex items-center gap-2 bg-green-50 border border-green-100 text-green-700 text-sm rounded-xl px-4 py-3 mt-4">
-            <IconCheck size={15} />
-            رمز عبور با موفقیت تغییر کرد
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
-          <PasswordField
-            label="رمز عبور فعلی"
-            error={errors.currentPassword?.message}
-            show={showCurrent}
-            onToggle={() => setShowCurrent((p) => !p)}
-            inputProps={register("currentPassword")}
-          />
-          <PasswordField
-            label="رمز عبور جدید"
-            error={errors.newPassword?.message}
-            show={showNew}
-            onToggle={() => setShowNew((p) => !p)}
-            inputProps={register("newPassword")}
-          />
-          <PasswordField
-            label="تکرار رمز جدید"
-            error={errors.confirmPassword?.message}
-            show={showConfirm}
-            onToggle={() => setShowConfirm((p) => !p)}
-            inputProps={register("confirmPassword")}
-          />
-        </div>
-
-        <button
-          onClick={handleSubmit(onSave)}
-          disabled={pwSaving}
-          className="mt-4 flex items-center gap-2 text-sm font-medium text-white bg-blue-800 hover:bg-blue-700 disabled:opacity-60 px-5 py-2.5 rounded-xl transition-all duration-200"
-        >
-          {pwSaving ? <IconLoader2 size={15} className="animate-spin" /> : <IconLock size={15} />}
-          ذخیره رمز جدید
-        </button>
-      </div>
-
+      
       {/* Notification settings */}
       <div className="bg-white border border-blue-100 rounded-2xl p-6">
         <SectionTitle>تنظیمات اعلان‌ها</SectionTitle>
