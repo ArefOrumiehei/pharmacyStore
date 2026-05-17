@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useSearchParams, Link } from "react-router";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useSearchParams, useParams, Link } from "react-router";
 import {
     IconFilter,
     IconX,
@@ -17,16 +16,20 @@ import {
     IconSortAscending,
     IconCheck,
     IconLoader2,
+    IconPackage,
 } from "@tabler/icons-react";
-import { useProductStore } from "@/store/useProductsStore";
 import { useProductCategoriesStore } from "@/store/useProductCategoriesStore";
 import { useCartStore } from "@/store/useCartStore";
+import { useProductStore } from "@/store/useProductsStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import { formatNumberToFa } from "@/helpers/formaters";
+import type { Product } from "@/store/useProductsStore";
 
+/* ─────────────────────────────────────────
+   TYPES
+───────────────────────────────────────── */
 interface FilterState {
     search: string;
-    categoryId: string;
     brands: string[];
     minPrice: number;
     maxPrice: number;
@@ -36,12 +39,13 @@ interface FilterState {
     sortBy: string;
 }
 
+const MAX_PRICE = 10_000_000;
+
 const DEFAULT_FILTERS: FilterState = {
     search: "",
-    categoryId: "",
     brands: [],
     minPrice: 0,
-    maxPrice: 5000000,
+    maxPrice: MAX_PRICE,
     minRating: 0,
     inStockOnly: false,
     hasDiscount: false,
@@ -56,41 +60,165 @@ const SORT_OPTIONS = [
     { value: "popular", label: "پرفروش‌ترین" },
 ];
 
-const MOCK_BRANDS = [
-    "داروپخش",
-    "رازی",
-    "ابوریحان",
-    "باریج اسانس",
-    "زاگرس فارمد",
-    "البرز دارو",
-];
-
 const ITEMS_PER_PAGE = 12;
 
+/* ─────────────────────────────────────────
+   HELPERS — read/write URL params
+───────────────────────────────────────── */
+function filtersFromParams(params: URLSearchParams): FilterState {
+    return {
+        search: params.get("q") ?? "",
+        brands: params.get("brands") ? params.get("brands")!.split(",") : [],
+        minPrice: Number(params.get("minPrice") ?? 0),
+        maxPrice: Number(params.get("maxPrice") ?? MAX_PRICE),
+        minRating: Number(params.get("minRating") ?? 0),
+        inStockOnly: params.get("inStock") === "1",
+        hasDiscount: params.get("discount") === "1",
+        sortBy: params.get("sort") ?? "newest",
+    };
+}
+
+function filtersToParams(f: FilterState): Record<string, string> {
+    const p: Record<string, string> = {};
+    if (f.search) p.q = f.search;
+    if (f.brands.length) p.brands = f.brands.join(",");
+    if (f.minPrice > 0) p.minPrice = String(f.minPrice);
+    if (f.maxPrice < MAX_PRICE) p.maxPrice = String(f.maxPrice);
+    if (f.minRating > 0) p.minRating = String(f.minRating);
+    if (f.inStockOnly) p.inStock = "1";
+    if (f.hasDiscount) p.discount = "1";
+    if (f.sortBy !== "newest") p.sort = f.sortBy;
+    return p;
+}
+
+/* ─────────────────────────────────────────
+    PAGE
+───────────────────────────────────────── */
 export default function ProductListPage() {
-    const [searchParams] = useSearchParams();
+    // Catch all slug segments: /plp/health/skin/hydrate-cream → ["health","skin","hydrate-cream"]
+    const params = useParams<{ "*": string }>();
+    const slugSegments = (params["*"] ?? "").split("/").filter(Boolean);
+    // Only the last segment is sent to the API
+    const categorySlug = slugSegments[slugSegments.length - 1] ?? null;
+
+    const [searchParams, setSearchParams] = useSearchParams();
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [page, setPage] = useState(1);
-    const [filters, setFilters] = useState<FilterState>({
-        ...DEFAULT_FILTERS,
-        search: searchParams.get("q") ?? "",
-        categoryId: searchParams.get("category") ?? "",
-    });
+    const [page, setPage] = useState(Number(searchParams.get("page") ?? 1));
 
-    const { product, loading, fetchLatestArrivals } = useProductStore();
-    const { categories, fetchAllProductCategories } =
-        useProductCategoriesStore();
+    // Initialize filters from URL
+    const [filters, setFilters] = useState<FilterState>(() =>
+        filtersFromParams(searchParams)
+    );
 
+    const {
+        selectedCategory,
+        loading,
+        fetchProductCategoriesByName,
+        clearCategories,
+    } = useProductCategoriesStore();
+
+    // Fetch when category slug changes
     useEffect(() => {
-        fetchAllProductCategories();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        if (categorySlug) {
+            fetchProductCategoriesByName(categorySlug);
+        } else {
+            clearCategories();
+        }
+        setPage(1);
+    }, [categorySlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Sync filters → URL
     useEffect(() => {
-        fetchLatestArrivals();
+        const p = filtersToParams(filters);
+        if (page > 1) p.page = String(page);
+        setSearchParams(p, { replace: true });
     }, [filters, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // All raw products from category response
+    const allProducts: Product[] = useMemo(
+        () => (selectedCategory?.products ?? []) as Product[],
+        [selectedCategory]
+    );
+
+    // Derive available brands dynamically from products
+    const availableBrands = useMemo(() => {
+        const set = new Set<string>();
+        allProducts.forEach((p) => {
+            if (p.brand) set.add(p.brand);
+        });
+        return Array.from(set).sort();
+    }, [allProducts]);
+
+    // Client-side filtering
+    const filteredProducts = useMemo(() => {
+        let list = [...allProducts];
+
+        if (filters.search) {
+            const q = filters.search.toLowerCase();
+            list = list.filter(
+                (p) =>
+                    p.name.toLowerCase().includes(q) ||
+                    (p.brand ?? "").toLowerCase().includes(q)
+            );
+        }
+
+        if (filters.brands.length) {
+            list = list.filter(
+                (p) => p.brand && filters.brands.includes(p.brand)
+            );
+        }
+
+        if (filters.minPrice > 0) {
+            list = list.filter((p) => Number(p.price) >= filters.minPrice);
+        }
+        if (filters.maxPrice < MAX_PRICE) {
+            list = list.filter((p) => Number(p.price) <= filters.maxPrice);
+        }
+
+        if (filters.minRating > 0) {
+            list = list.filter((p) => (p.avgRate ?? 0) >= filters.minRating);
+        }
+
+        if (filters.inStockOnly) {
+            list = list.filter((p) => p.isInStock);
+        }
+
+        if (filters.hasDiscount) {
+            list = list.filter((p) => p.hasDiscount);
+        }
+
+        // Sorting
+        switch (filters.sortBy) {
+            case "price_asc":
+                list.sort((a, b) => Number(a.price) - Number(b.price));
+                break;
+            case "price_desc":
+                list.sort((a, b) => Number(b.price) - Number(a.price));
+                break;
+            case "rating":
+                list.sort((a, b) => (b.avgRate ?? 0) - (a.avgRate ?? 0));
+                break;
+            case "popular":
+                list.sort((a, b) => (b.rateCount ?? 0) - (a.rateCount ?? 0));
+                break;
+            default:
+                break;
+        }
+
+        return list;
+    }, [allProducts, filters]);
+
+    // Client-side pagination
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
+    );
+    const pageProducts = filteredProducts.slice(
+        (page - 1) * ITEMS_PER_PAGE,
+        page * ITEMS_PER_PAGE
+    );
+
     const activeFilterCount = [
-        filters.categoryId !== "",
         filters.brands.length > 0,
         filters.minPrice > DEFAULT_FILTERS.minPrice,
         filters.maxPrice < DEFAULT_FILTERS.maxPrice,
@@ -109,20 +237,63 @@ export default function ProductListPage() {
         setPage(1);
     }, []);
 
-    const totalPages = Math.ceil((product?.total ?? 0) / ITEMS_PER_PAGE) || 1;
+    // Breadcrumb from URL segments
+    const breadcrumbs = slugSegments.map((seg, i) => ({
+        label: seg,
+        path: "/plp/" + slugSegments.slice(0, i + 1).join("/"),
+        isLast: i === slugSegments.length - 1,
+    }));
 
     return (
         <div className="w-full py-6" dir="rtl">
+            {/* Breadcrumb */}
+            {breadcrumbs.length > 0 && (
+                <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-4 flex-wrap">
+                    <Link
+                        to="/"
+                        className="hover:text-blue-800 transition-colors"
+                    >
+                        خانه
+                    </Link>
+                    {breadcrumbs.map((crumb) => (
+                        <span
+                            key={crumb.path}
+                            className="flex items-center gap-1.5"
+                        >
+                            <IconChevronLeft
+                                size={11}
+                                className="flex-shrink-0"
+                            />
+                            {crumb.isLast ? (
+                                <span className="text-blue-800 font-medium">
+                                    {selectedCategory?.name ?? crumb.label}
+                                </span>
+                            ) : (
+                                <Link
+                                    to={crumb.path}
+                                    className="hover:text-blue-800 transition-colors"
+                                >
+                                    {crumb.label}
+                                </Link>
+                            )}
+                        </span>
+                    ))}
+                </nav>
+            )}
+
             {/* Top bar */}
             <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
                 <div>
-                    <h1 className="text-xl font-bold text-blue-800">محصولات</h1>
+                    <h1 className="text-xl font-bold text-blue-800">
+                        {selectedCategory?.name ?? "همه محصولات"}
+                    </h1>
                     <p className="text-sm text-gray-400 mt-0.5">
-                        {product?.total ?? 0} محصول یافت شد
+                        {filteredProducts.length} محصول یافت شد
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
+                    {/* Search — hidden on mobile (available in sidebar) */}
                     <div className="relative hidden sm:block">
                         <IconSearch
                             size={15}
@@ -160,31 +331,32 @@ export default function ProductListPage() {
 
             {/* Main layout */}
             <div className="flex gap-6 items-start">
-                {/* Desktop sidebar — sticky, page scrolls normally */}
+                {/* Desktop sidebar */}
                 <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 self-start">
                     <FilterPanel
                         filters={filters}
-                        categories={categories ?? []}
-                        brands={MOCK_BRANDS}
+                        brands={availableBrands}
                         activeCount={activeFilterCount}
                         onChange={handleFilterChange}
                         onReset={handleReset}
                     />
                 </aside>
 
-                {/* Product grid — normal page flow, no nested scroll */}
+                {/* Product grid */}
                 <div className="flex-1 min-w-0">
                     {loading ? (
                         <ProductGridSkeleton />
-                    ) : !product?.items?.length ? (
+                    ) : !pageProducts.length ? (
                         <EmptyState
                             onReset={handleReset}
-                            hasFilters={activeFilterCount > 0}
+                            hasFilters={
+                                activeFilterCount > 0 || !!filters.search
+                            }
                         />
                     ) : (
                         <>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                                {product.items.map((p: any) => (
+                                {pageProducts.map((p) => (
                                     <ProductCard key={p.id} product={p} />
                                 ))}
                             </div>
@@ -192,7 +364,13 @@ export default function ProductListPage() {
                                 <Pagination
                                     page={page}
                                     total={totalPages}
-                                    onChange={setPage}
+                                    onChange={(p) => {
+                                        setPage(p);
+                                        window.scrollTo({
+                                            top: 0,
+                                            behavior: "smooth",
+                                        });
+                                    }}
                                 />
                             )}
                         </>
@@ -222,8 +400,7 @@ export default function ProductListPage() {
                         <div className="p-4">
                             <FilterPanel
                                 filters={filters}
-                                categories={categories ?? []}
-                                brands={MOCK_BRANDS}
+                                brands={availableBrands}
                                 activeCount={activeFilterCount}
                                 onChange={handleFilterChange}
                                 onReset={handleReset}
@@ -234,7 +411,7 @@ export default function ProductListPage() {
                                 onClick={() => setDrawerOpen(false)}
                                 className="w-full py-3 rounded-xl bg-blue-800 hover:bg-blue-700 text-white text-sm font-semibold transition-all duration-150"
                             >
-                                نمایش نتایج
+                                نمایش {filteredProducts.length} محصول
                             </button>
                         </div>
                     </div>
@@ -249,14 +426,12 @@ export default function ProductListPage() {
 ══════════════════════════════════════════ */
 function FilterPanel({
     filters,
-    categories,
     brands,
     activeCount,
     onChange,
     onReset,
 }: {
     filters: FilterState;
-    categories: any[];
     brands: string[];
     activeCount: number;
     onChange: (p: Partial<FilterState>) => void;
@@ -290,6 +465,7 @@ function FilterPanel({
             </div>
 
             <div className="divide-y divide-blue-50">
+                {/* Search */}
                 <FilterSection title="جستجو">
                     <div className="relative">
                         <IconSearch
@@ -307,77 +483,7 @@ function FilterPanel({
                     </div>
                 </FilterSection>
 
-                <FilterSection title="مرتب‌سازی">
-                    <div className="flex flex-col gap-1">
-                        {SORT_OPTIONS.map((opt) => (
-                            <button
-                                key={opt.value}
-                                onClick={() => onChange({ sortBy: opt.value })}
-                                className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all duration-150 ${
-                                    filters.sortBy === opt.value
-                                        ? "bg-blue-50 border border-blue-200 text-blue-800 font-semibold"
-                                        : "text-gray-600 hover:bg-gray-50"
-                                }`}
-                            >
-                                {opt.label}
-                                {filters.sortBy === opt.value && (
-                                    <IconCheck
-                                        size={14}
-                                        className="text-blue-800"
-                                    />
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                </FilterSection>
-
-                {categories.length > 0 && (
-                    <FilterSection title="دسته‌بندی">
-                        <div className="flex flex-col gap-1">
-                            <button
-                                onClick={() => onChange({ categoryId: "" })}
-                                className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all duration-150 ${
-                                    filters.categoryId === ""
-                                        ? "bg-blue-50 border border-blue-200 text-blue-800 font-semibold"
-                                        : "text-gray-600 hover:bg-gray-50"
-                                }`}
-                            >
-                                همه دسته‌ها
-                                {filters.categoryId === "" && (
-                                    <IconCheck
-                                        size={14}
-                                        className="text-blue-800"
-                                    />
-                                )}
-                            </button>
-                            {categories.slice(0, 8).map((cat: any) => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() =>
-                                        onChange({ categoryId: String(cat.id) })
-                                    }
-                                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all duration-150 ${
-                                        filters.categoryId === String(cat.id)
-                                            ? "bg-blue-50 border border-blue-200 text-blue-800 font-semibold"
-                                            : "text-gray-600 hover:bg-gray-50"
-                                    }`}
-                                >
-                                    <span className="flex items-center gap-2">
-                                        {cat.icon && <span>{cat.icon}</span>}
-                                        {cat.name}
-                                    </span>
-                                    {filters.categoryId === String(cat.id) && (
-                                        <IconCheck
-                                            size={14}
-                                            className="text-blue-800"
-                                        />
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    </FilterSection>
-                )}
-
+                {/* Price range */}
                 <FilterSection title="محدوده قیمت">
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between text-xs text-gray-500">
@@ -391,8 +497,8 @@ function FilterPanel({
                         <input
                             type="range"
                             min={0}
-                            max={5000000}
-                            step={50000}
+                            max={MAX_PRICE}
+                            step={100_000}
                             value={filters.maxPrice}
                             onChange={(e) =>
                                 onChange({ maxPrice: Number(e.target.value) })
@@ -434,46 +540,52 @@ function FilterPanel({
                     </div>
                 </FilterSection>
 
-                <FilterSection title="برند">
-                    <div className="flex flex-col gap-1">
-                        {brands.map((brand) => (
-                            <label
-                                key={brand}
-                                className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
-                            >
-                                <div
-                                    onClick={() => {
-                                        const next = filters.brands.includes(
-                                            brand
-                                        )
-                                            ? filters.brands.filter(
-                                                  (b) => b !== brand
-                                              )
-                                            : [...filters.brands, brand];
-                                        onChange({ brands: next });
-                                    }}
-                                    className={`w-4 h-4 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer ${
-                                        filters.brands.includes(brand)
-                                            ? "bg-blue-800 border-blue-800"
-                                            : "border-gray-300 bg-white"
-                                    }`}
+                {/* Brands — only show when brands exist */}
+                {brands.length > 0 && (
+                    <FilterSection title="برند">
+                        <div className="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1">
+                            {brands.map((brand) => (
+                                <label
+                                    key={brand}
+                                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
                                 >
-                                    {filters.brands.includes(brand) && (
-                                        <IconCheck
-                                            size={10}
-                                            className="text-white"
-                                            strokeWidth={3}
-                                        />
-                                    )}
-                                </div>
-                                <span className="text-sm text-gray-600">
-                                    {brand}
-                                </span>
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
+                                    <div
+                                        onClick={() => {
+                                            const next =
+                                                filters.brands.includes(brand)
+                                                    ? filters.brands.filter(
+                                                          (b) => b !== brand
+                                                      )
+                                                    : [
+                                                          ...filters.brands,
+                                                          brand,
+                                                      ];
+                                            onChange({ brands: next });
+                                        }}
+                                        className={`w-4 h-4 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer ${
+                                            filters.brands.includes(brand)
+                                                ? "bg-blue-800 border-blue-800"
+                                                : "border-gray-300 bg-white"
+                                        }`}
+                                    >
+                                        {filters.brands.includes(brand) && (
+                                            <IconCheck
+                                                size={10}
+                                                className="text-white"
+                                                strokeWidth={3}
+                                            />
+                                        )}
+                                    </div>
+                                    <span className="text-sm text-gray-600">
+                                        {brand}
+                                    </span>
+                                </label>
+                            ))}
+                        </div>
+                    </FilterSection>
+                )}
 
+                {/* Rating */}
                 <FilterSection title="حداقل امتیاز">
                     <div className="flex flex-col gap-1">
                         {[4, 3, 2, 0].map((r) => (
@@ -519,6 +631,7 @@ function FilterPanel({
                     </div>
                 </FilterSection>
 
+                {/* Toggles */}
                 <FilterSection title="سایر فیلترها">
                     <div className="flex flex-col gap-3">
                         <ToggleFilter
@@ -601,7 +714,6 @@ function ToggleFilter({
         green: "bg-green-600",
         rose: "bg-rose-500",
     }[color];
-
     return (
         <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -627,6 +739,9 @@ function ToggleFilter({
     );
 }
 
+/* ══════════════════════════════════════════
+   SORT DROPDOWN
+══════════════════════════════════════════ */
 function SortDropdown({
     value,
     onChange,
@@ -693,12 +808,10 @@ function SortDropdown({
     );
 }
 
-/* ══════════════════════════════════════════
-   PRODUCT CARD
-══════════════════════════════════════════ */
-function ProductCard({ product }: { product: any }) {
+/* ═══════════════════ PRODUCT CARD ═══════════════════ */
+function ProductCard({ product }: { product: Product }) {
     const [favorited, setFavorited] = useState(
-        product.currentUserFaved ?? false
+        product.isCurrentUserFaved ?? false
     );
     const [addingToCart, setAddingToCart] = useState(false);
     const [addedToCart, setAddedToCart] = useState(false);
@@ -742,14 +855,16 @@ function ProductCard({ product }: { product: any }) {
             )}/${encodeURIComponent(product.slug)}`}
             className="group bg-white border border-blue-100 rounded-2xl overflow-hidden hover:shadow-md hover:border-blue-200 transition-all duration-300 flex flex-col"
         >
+            {/* Image */}
             <div className="relative w-full aspect-square bg-blue-50/40 overflow-hidden flex items-center justify-center border-b border-blue-50">
                 <img
                     src={`${IMAGE_BASE}${product.picture}`}
-                    alt={product.name}
+                    alt={product.pictureAlt ?? product.name}
                     className="w-4/5 h-4/5 object-contain group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                 />
 
+                {/* Badges */}
                 <div className="absolute top-3 right-3 flex flex-col gap-1.5">
                     {product.hasDiscount && (
                         <span className="flex items-center gap-0.5 bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
@@ -764,6 +879,7 @@ function ProductCard({ product }: { product: any }) {
                     )}
                 </div>
 
+                {/* Favorite */}
                 <button
                     onClick={handleFavorite}
                     className="absolute top-3 left-3 w-8 h-8 rounded-xl bg-white/80 hover:bg-white border border-blue-100 flex items-center justify-center shadow-sm transition-all duration-200 hover:scale-110 active:scale-90"
@@ -776,15 +892,24 @@ function ProductCard({ product }: { product: any }) {
                 </button>
             </div>
 
+            {/* Info */}
             <div className="flex flex-col gap-2.5 p-4 flex-1">
-                <span className="text-xs text-blue-800 font-medium bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full w-fit">
-                    {product.categoryName}
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs text-blue-800 font-medium bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
+                        {product.categoryName}
+                    </span>
+                    {product.brand && (
+                        <span className="text-xs text-gray-500 font-medium bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full">
+                            {product.brand}
+                        </span>
+                    )}
+                </div>
 
                 <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-6 group-hover:text-blue-800 transition-colors duration-200">
                     {product.name}
                 </h3>
 
+                {/* Rating */}
                 <div className="flex items-center gap-1.5">
                     <div className="flex gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -804,16 +929,17 @@ function ProductCard({ product }: { product: any }) {
                     </span>
                 </div>
 
+                {/* Price + Cart */}
                 <div className="flex items-end justify-between gap-2 mt-auto pt-2 border-t border-blue-50">
                     <div className="flex flex-col items-start">
                         {product.hasDiscount && (
                             <span className="text-xs text-gray-400 line-through">
-                                {formatNumberToFa(product.price)} ت
+                                {formatNumberToFa(Number(product.price))} ت
                             </span>
                         )}
                         <div className="flex items-baseline gap-1">
                             <span className="text-base font-bold text-blue-800">
-                                {formatNumberToFa(displayPrice)}
+                                {formatNumberToFa(Number(displayPrice))}
                             </span>
                             <span className="text-xs text-gray-400">تومان</span>
                         </div>
@@ -926,7 +1052,7 @@ function Pagination({
 }
 
 /* ══════════════════════════════════════════
-   SKELETONS + EMPTY
+   SKELETON + EMPTY
 ══════════════════════════════════════════ */
 function ProductGridSkeleton() {
     return (
@@ -963,7 +1089,7 @@ function EmptyState({
     return (
         <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white border border-blue-100 rounded-2xl">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-                <IconSearch size={28} className="text-blue-300" />
+                <IconPackage size={28} className="text-blue-300" />
             </div>
             <div className="text-center">
                 <p className="text-gray-600 font-medium">محصولی یافت نشد</p>
