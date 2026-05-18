@@ -180,7 +180,7 @@ export default function Orders() {
         <div>
           <h1 className="text-xl font-bold text-blue-800">سفارش‌های من</h1>
           {!loading.orders && (
-            <p className="text-sm text-gray-400 mt-0.5">{orders.length} سفارش ثبت شده</p>
+            <p className="text-sm text-gray-400 mt-0.5">{orders?.length} سفارش ثبت شده</p>
           )}
         </div>
         {loading.orders && (
@@ -189,7 +189,7 @@ export default function Orders() {
       </div>
 
       {/* Filter tabs — only shown once loaded */}
-      {!loading.orders && orders.length > 0 && (
+      {!loading.orders && orders?.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
           {statuses.map((s) => (
             <button
