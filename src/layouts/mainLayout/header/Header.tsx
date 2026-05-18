@@ -13,6 +13,8 @@ import NavigationDesktop from "./_components/navigation/NavigationDesktop";
 import SearchBox from "./_components/search_box/SearchBox";
 import MobileBottomBar from "./_components/mobile_bottom_bar/MobileBottomBar";
 import MobileCategoriesDrawer from "./_components/mobile_categories_drawer/MobileCategoriesDrawer";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useCartStore } from "@/store/useCartStore";
 
 
 const navLinks = [
@@ -50,11 +52,28 @@ function UserSection() {
 }
 
 function CartButton() {
+    const { accessToken } = useAuthStore();
+    const cart = useCartStore((s) => s.cart);
+    const guestCart = useCartStore((s) => s.guestCart);
+
+    // Show server cart count for auth users, guest cart count for guests
+    const count = accessToken
+        ? (cart?.items?.length ?? 0)
+        : guestCart.length;
+
+    const displayCount = count > 99 ? "99+" : count;
+
     return (
         <Link to="/checkout/cart">
-            <div className="bg-white border border-blue-200 rounded-xl p-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 cursor-pointer">
-                <IconShoppingCart size={22} color="#1e40af" />
-            </div>
+        <div className="relative bg-white border border-blue-200 rounded-xl p-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 cursor-pointer">
+            <IconShoppingCart size={22} color="#1e40af" />
+
+            {count > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-blue-800 text-white text-[10px] font-bold leading-none shadow-sm">
+                {displayCount}
+            </span>
+            )}
+        </div>
         </Link>
     );
 }
