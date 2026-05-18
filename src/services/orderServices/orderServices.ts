@@ -30,15 +30,13 @@ export interface IOrderResponse {
 }
 
 export interface ICheckoutPreview {
-  totalAmount:         number;
-  totalAmountDisplay:  string;
-  discountAmount:      number;
-  discountAmountDisplay: string;
-  payAmount:           number;
-  payAmountDisplay:    string;
-  couponCode:          string | null;
-  isValidCoupon:       boolean;
-  itemsCount:          number;
+  discountMessage: string;
+  finalPayAmount: number;
+  isCouponApplied: boolean;
+  isCouponHasValue: boolean;
+  shippingCost: number;
+  totalAmount: number;
+  totalDiscountAmount: number;
 }
 
 export interface IVerifyPaymentParams {
