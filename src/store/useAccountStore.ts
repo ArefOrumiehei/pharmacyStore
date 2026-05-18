@@ -42,7 +42,7 @@ interface ILoadingState {
     orders: boolean;
     order: boolean;
     tickets: boolean;
-    ticket: boolean;        // single ticket detail
+    ticket: boolean;
     addresses: boolean;
     updateProfile: boolean;
     completeProfile: boolean;
