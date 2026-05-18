@@ -13,7 +13,7 @@ import {
     type SyncCartItem,
 } from "@/services/cartServices/cartServices";
 
-/* ──── TYPES ─────── */
+/* ──────────TYPES──────────────────── */
 export type { Cart, CartItem };
 
 export interface GuestCartItem {
@@ -47,9 +47,15 @@ type CartState = {
     loadGuestCart: () => void;
 };
 
-const GUEST_CART_KEY = "guest_cart";
+/* ─────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────── */
+const GUEST_CART_KEY  = "guest_cart";
+const SERVER_CART_KEY = "server_cart";
 
-/* ────────── HELPERS ───────── */
+/* ─────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────── */
 const extractMessage = (err: unknown, fallback: string): string => {
     if (err && typeof err === "object" && "response" in err) {
         const r = (err as { response?: { data?: { message?: string } } }).response;
@@ -69,6 +75,8 @@ const updateItems = (
     ),
 });
 
+// ── Guest cart localStorage ───────────────────────────────────────────────────
+
 const saveGuestCart = (items: GuestCartItem[]) => {
     try {
         localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
@@ -84,25 +92,55 @@ const readGuestCart = (): GuestCartItem[] => {
     }
 };
 
-/* ───── STORE ────── */
+// ── Server cart localStorage cache ───────────────────────────────────────────
+// Written after every successful fetch — server is always source of truth.
+// Used only for instant reads (e.g. cart badge count in header on first paint).
+
+const saveServerCart = (cart: Cart) => {
+    try {
+        localStorage.setItem(SERVER_CART_KEY, JSON.stringify(cart));
+    } catch { /* localStorage unavailable */ }
+};
+
+const clearServerCart = () => {
+    try {
+        localStorage.removeItem(SERVER_CART_KEY);
+    } catch { /* localStorage unavailable */ }
+};
+
+export const readServerCart = (): Cart | null => {
+    try {
+        const raw = localStorage.getItem(SERVER_CART_KEY);
+        return raw ? (JSON.parse(raw) as Cart) : null;
+    } catch {
+        return null;
+    }
+};
+
+/* ─────────────────────────────────────────
+   STORE
+───────────────────────────────────────── */
 export const useCartStore = create<CartState>((set, get) => ({
-    cart: null,
+    // Initialize cart from localStorage cache for instant first-paint reads
+    cart: readServerCart(),
     loading: false,
     syncing: false,
     errorMsg: null,
     guestCart: [],
 
-    // ── Load guest cart from localStorage ────────────────────────────────────
+    // ── Load guest cart from localStorage ─────────────────────────────────────
     loadGuestCart: () => {
         set({ guestCart: readGuestCart() });
     },
 
     // ── Fetch server cart ─────────────────────────────────────────────────────
+    // Always fetches fresh data. Caches result to localStorage on success.
     fetchCart: async (force = false) => {
         if (get().cart && !force) return;
         set({ loading: true });
         try {
             const res = await getCart();
+            saveServerCart(res.data);
             set({ cart: res.data, loading: false });
         } catch (err) {
             set({ loading: false, errorMsg: extractMessage(err, "خطا در دریافت سبد خرید") });
@@ -110,7 +148,6 @@ export const useCartStore = create<CartState>((set, get) => ({
     },
 
     // ── Sync guest cart → server then clear guest cart ────────────────────────
-    // Called at the start of AddressStep when user is authenticated
     syncGuestCart: async () => {
         const { guestCart, clearGuestCart, fetchCart } = get();
 
@@ -121,12 +158,10 @@ export const useCartStore = create<CartState>((set, get) => ({
 
         set({ syncing: true });
         try {
-            // Map guest cart to the shape the API expects
             const items: SyncCartItem[] = guestCart.map((i) => ({
                 productId: i.productId,
-                qty: i.qty,
+                qty:       i.qty,
             }));
-
             await syncCart(items);
             clearGuestCart();
             await fetchCart(true);
@@ -195,8 +230,10 @@ export const useCartStore = create<CartState>((set, get) => ({
         try {
             const res = await deleteCartItem(productId);
             toast.success(res.message || "محصول از سبد خرید حذف شد");
+            saveServerCart({ ...cart, items: cart.items.filter((i) => i.productId !== productId) });
         } catch (err) {
             set({ cart: { ...cart, items: prevItems } });
+            saveServerCart(cart);
             toast.error(extractMessage(err, "خطا در حذف محصول"));
         }
     },
@@ -206,6 +243,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         set({ loading: true });
         try {
             const res = await deleteCart();
+            clearServerCart();
             set({ cart: null, loading: false });
             toast.success(res.message || "سبد خرید پاک شد");
         } catch (err) {
