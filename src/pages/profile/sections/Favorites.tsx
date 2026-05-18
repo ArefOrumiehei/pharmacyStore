@@ -15,6 +15,11 @@ export default function Favorites() {
         fetchUserFavorites();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // ensure favorites is an array to avoid 'unknown' type issues
+    const favorites: any[] = Array.isArray(userFavorites)
+        ? (userFavorites as any[])
+        : [];
+
     if (loading) {
         return (
             <div className="flex flex-col gap-5">
@@ -55,15 +60,15 @@ export default function Favorites() {
                         محصولاتی که ذخیره کرده‌اید
                     </p>
                 </div>
-                {userFavorites?.length > 0 && (
+                {favorites.length > 0 && (
                     <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">
-                        {userFavorites.length} محصول
+                        {favorites.length} محصول
                     </span>
                 )}
             </div>
 
             {/* Empty */}
-            {!userFavorites || userFavorites.length === 0 ? (
+            {favorites.length === 0 ? (
                 <div className="bg-white border border-blue-100 rounded-2xl flex flex-col items-center justify-center py-16 gap-4">
                     <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
                         <IconHeart size={28} className="text-blue-300" />
@@ -80,7 +85,7 @@ export default function Favorites() {
                 </div>
             ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {userFavorites.map((item: any) => (
+                    {favorites.map((item: any) => (
                         <div
                             key={item.id}
                             className="bg-white border border-blue-100 rounded-2xl overflow-hidden hover:shadow-sm hover:border-blue-200 transition-all duration-200 flex flex-col"
