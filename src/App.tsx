@@ -42,6 +42,8 @@ const CartStep        = lazy(() => import('./pages/checkout/steps/cart/CartStep'
 const AddressStep     = lazy(() => import('./pages/checkout/steps/address/AddressStep'))
 const PaymentStep     = lazy(() => import('./pages/checkout/steps/payment/PaymentStep'))
 const OrderStatus     = lazy(() => import('./pages/checkout/order-status/OrderStatus'))
+const OrderSuccess = lazy(() => import('./pages/checkout/order-success/OrderSuccess'))
+
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 const Profile         = lazy(() => import('./pages/profile/Profile'))
@@ -122,6 +124,7 @@ function App() {
                 <Route path="cart" element={<CartStep />} />
                 <Route path="address" element={<AddressStep />} />
                 <Route path="payment" element={<PaymentStep />} />
+                <Route path="order-success" element={<OrderSuccess />} />
               </Route>
               <Route path="cart" element={<Navigate to="/checkout" replace />} />
               <Route path="shop/orders/confirm-callback" element={<OrderStatus />} />
