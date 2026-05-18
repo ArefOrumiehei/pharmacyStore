@@ -250,11 +250,11 @@ export const getUserAddress = async (addressId: number): Promise<IAddress> => {
 };
 
 export const createUserAddress = async (data: IAddressFormParams): Promise<void> => {
-    await apiInstance.post("/api/Account/ShippingInfos", data, { isFormDataRequest: true });
+    await apiInstance.post("/api/Account/ShippingInfos", data);
 };
 
 export const editUserAddress = async (data: IEditAddressFormParams): Promise<void> => {
-    await apiInstance.put("/api/Account/ShippingInfos", data, { isFormDataRequest: true });
+    await apiInstance.put("/api/Account/ShippingInfos", data);
 };
 
 export const deleteUserAddress = async (addressId: number): Promise<void> => {
