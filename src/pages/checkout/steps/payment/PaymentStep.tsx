@@ -18,6 +18,7 @@ import {
 import type { AddressData } from "../../CheckoutLayout";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useCartStore } from "@/store/useCartStore";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,6 +133,8 @@ export default function PaymentStep() {
         loading: orderLoading,
     } = useOrderStore();
 
+    const {cart} = useCartStore();
+
     const [payMethod, setPayMethod] = useState<PayMethod>(1);
     const [image, setImage] = useState<{
         url: string | null;
@@ -183,11 +186,11 @@ export default function PaymentStep() {
         const code = couponInput.trim();
         if (!code) return;
         setCouponError(null);
-        // fetchPreview will show toast on error; check result via preview.isValidCoupon
+        // fetchPreview will show toast on error; check result via preview.isCouponHasValue
         await fetchPreview(code);
         // After fetch, read from store to know if it was valid
         const result = useOrderStore.getState().preview;
-        if (result?.isValidCoupon) {
+        if (result?.isCouponHasValue) {
             setAppliedCoupon(code);
         } else {
             setCouponError("کد تخفیف نامعتبر است");
@@ -201,43 +204,60 @@ export default function PaymentStep() {
         fetchPreview(undefined);
     }, [fetchPreview]);
 
-    // ── Submit ─────────────────────────────────────────────────────────────────
+    // ─── Replace only the onSubmit callback in PaymentStep ───────────────────────
+    // Everything else in the component stays exactly the same.
+
     const onSubmit = useCallback(
         async (data: PaymentFormValues) => {
             if (payMethod === 2 && !receiptFile) {
                 setReceiptError("رسید پرداخت الزامی است");
                 return;
             }
+
             try {
                 const payload: CreatePaymentRequest =
                     payMethod === 2
                         ? {
-                            shippingInfoId: addressData!.shippingId!,
-                            payMethod: 2,
-                            cardOwnerName: data.cardOwnerName!,
-                            nationalCode: data.nationalCode!,
-                            paymentReceiptPic: receiptFile!,
-                            couponCode: appliedCoupon ?? undefined,
+                            shippingInfoId:     addressData!.shippingId!,
+                            payMethod:          2,
+                            cardOwnerName:      data.cardOwnerName!,
+                            nationalCode:       data.nationalCode!,
+                            paymentReceiptPic:  receiptFile!,
+                            couponCode:         appliedCoupon ?? undefined,
                         }
                         : {
                             shippingInfoId: addressData!.shippingId!,
-                            payMethod: 1,
-                            couponCode: appliedCoupon ?? undefined,
+                            payMethod:      1,
+                            couponCode:     appliedCoupon ?? undefined,
                         };
 
                 const res = await createOrder(payload);
-                if (res?.data?.shouldRedirect && res.data.redirectUrl) {
+
+                // ── Method 1: online payment → redirect to bank gateway
+                if (payMethod === 1 && res?.data?.shouldRedirect && res.data.redirectUrl) {
                     setIsRedirecting(true);
-                    setRedirectMessage(
-                        res.message ?? "در حال انتقال به صفحه پرداخت..."
-                    );
+                    setRedirectMessage(res.message ?? "در حال انتقال به صفحه پرداخت...");
                     window.location.href = res.data.redirectUrl;
+                    return;
                 }
+
+                // ── Method 2: card-to-card → navigate to success page
+                if (payMethod === 2 && res?.data?.orderId) {
+                    navigate("/checkout/order-success", {
+                        state: {
+                            orderId:   res.data.orderId,
+                            payMethod: 2,
+                        },
+                        replace: true,
+                    });
+                    return;
+                }
+
             } catch {
                 // toast already shown in store
             }
         },
-        [createOrder, payMethod, addressData, receiptFile, appliedCoupon]
+        [createOrder, payMethod, addressData, receiptFile, appliedCoupon, navigate]
     );
 
     // ── Guard: no address = go back ────────────────────────────────────────────
@@ -486,7 +506,7 @@ export default function PaymentStep() {
                     <div className="bg-white border border-blue-100 rounded-2xl p-5 flex flex-col gap-3">
                         <SectionTitle>کد تخفیف</SectionTitle>
 
-                        {appliedCoupon && preview?.isValidCoupon ? (
+                        {appliedCoupon && preview?.isCouponHasValue ? (
                             <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
                                 <div className="flex items-center gap-2">
                                     <div className="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -500,7 +520,7 @@ export default function PaymentStep() {
                                             {appliedCoupon.toUpperCase()}
                                         </p>
                                         <p className="text-xs text-green-600 mt-0.5">
-                                            کد تخفیف اعمال شد
+                                            {preview.discountMessage || "کد تخفیف با موفقیت اعمال شد"}
                                         </p>
                                     </div>
                                 </div>
@@ -578,7 +598,7 @@ export default function PaymentStep() {
                                 label="تعداد اقلام"
                                 value={
                                     preview
-                                        ? `${preview.itemsCount} محصول`
+                                        ? `${cart?.items.length} محصول`
                                         : undefined
                                 }
                                 loading={previewLoading}
@@ -586,16 +606,16 @@ export default function PaymentStep() {
                             <SummaryRow
                                 label="جمع کالاها"
                                 value={
-                                    preview?.totalAmountDisplay
-                                        ? `${preview.totalAmountDisplay} تومان`
+                                    preview?.totalAmount
+                                        ? `${preview.totalAmount} تومان`
                                         : undefined
                                 }
                                 loading={previewLoading}
                             />
-                            {preview && preview.discountAmount > 0 && (
+                            {preview && preview.totalDiscountAmount > 0 && (
                                 <SummaryRow
                                     label="تخفیف"
-                                    value={`${preview.discountAmountDisplay} تومان-`}
+                                    value={`${preview.totalDiscountAmount} تومان-`}
                                     highlight="green"
                                     loading={previewLoading}
                                 />
@@ -610,8 +630,8 @@ export default function PaymentStep() {
                             <SummaryRow
                                 label="مبلغ قابل پرداخت"
                                 value={
-                                    preview?.payAmountDisplay
-                                        ? `${preview.payAmountDisplay} تومان`
+                                    preview?.shippingCost
+                                        ? `${preview.shippingCost} تومان`
                                         : undefined
                                 }
                                 bold
