@@ -39,11 +39,6 @@ export interface ICheckoutPreview {
   totalDiscountAmount: number;
 }
 
-export interface IVerifyPaymentParams {
-  orderId: number;
-  trackId: string;
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const buildOrderFormData = (data: CreatePaymentRequest): FormData => {
@@ -74,10 +69,8 @@ export const createOrder = async (
   return res.data;
 };
 
-export const verifyPayment = async (
-  params: IVerifyPaymentParams,
-): Promise<void> => {
-  await apiInstance.post("/api/Orders/verify-payment", params);
+export const verifyPayment = async (orderId: number, trackId: string): Promise<void> => {
+  await apiInstance.post("/api/Orders/verify-payment", { orderId, trackId });
 };
 
 export const downloadInvoice = async (orderId: number): Promise<Blob> => {

@@ -8,7 +8,6 @@ import {
   type CreatePaymentRequest,
   type IOrderResponse,
   type ICheckoutPreview,
-  type IVerifyPaymentParams,
 } from "@/services/orderServices/orderServices";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -27,7 +26,7 @@ interface IOrderStore {
   loading:         ILoadingState;
 
   createOrder:        (data: CreatePaymentRequest)     => Promise<IOrderResponse>;
-  verifyPayment:      (params: IVerifyPaymentParams)   => Promise<void>;
+  verifyPayment:      (orderId: number, trackId: string)   => Promise<void>;
   downloadInvoice:    (orderId: number)                => Promise<void>;
   fetchPreview:       (coupon?: string)                => Promise<void>;
   reset:              ()                               => void;
@@ -90,10 +89,10 @@ export const useOrderStore = create<IOrderStore>((set) => ({
 
   // ── Verify payment ─────────────────────────────────────────────────────────
 
-  verifyPayment: async (params) => {
+  verifyPayment: async (orderId, trackId) => {
     set((s) => ({ loading: { ...s.loading, verifyPayment: true } }));
     try {
-      await verifyPayment(params);
+      await verifyPayment(orderId, trackId);
       set((s) => ({ loading: { ...s.loading, verifyPayment: false } }));
       toast.success("پرداخت با موفقیت تأیید شد");
     } catch (err) {
