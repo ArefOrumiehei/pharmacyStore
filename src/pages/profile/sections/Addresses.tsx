@@ -293,8 +293,8 @@ export default function Addresses() {
         )}
       </div>
 
-      {/* Create / edit form */}
-      {formState.type !== "hidden" && (
+      {/* Create form */}
+      {formState.type !== "create" && (
         <AddressForm
           defaults={formState.type === "edit" ? formState.address : undefined}
           onSave={formState.type === "edit" ? handleEdit : handleCreate}
