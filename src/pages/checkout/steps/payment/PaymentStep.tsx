@@ -19,6 +19,7 @@ import type { AddressData } from "../../CheckoutLayout";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCartStore } from "@/store/useCartStore";
+import { formatNumberToFa } from "@/helpers/formaters";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -215,6 +216,10 @@ export default function PaymentStep() {
             }
 
             try {
+                const couponCode =
+                    preview?.isCouponApplied && preview.isCouponHasValue
+                        ? appliedCoupon ?? undefined
+                        : undefined;
                 const payload: CreatePaymentRequest =
                     payMethod === 2
                         ? {
@@ -223,12 +228,12 @@ export default function PaymentStep() {
                             cardOwnerName:      data.cardOwnerName!,
                             nationalCode:       data.nationalCode!,
                             paymentReceiptPic:  receiptFile!,
-                            couponCode:         appliedCoupon ?? undefined,
+                            couponCode
                         }
                         : {
                             shippingInfoId: addressData!.shippingId!,
-                            payMethod:      1,
-                            couponCode:     appliedCoupon ?? undefined,
+                            payMethod: 1,
+                            couponCode
                         };
 
                 const res = await createOrder(payload);
@@ -257,7 +262,7 @@ export default function PaymentStep() {
                 // toast already shown in store
             }
         },
-        [createOrder, payMethod, addressData, receiptFile, appliedCoupon, navigate]
+        [createOrder, payMethod, addressData, receiptFile, appliedCoupon, navigate, preview]
     );
 
     // ── Guard: no address = go back ────────────────────────────────────────────
@@ -581,9 +586,9 @@ export default function PaymentStep() {
                                         )}
                                     </button>
                                 </div>
-                                {couponError && (
+                                {couponError && preview?.isCouponApplied  && (
                                     <p className="text-rose-500 text-xs">
-                                        {couponError}
+                                        {preview.discountMessage || couponError}
                                     </p>
                                 )}
                             </div>
@@ -622,18 +627,14 @@ export default function PaymentStep() {
                             )}
                             <SummaryRow
                                 label="هزینه ارسال"
-                                value="رایگان"
-                                highlight="green"
+                                value={preview?.shippingCost === 0 ? "رایگان" : `${preview?.shippingCost} تومان`}
+                                highlight={preview?.shippingCost === 0 ? "green" : undefined}
                                 loading={previewLoading}
                             />
                             <div className="h-px bg-blue-50 my-1" />
                             <SummaryRow
                                 label="مبلغ قابل پرداخت"
-                                value={
-                                    preview?.shippingCost
-                                        ? `${preview.shippingCost} تومان`
-                                        : undefined
-                                }
+                                value={preview ? `${formatNumberToFa(preview.finalPayAmount)} تومان` : ""}
                                 bold
                                 loading={previewLoading}
                             />
