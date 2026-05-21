@@ -47,9 +47,13 @@ function OtpInput({
     onChange: (val: string) => void;
     disabled: boolean;
 }) {
-    const LENGTH = 6;
+    const LENGTH = 5;
     const refs = useRef<(HTMLInputElement | null)[]>([]);
-    const digits = value.padEnd(LENGTH, "").split("").slice(0, LENGTH);
+    const digits = value
+        .slice(0, LENGTH)
+        .split("")
+        .concat(Array(LENGTH).fill(""))
+        .slice(0, LENGTH);
 
     const focus = (i: number) => refs.current[i]?.focus();
 

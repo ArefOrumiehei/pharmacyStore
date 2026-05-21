@@ -370,8 +370,8 @@ export default function Account() {
             <Field label="کد تأیید" error={mobileErrors.code?.message} icon={IconCheck}>
               <input
                 {...registerMobile("code")}
-                placeholder="کد ۶ رقمی"
-                maxLength={6}
+                placeholder="کد ۵ رقمی"
+                maxLength={5}
                 className={`${inputClass(!!mobileErrors.code)} pl-24`}
               />
               <button
