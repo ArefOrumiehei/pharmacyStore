@@ -84,7 +84,7 @@ function PageLoader() {
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { accessToken } = useAuthStore()
   const location = useLocation()
-  if (!accessToken)
+  if (accessToken)
     return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />
   return <>{children}</>
 }
@@ -127,7 +127,7 @@ function App() {
                 <Route path="order-success" element={<OrderSuccess />} />
               </Route>
               <Route path="cart" element={<Navigate to="/checkout" replace />} />
-              <Route path="shop/orders/confirm-callback" element={<OrderStatus />} />
+              <Route path="api/orders/confirm-callback" element={<OrderStatus />} />
 
               {/* Profile */}
               <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>}>
