@@ -42,7 +42,7 @@ const CartStep        = lazy(() => import('./pages/checkout/steps/cart/CartStep'
 const AddressStep     = lazy(() => import('./pages/checkout/steps/address/AddressStep'))
 const PaymentStep     = lazy(() => import('./pages/checkout/steps/payment/PaymentStep'))
 const OrderStatus     = lazy(() => import('./pages/checkout/order-status/OrderStatus'))
-const OrderSuccess = lazy(() => import('./pages/checkout/order-success/OrderSuccess'))
+const OrderSuccess    = lazy(() => import('./pages/checkout/order-success/OrderSuccess'))
 
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
@@ -82,9 +82,9 @@ function PageLoader() {
 
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { accessToken } = useAuthStore()
-  const location = useLocation()
-  if (accessToken)
+  const { accessToken } = useAuthStore();
+  const location = useLocation();
+  if (!accessToken)
     return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />
   return <>{children}</>
 }
@@ -162,4 +162,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
