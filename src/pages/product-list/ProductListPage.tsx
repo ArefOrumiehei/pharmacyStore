@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useParams, Link } from "react-router";
 import {
     IconFilter,
@@ -18,15 +19,16 @@ import {
     IconLoader2,
     IconPackage,
 } from "@tabler/icons-react";
-import { useProductCategoriesStore } from "@/store/useProductCategoriesStore";
+import { useSearchStore } from "@/store/useSearchStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useProductStore } from "@/store/useProductsStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import { formatNumberToFa } from "@/helpers/formaters";
 import type { Product } from "@/store/useProductsStore";
+import type { SortOption } from "@/store/useSearchStore";
 
 /* ─────────────────────────────────────────
-   TYPES
+    TYPES
 ───────────────────────────────────────── */
 interface FilterState {
     search: string;
@@ -36,7 +38,6 @@ interface FilterState {
     minRating: number;
     inStockOnly: boolean;
     hasDiscount: boolean;
-    sortBy: string;
 }
 
 const MAX_PRICE = 10_000_000;
@@ -49,175 +50,107 @@ const DEFAULT_FILTERS: FilterState = {
     minRating: 0,
     inStockOnly: false,
     hasDiscount: false,
-    sortBy: "newest",
 };
 
-const SORT_OPTIONS = [
-    { value: "newest", label: "جدیدترین" },
-    { value: "price_asc", label: "ارزان‌ترین" },
-    { value: "price_desc", label: "گران‌ترین" },
-    { value: "rating", label: "بهترین امتیاز" },
-    { value: "popular", label: "پرفروش‌ترین" },
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+    { value: "newest",       label: "جدیدترین" },
+    { value: "cheapest",     label: "ارزان‌ترین" },
+    { value: "mostExpensive",label: "گران‌ترین" },
+    { value: "mostPopular",  label: "پرفروش‌ترین" },
+    { value: "mostVisited",  label: "پربازدیدترین" },
 ];
 
-const ITEMS_PER_PAGE = 12;
-
 /* ─────────────────────────────────────────
-   HELPERS — read/write URL params
+    HELPERS
 ───────────────────────────────────────── */
 function filtersFromParams(params: URLSearchParams): FilterState {
     return {
-        search: params.get("q") ?? "",
-        brands: params.get("brands") ? params.get("brands")!.split(",") : [],
-        minPrice: Number(params.get("minPrice") ?? 0),
-        maxPrice: Number(params.get("maxPrice") ?? MAX_PRICE),
-        minRating: Number(params.get("minRating") ?? 0),
+        search:      params.get("q") ?? "",
+        brands:      params.get("brands") ? params.get("brands")!.split(",") : [],
+        minPrice:    Number(params.get("minPrice") ?? 0),
+        maxPrice:    Number(params.get("maxPrice") ?? MAX_PRICE),
+        minRating:   Number(params.get("minRating") ?? 0),
         inStockOnly: params.get("inStock") === "1",
         hasDiscount: params.get("discount") === "1",
-        sortBy: params.get("sort") ?? "newest",
     };
 }
 
-function filtersToParams(f: FilterState): Record<string, string> {
+function filtersToParams(f: FilterState, sort: SortOption, page: number): Record<string, string> {
     const p: Record<string, string> = {};
-    if (f.search) p.q = f.search;
-    if (f.brands.length) p.brands = f.brands.join(",");
-    if (f.minPrice > 0) p.minPrice = String(f.minPrice);
-    if (f.maxPrice < MAX_PRICE) p.maxPrice = String(f.maxPrice);
-    if (f.minRating > 0) p.minRating = String(f.minRating);
-    if (f.inStockOnly) p.inStock = "1";
-    if (f.hasDiscount) p.discount = "1";
-    if (f.sortBy !== "newest") p.sort = f.sortBy;
+    if (f.search)              p.q        = f.search;
+    if (f.brands.length)       p.brands   = f.brands.join(",");
+    if (f.minPrice > 0)        p.minPrice = String(f.minPrice);
+    if (f.maxPrice < MAX_PRICE)p.maxPrice = String(f.maxPrice);
+    if (f.minRating > 0)       p.minRating = String(f.minRating);
+    if (f.inStockOnly)         p.inStock  = "1";
+    if (f.hasDiscount)         p.discount = "1";
+    if (sort !== "newest")     p.sort     = sort;
+    if (page > 1)              p.page     = String(page);
     return p;
 }
 
-/* ─────────────────────────────────────────
-    PAGE
-───────────────────────────────────────── */
+/* ───── PAGE ──────── */
 export default function ProductListPage() {
-    // Catch all slug segments: /plp/health/skin/hydrate-cream → ["health","skin","hydrate-cream"]
     const params = useParams<{ "*": string }>();
     const slugSegments = (params["*"] ?? "").split("/").filter(Boolean);
-    // Only the last segment is sent to the API
-    const categorySlug = slugSegments[slugSegments.length - 1] ?? null;
+    const categorySlug = slugSegments[slugSegments.length - 1] ?? undefined;
 
     const [searchParams, setSearchParams] = useSearchParams();
-    const [drawerOpen, setDrawerOpen] = useState(false);
-    const [page, setPage] = useState(Number(searchParams.get("page") ?? 1));
 
-    // Initialize filters from URL
+    // Local UI state (filters live here; store gets them on fetch)
     const [filters, setFilters] = useState<FilterState>(() =>
         filtersFromParams(searchParams)
     );
+    const [sort, setSort]       = useState<SortOption>(
+        (searchParams.get("sort") as SortOption) ?? "newest"
+    );
+    const [page, setPage]       = useState(Number(searchParams.get("page") ?? 1));
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     const {
-        selectedCategory,
+        items,
+        meta,
         loading,
-        fetchProductCategoriesByName,
-        clearCategories,
-    } = useProductCategoriesStore();
+        totalPages,
+        currentPage,
+        fetchResults,
+        reset,
+    } = useSearchStore();
 
-    // Fetch when category slug changes
+    /* ── Sync URL → fetch on every meaningful change ── */
     useEffect(() => {
-        if (categorySlug) {
-            fetchProductCategoriesByName(categorySlug);
-        } else {
-            clearCategories();
-        }
-        setPage(1);
-    }, [categorySlug]); // eslint-disable-line react-hooks/exhaustive-deps
+        const brandSlug = searchParams.get("brand") ?? undefined;
 
-    // Sync filters → URL
-    useEffect(() => {
-        const p = filtersToParams(filters);
-        if (page > 1) p.page = String(page);
-        setSearchParams(p, { replace: true });
-    }, [filters, page]); // eslint-disable-line react-hooks/exhaustive-deps
+        fetchResults({
+            query:        filters.search   || undefined,
+            categorySlug: categorySlug,
+            brandSlug:    brandSlug,
+            minPrice:     filters.minPrice > 0          ? filters.minPrice : undefined,
+            maxPrice:     filters.maxPrice < MAX_PRICE   ? filters.maxPrice : undefined,
+            inStock:      filters.inStockOnly            ? true             : undefined,
+            // minRating and hasDiscount: pass if your API supports them
+            // minRating: filters.minRating > 0 ? filters.minRating : undefined,
+            brands:       filters.brands.length          ? filters.brands   : undefined,
+            sort,
+            page,
+            pageSize:     12,
+        } as Parameters<typeof fetchResults>[0]);
 
-    // All raw products from category response
-    const allProducts: Product[] = useMemo(
-        () => (selectedCategory?.products ?? []) as Product[],
-        [selectedCategory]
-    );
+        // Mirror everything back to URL
+        const urlParams = filtersToParams(filters, sort, page);
+        if (brandSlug) urlParams.brand = brandSlug;
+        setSearchParams(urlParams, { replace: true });
 
-    // Derive available brands dynamically from products
-    const availableBrands = useMemo(() => {
-        const set = new Set<string>();
-        allProducts.forEach((p) => {
-            if (p.brand) set.add(p.brand);
-        });
-        return Array.from(set).sort();
-    }, [allProducts]);
+        return () => { /* keep results alive until next fetch */ };
+    }, [filters, sort, page, categorySlug, searchParams.get("brand")]);
 
-    // Client-side filtering
-    const filteredProducts = useMemo(() => {
-        let list = [...allProducts];
+    // Reset store when leaving this page entirely
+    useEffect(() => () => reset(), []);
 
-        if (filters.search) {
-            const q = filters.search.toLowerCase();
-            list = list.filter(
-                (p) =>
-                    p.name.toLowerCase().includes(q) ||
-                    (p.brand ?? "").toLowerCase().includes(q)
-            );
-        }
+    /* ── Available brands come from server meta ── */
+    const availableBrands: string[] = meta?.availableAttributes?.brand ?? [];
 
-        if (filters.brands.length) {
-            list = list.filter(
-                (p) => p.brand && filters.brands.includes(p.brand)
-            );
-        }
-
-        if (filters.minPrice > 0) {
-            list = list.filter((p) => Number(p.price) >= filters.minPrice);
-        }
-        if (filters.maxPrice < MAX_PRICE) {
-            list = list.filter((p) => Number(p.price) <= filters.maxPrice);
-        }
-
-        if (filters.minRating > 0) {
-            list = list.filter((p) => (p.avgRate ?? 0) >= filters.minRating);
-        }
-
-        if (filters.inStockOnly) {
-            list = list.filter((p) => p.isInStock);
-        }
-
-        if (filters.hasDiscount) {
-            list = list.filter((p) => p.hasDiscount);
-        }
-
-        // Sorting
-        switch (filters.sortBy) {
-            case "price_asc":
-                list.sort((a, b) => Number(a.price) - Number(b.price));
-                break;
-            case "price_desc":
-                list.sort((a, b) => Number(b.price) - Number(a.price));
-                break;
-            case "rating":
-                list.sort((a, b) => (b.avgRate ?? 0) - (a.avgRate ?? 0));
-                break;
-            case "popular":
-                list.sort((a, b) => (b.rateCount ?? 0) - (a.rateCount ?? 0));
-                break;
-            default:
-                break;
-        }
-
-        return list;
-    }, [allProducts, filters]);
-
-    // Client-side pagination
-    const totalPages = Math.max(
-        1,
-        Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
-    );
-    const pageProducts = filteredProducts.slice(
-        (page - 1) * ITEMS_PER_PAGE,
-        page * ITEMS_PER_PAGE
-    );
-
+    /* ── Active filter count (for badge) ── */
     const activeFilterCount = [
         filters.brands.length > 0,
         filters.minPrice > DEFAULT_FILTERS.minPrice,
@@ -237,42 +170,46 @@ export default function ProductListPage() {
         setPage(1);
     }, []);
 
-    // Breadcrumb from URL segments
+    const handleSortChange = useCallback((value: SortOption) => {
+        setSort(value);
+        setPage(1);
+    }, []);
+
+    /* ── Breadcrumb ── */
     const breadcrumbs = slugSegments.map((seg, i) => ({
         label: seg,
         path: "/plp/" + slugSegments.slice(0, i + 1).join("/"),
         isLast: i === slugSegments.length - 1,
     }));
 
+    /* ── Page title — brand wins over category ── */
+    const pageTitle =
+        meta?.brandName ??
+        meta?.categoryName ??
+        (searchParams.get("q") ? `نتایج جستجو برای "${searchParams.get("q")}"` : "همه محصولات");
+
+    /* ── Page description (brand picture, etc.) ── */
+    const pageDescription = meta?.brandDescription ?? meta?.categoryDescription;
+    const pageImage       = meta?.brandPicture      ?? meta?.categoryPicture;
+
     return (
         <div className="w-full py-6" dir="rtl">
+
             {/* Breadcrumb */}
             {breadcrumbs.length > 0 && (
                 <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-4 flex-wrap">
-                    <Link
-                        to="/"
-                        className="hover:text-blue-800 transition-colors"
-                    >
+                    <Link to="/" className="hover:text-blue-800 transition-colors">
                         خانه
                     </Link>
                     {breadcrumbs.map((crumb) => (
-                        <span
-                            key={crumb.path}
-                            className="flex items-center gap-1.5"
-                        >
-                            <IconChevronLeft
-                                size={11}
-                                className="flex-shrink-0"
-                            />
+                        <span key={crumb.path} className="flex items-center gap-1.5">
+                            <IconChevronLeft size={11} className="flex-shrink-0" />
                             {crumb.isLast ? (
                                 <span className="text-blue-800 font-medium">
-                                    {selectedCategory?.name ?? crumb.label}
+                                    {meta?.categoryName ?? crumb.label}
                                 </span>
                             ) : (
-                                <Link
-                                    to={crumb.path}
-                                    className="hover:text-blue-800 transition-colors"
-                                >
+                                <Link to={crumb.path} className="hover:text-blue-800 transition-colors">
                                     {crumb.label}
                                 </Link>
                             )}
@@ -281,19 +218,35 @@ export default function ProductListPage() {
                 </nav>
             )}
 
+            {/* Brand / category hero — shown when we have extra meta */}
+            {(pageImage || pageDescription) && (
+                <div className="flex items-center gap-4 mb-6 p-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
+                    {pageImage && (
+                        <img
+                            src={`${IMAGE_BASE}${pageImage}`}
+                            alt={pageTitle}
+                            className="w-16 h-16 object-contain flex-shrink-0"
+                        />
+                    )}
+                    {pageDescription && (
+                        <p className="text-sm text-gray-600 leading-6 line-clamp-3">
+                            {pageDescription}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Top bar */}
             <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
                 <div>
-                    <h1 className="text-xl font-bold text-blue-800">
-                        {selectedCategory?.name ?? "همه محصولات"}
-                    </h1>
+                    <h1 className="text-xl font-bold text-blue-800">{pageTitle}</h1>
                     <p className="text-sm text-gray-400 mt-0.5">
-                        {filteredProducts.length} محصول یافت شد
+                        {useSearchStore.getState().totalCount} محصول یافت شد
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Search — hidden on mobile (available in sidebar) */}
+                    {/* Search — hidden on mobile */}
                     <div className="relative hidden sm:block">
                         <IconSearch
                             size={15}
@@ -301,18 +254,13 @@ export default function ProductListPage() {
                         />
                         <input
                             value={filters.search}
-                            onChange={(e) =>
-                                handleFilterChange({ search: e.target.value })
-                            }
+                            onChange={(e) => handleFilterChange({ search: e.target.value })}
                             placeholder="جستجو در محصولات..."
                             className="border border-blue-100 bg-blue-50/30 rounded-xl pl-4 pr-9 py-2.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200"
                         />
                     </div>
 
-                    <SortDropdown
-                        value={filters.sortBy}
-                        onChange={(v) => handleFilterChange({ sortBy: v })}
-                    />
+                    <SortDropdown value={sort} onChange={handleSortChange} />
 
                     <button
                         onClick={() => setDrawerOpen(true)}
@@ -346,30 +294,25 @@ export default function ProductListPage() {
                 <div className="flex-1 min-w-0">
                     {loading ? (
                         <ProductGridSkeleton />
-                    ) : !pageProducts.length ? (
+                    ) : !items.length ? (
                         <EmptyState
                             onReset={handleReset}
-                            hasFilters={
-                                activeFilterCount > 0 || !!filters.search
-                            }
+                            hasFilters={activeFilterCount > 0 || !!filters.search}
                         />
                     ) : (
                         <>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                                {pageProducts.map((p) => (
-                                    <ProductCard key={p.id} product={p} />
+                                {items.map((p) => (
+                                    <ProductCard key={p.id} product={p as unknown as Product} />
                                 ))}
                             </div>
                             {totalPages > 1 && (
                                 <Pagination
-                                    page={page}
+                                    page={currentPage}
                                     total={totalPages}
                                     onChange={(p) => {
                                         setPage(p);
-                                        window.scrollTo({
-                                            top: 0,
-                                            behavior: "smooth",
-                                        });
+                                        window.scrollTo({ top: 0, behavior: "smooth" });
                                     }}
                                 />
                             )}
@@ -387,9 +330,7 @@ export default function ProductListPage() {
                     />
                     <div className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white z-50 shadow-2xl overflow-y-auto lg:hidden">
                         <div className="flex items-center justify-between px-5 py-4 border-b border-blue-50 sticky top-0 bg-white z-10">
-                            <span className="font-bold text-blue-800 text-base">
-                                فیلترها
-                            </span>
+                            <span className="font-bold text-blue-800 text-base">فیلترها</span>
                             <button
                                 onClick={() => setDrawerOpen(false)}
                                 className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-blue-50 text-gray-400 transition-colors"
@@ -411,7 +352,7 @@ export default function ProductListPage() {
                                 onClick={() => setDrawerOpen(false)}
                                 className="w-full py-3 rounded-xl bg-blue-800 hover:bg-blue-700 text-white text-sm font-semibold transition-all duration-150"
                             >
-                                نمایش {filteredProducts.length} محصول
+                                نمایش {useSearchStore.getState().totalCount} محصول
                             </button>
                         </div>
                     </div>
@@ -441,13 +382,8 @@ function FilterPanel({
         <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-blue-50 bg-blue-50/50">
                 <div className="flex items-center gap-2">
-                    <IconAdjustmentsHorizontal
-                        size={16}
-                        className="text-blue-800"
-                    />
-                    <span className="text-sm font-bold text-blue-800">
-                        فیلترها
-                    </span>
+                    <IconAdjustmentsHorizontal size={16} className="text-blue-800" />
+                    <span className="text-sm font-bold text-blue-800">فیلترها</span>
                     {activeCount > 0 && (
                         <span className="text-xs bg-blue-800 text-white px-1.5 py-0.5 rounded-full font-bold">
                             {activeCount}
@@ -474,9 +410,7 @@ function FilterPanel({
                         />
                         <input
                             value={filters.search}
-                            onChange={(e) =>
-                                onChange({ search: e.target.value })
-                            }
+                            onChange={(e) => onChange({ search: e.target.value })}
                             placeholder="نام محصول یا برند..."
                             className="w-full border border-blue-100 bg-blue-50/30 rounded-xl pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder-gray-400 transition-all duration-200"
                         />
@@ -487,12 +421,8 @@ function FilterPanel({
                 <FilterSection title="محدوده قیمت">
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>
-                                {formatNumberToFa(filters.minPrice)} تومان
-                            </span>
-                            <span>
-                                {formatNumberToFa(filters.maxPrice)} تومان
-                            </span>
+                            <span>{formatNumberToFa(filters.minPrice)} تومان</span>
+                            <span>{formatNumberToFa(filters.maxPrice)} تومان</span>
                         </div>
                         <input
                             type="range"
@@ -500,39 +430,25 @@ function FilterPanel({
                             max={MAX_PRICE}
                             step={100_000}
                             value={filters.maxPrice}
-                            onChange={(e) =>
-                                onChange({ maxPrice: Number(e.target.value) })
-                            }
+                            onChange={(e) => onChange({ maxPrice: Number(e.target.value) })}
                             className="w-full accent-blue-800 h-1.5 rounded-full cursor-pointer"
                         />
                         <div className="grid grid-cols-2 gap-2">
                             <div className="flex flex-col gap-1">
-                                <label className="text-xs text-gray-400">
-                                    از
-                                </label>
+                                <label className="text-xs text-gray-400">از</label>
                                 <input
                                     type="number"
                                     value={filters.minPrice}
-                                    onChange={(e) =>
-                                        onChange({
-                                            minPrice: Number(e.target.value),
-                                        })
-                                    }
+                                    onChange={(e) => onChange({ minPrice: Number(e.target.value) })}
                                     className="border border-blue-100 bg-blue-50/30 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-200"
                                 />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <label className="text-xs text-gray-400">
-                                    تا
-                                </label>
+                                <label className="text-xs text-gray-400">تا</label>
                                 <input
                                     type="number"
                                     value={filters.maxPrice}
-                                    onChange={(e) =>
-                                        onChange({
-                                            maxPrice: Number(e.target.value),
-                                        })
-                                    }
+                                    onChange={(e) => onChange({ maxPrice: Number(e.target.value) })}
                                     className="border border-blue-100 bg-blue-50/30 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-200"
                                 />
                             </div>
@@ -540,7 +456,7 @@ function FilterPanel({
                     </div>
                 </FilterSection>
 
-                {/* Brands — only show when brands exist */}
+                {/* Brands — server-driven, only shown when available */}
                 {brands.length > 0 && (
                     <FilterSection title="برند">
                         <div className="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1">
@@ -551,15 +467,9 @@ function FilterPanel({
                                 >
                                     <div
                                         onClick={() => {
-                                            const next =
-                                                filters.brands.includes(brand)
-                                                    ? filters.brands.filter(
-                                                          (b) => b !== brand
-                                                      )
-                                                    : [
-                                                          ...filters.brands,
-                                                          brand,
-                                                      ];
+                                            const next = filters.brands.includes(brand)
+                                                ? filters.brands.filter((b) => b !== brand)
+                                                : [...filters.brands, brand];
                                             onChange({ brands: next });
                                         }}
                                         className={`w-4 h-4 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150 cursor-pointer ${
@@ -569,16 +479,10 @@ function FilterPanel({
                                         }`}
                                     >
                                         {filters.brands.includes(brand) && (
-                                            <IconCheck
-                                                size={10}
-                                                className="text-white"
-                                                strokeWidth={3}
-                                            />
+                                            <IconCheck size={10} className="text-white" strokeWidth={3} />
                                         )}
                                     </div>
-                                    <span className="text-sm text-gray-600">
-                                        {brand}
-                                    </span>
+                                    <span className="text-sm text-gray-600">{brand}</span>
                                 </label>
                             ))}
                         </div>
@@ -602,29 +506,18 @@ function FilterPanel({
                                     <span>همه</span>
                                 ) : (
                                     <span className="flex items-center gap-1">
-                                        {Array.from({ length: 5 }).map(
-                                            (_, i) => (
-                                                <IconStarFilled
-                                                    key={i}
-                                                    size={12}
-                                                    className={
-                                                        i < r
-                                                            ? "text-amber-400"
-                                                            : "text-gray-200"
-                                                    }
-                                                />
-                                            )
-                                        )}
-                                        <span className="text-xs mr-1">
-                                            و بالاتر
-                                        </span>
+                                        {Array.from({ length: 5 }).map((_, i) => (
+                                            <IconStarFilled
+                                                key={i}
+                                                size={12}
+                                                className={i < r ? "text-amber-400" : "text-gray-200"}
+                                            />
+                                        ))}
+                                        <span className="text-xs mr-1">و بالاتر</span>
                                     </span>
                                 )}
                                 {filters.minRating === r && (
-                                    <IconCheck
-                                        size={13}
-                                        className="text-blue-800 mr-auto"
-                                    />
+                                    <IconCheck size={13} className="text-blue-800 mr-auto" />
                                 )}
                             </button>
                         ))}
@@ -638,25 +531,16 @@ function FilterPanel({
                             label="فقط موجود"
                             desc="محصولاتی که در انبار هستند"
                             checked={filters.inStockOnly}
-                            onChange={() =>
-                                onChange({ inStockOnly: !filters.inStockOnly })
-                            }
+                            onChange={() => onChange({ inStockOnly: !filters.inStockOnly })}
                             color="green"
                         />
                         <ToggleFilter
                             label="دارای تخفیف"
                             desc="محصولاتی که تخفیف دارند"
                             checked={filters.hasDiscount}
-                            onChange={() =>
-                                onChange({ hasDiscount: !filters.hasDiscount })
-                            }
+                            onChange={() => onChange({ hasDiscount: !filters.hasDiscount })}
                             color="rose"
-                            icon={
-                                <IconPercentage
-                                    size={13}
-                                    className="text-rose-500"
-                                />
-                            }
+                            icon={<IconPercentage size={13} className="text-rose-500" />}
                         />
                     </div>
                 </FilterSection>
@@ -665,13 +549,7 @@ function FilterPanel({
     );
 }
 
-function FilterSection({
-    title,
-    children,
-}: {
-    title: string;
-    children: React.ReactNode;
-}) {
+function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
     const [open, setOpen] = useState(true);
     return (
         <div className="px-4 py-3">
@@ -684,9 +562,7 @@ function FilterSection({
                 </span>
                 <IconChevronDown
                     size={14}
-                    className={`text-gray-400 transition-transform duration-200 ${
-                        open ? "rotate-180" : ""
-                    }`}
+                    className={`text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
                 />
             </button>
             {open && children}
@@ -695,12 +571,7 @@ function FilterSection({
 }
 
 function ToggleFilter({
-    label,
-    desc,
-    checked,
-    onChange,
-    color = "blue",
-    icon,
+    label, desc, checked, onChange, color = "blue", icon,
 }: {
     label: string;
     desc?: string;
@@ -709,11 +580,7 @@ function ToggleFilter({
     color?: "blue" | "green" | "rose";
     icon?: React.ReactNode;
 }) {
-    const trackColor = {
-        blue: "bg-blue-800",
-        green: "bg-green-600",
-        rose: "bg-rose-500",
-    }[color];
+    const trackColor = { blue: "bg-blue-800", green: "bg-green-600", rose: "bg-rose-500" }[color];
     return (
         <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -725,14 +592,10 @@ function ToggleFilter({
             </div>
             <button
                 onClick={onChange}
-                className={`relative w-10 h-5 rounded-full transition-all duration-300 flex-shrink-0 ${
-                    checked ? trackColor : "bg-gray-200"
-                }`}
+                className={`relative w-10 h-5 rounded-full transition-all duration-300 flex-shrink-0 ${checked ? trackColor : "bg-gray-200"}`}
             >
                 <span
-                    className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-300 ${
-                        checked ? "right-0.5" : "left-0.5"
-                    }`}
+                    className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-300 ${checked ? "right-0.5" : "left-0.5"}`}
                 />
             </button>
         </div>
@@ -742,22 +605,14 @@ function ToggleFilter({
 /* ══════════════════════════════════════════
    SORT DROPDOWN
 ══════════════════════════════════════════ */
-function SortDropdown({
-    value,
-    onChange,
-}: {
-    value: string;
-    onChange: (v: string) => void;
-}) {
+function SortDropdown({ value, onChange }: { value: SortOption; onChange: (v: SortOption) => void }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
-    const label =
-        SORT_OPTIONS.find((o) => o.value === value)?.label ?? "مرتب‌سازی";
+    const label = SORT_OPTIONS.find((o) => o.value === value)?.label ?? "مرتب‌سازی";
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node))
-                setOpen(false);
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
         };
         document.addEventListener("mousedown", handler);
         return () => document.removeEventListener("mousedown", handler);
@@ -771,22 +626,14 @@ function SortDropdown({
             >
                 <IconSortAscending size={16} />
                 {label}
-                <IconChevronDown
-                    size={13}
-                    className={`transition-transform duration-200 ${
-                        open ? "rotate-180" : ""
-                    }`}
-                />
+                <IconChevronDown size={13} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
             </button>
             {open && (
                 <div className="absolute left-0 top-[calc(100%+6px)] bg-white border border-blue-100 rounded-2xl shadow-lg z-30 py-1.5 min-w-[160px]">
                     {SORT_OPTIONS.map((opt) => (
                         <button
                             key={opt.value}
-                            onClick={() => {
-                                onChange(opt.value);
-                                setOpen(false);
-                            }}
+                            onClick={() => { onChange(opt.value); setOpen(false); }}
                             className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors duration-150 ${
                                 value === opt.value
                                     ? "text-blue-800 font-semibold bg-blue-50"
@@ -794,12 +641,7 @@ function SortDropdown({
                             }`}
                         >
                             {opt.label}
-                            {value === opt.value && (
-                                <IconCheck
-                                    size={13}
-                                    className="text-blue-800"
-                                />
-                            )}
+                            {value === opt.value && <IconCheck size={13} className="text-blue-800" />}
                         </button>
                     ))}
                 </div>
@@ -810,11 +652,9 @@ function SortDropdown({
 
 /* ═══════════════════ PRODUCT CARD ═══════════════════ */
 function ProductCard({ product }: { product: Product }) {
-    const [favorited, setFavorited] = useState(
-        product.isCurrentUserFaved ?? false
-    );
+    const [favorited, setFavorited]       = useState(product.isCurrentUserFaved ?? false);
     const [addingToCart, setAddingToCart] = useState(false);
-    const [addedToCart, setAddedToCart] = useState(false);
+    const [addedToCart, setAddedToCart]   = useState(false);
     const { addToFavorites, removeFromFavorites } = useProductStore();
     const { addToCart } = useCartStore();
 
@@ -824,10 +664,8 @@ function ProductCard({ product }: { product: Product }) {
         setFavorited(!prev);
         try {
             if (prev) await removeFromFavorites(product.id);
-            else await addToFavorites(product.id);
-        } catch {
-            setFavorited(prev);
-        }
+            else      await addToFavorites(product.id);
+        } catch { setFavorited(prev); }
     };
 
     const handleAddToCart = async (e: React.MouseEvent) => {
@@ -838,24 +676,17 @@ function ProductCard({ product }: { product: Product }) {
             await addToCart(product.id, 1);
             setAddedToCart(true);
             setTimeout(() => setAddedToCart(false), 2000);
-        } finally {
-            setAddingToCart(false);
-        }
+        } finally { setAddingToCart(false); }
     };
 
-    const displayPrice = product.hasDiscount
-        ? product.priceWithDiscount
-        : product.price;
+    const displayPrice = product.hasDiscount ? product.priceWithDiscount : product.price;
     const rating = Number(product.avgRate ?? 0);
 
     return (
         <Link
-            to={`/product/${encodeURIComponent(
-                product.categoryFullSlug
-            )}/${encodeURIComponent(product.slug)}`}
+            to={`/product/${encodeURIComponent(product.categoryFullSlug)}/${encodeURIComponent(product.slug)}`}
             className="group bg-white border border-blue-100 rounded-2xl overflow-hidden hover:shadow-md hover:border-blue-200 transition-all duration-300 flex flex-col"
         >
-            {/* Image */}
             <div className="relative w-full aspect-square bg-blue-50/40 overflow-hidden flex items-center justify-center border-b border-blue-50">
                 <img
                     src={`${IMAGE_BASE}${product.picture}`}
@@ -863,8 +694,6 @@ function ProductCard({ product }: { product: Product }) {
                     className="w-4/5 h-4/5 object-contain group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                 />
-
-                {/* Badges */}
                 <div className="absolute top-3 right-3 flex flex-col gap-1.5">
                     {product.hasDiscount && (
                         <span className="flex items-center gap-0.5 bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
@@ -878,21 +707,16 @@ function ProductCard({ product }: { product: Product }) {
                         </span>
                     )}
                 </div>
-
-                {/* Favorite */}
                 <button
                     onClick={handleFavorite}
                     className="absolute top-3 left-3 w-8 h-8 rounded-xl bg-white/80 hover:bg-white border border-blue-100 flex items-center justify-center shadow-sm transition-all duration-200 hover:scale-110 active:scale-90"
                 >
-                    {favorited ? (
-                        <IconHeartFilled size={15} className="text-rose-500" />
-                    ) : (
-                        <IconHeart size={15} className="text-gray-400" />
-                    )}
+                    {favorited
+                        ? <IconHeartFilled size={15} className="text-rose-500" />
+                        : <IconHeart       size={15} className="text-gray-400" />}
                 </button>
             </div>
 
-            {/* Info */}
             <div className="flex flex-col gap-2.5 p-4 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs text-blue-800 font-medium bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
@@ -909,27 +733,19 @@ function ProductCard({ product }: { product: Product }) {
                     {product.name}
                 </h3>
 
-                {/* Rating */}
                 <div className="flex items-center gap-1.5">
                     <div className="flex gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
                             <IconStarFilled
                                 key={i}
                                 size={12}
-                                className={
-                                    i < Math.round(rating)
-                                        ? "text-amber-400"
-                                        : "text-gray-200"
-                                }
+                                className={i < Math.round(rating) ? "text-amber-400" : "text-gray-200"}
                             />
                         ))}
                     </div>
-                    <span className="text-xs text-gray-400">
-                        ({product.rateCount ?? 0})
-                    </span>
+                    <span className="text-xs text-gray-400">({product.rateCount ?? 0})</span>
                 </div>
 
-                {/* Price + Cart */}
                 <div className="flex items-end justify-between gap-2 mt-auto pt-2 border-t border-blue-50">
                     <div className="flex flex-col items-start">
                         {product.hasDiscount && (
@@ -959,18 +775,10 @@ function ProductCard({ product }: { product: Product }) {
                         {addingToCart ? (
                             <IconLoader2 size={14} className="animate-spin" />
                         ) : addedToCart ? (
-                            <>
-                                <IconCheck size={14} />
-                                افزوده شد
-                            </>
+                            <><IconCheck size={14} />افزوده شد</>
                         ) : product.isInStock ? (
-                            <>
-                                <IconShoppingCart size={14} />
-                                سبد خرید
-                            </>
-                        ) : (
-                            "ناموجود"
-                        )}
+                            <><IconShoppingCart size={14} />سبد خرید</>
+                        ) : "ناموجود"}
                     </button>
                 </div>
             </div>
@@ -981,15 +789,7 @@ function ProductCard({ product }: { product: Product }) {
 /* ══════════════════════════════════════════
    PAGINATION
 ══════════════════════════════════════════ */
-function Pagination({
-    page,
-    total,
-    onChange,
-}: {
-    page: number;
-    total: number;
-    onChange: (p: number) => void;
-}) {
+function Pagination({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
     const pages: (number | "...")[] = [];
 
     if (total <= 7) {
@@ -997,12 +797,7 @@ function Pagination({
     } else {
         pages.push(1);
         if (page > 3) pages.push("...");
-        for (
-            let i = Math.max(2, page - 1);
-            i <= Math.min(total - 1, page + 1);
-            i++
-        )
-            pages.push(i);
+        for (let i = Math.max(2, page - 1); i <= Math.min(total - 1, page + 1); i++) pages.push(i);
         if (page < total - 2) pages.push("...");
         pages.push(total);
     }
@@ -1019,10 +814,7 @@ function Pagination({
 
             {pages.map((p, i) =>
                 p === "..." ? (
-                    <span
-                        key={`dots-${i}`}
-                        className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm"
-                    >
+                    <span key={`dots-${i}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">
                         ...
                     </span>
                 ) : (
@@ -1058,10 +850,7 @@ function ProductGridSkeleton() {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {Array.from({ length: 9 }).map((_, i) => (
-                <div
-                    key={i}
-                    className="bg-white border border-blue-50 rounded-2xl overflow-hidden"
-                >
+                <div key={i} className="bg-white border border-blue-50 rounded-2xl overflow-hidden">
                     <div className="aspect-square bg-blue-50 animate-pulse" />
                     <div className="p-4 space-y-3">
                         <div className="h-3 bg-blue-50 animate-pulse rounded-full w-1/3" />
@@ -1079,13 +868,7 @@ function ProductGridSkeleton() {
     );
 }
 
-function EmptyState({
-    onReset,
-    hasFilters,
-}: {
-    onReset: () => void;
-    hasFilters: boolean;
-}) {
+function EmptyState({ onReset, hasFilters }: { onReset: () => void; hasFilters: boolean }) {
     return (
         <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white border border-blue-100 rounded-2xl">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
@@ -1094,9 +877,7 @@ function EmptyState({
             <div className="text-center">
                 <p className="text-gray-600 font-medium">محصولی یافت نشد</p>
                 <p className="text-gray-400 text-sm mt-1">
-                    {hasFilters
-                        ? "فیلترهای انتخابی را تغییر دهید"
-                        : "محصولات به زودی اضافه می‌شوند"}
+                    {hasFilters ? "فیلترهای انتخابی را تغییر دهید" : "محصولات به زودی اضافه می‌شوند"}
                 </p>
             </div>
             {hasFilters && (
