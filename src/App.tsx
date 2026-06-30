@@ -85,7 +85,7 @@ function PageLoader() {
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { accessToken } = useAuthStore();
   const location = useLocation();
-  if (accessToken)
+  if (!accessToken)
     return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />
   return <>{children}</>
 }
