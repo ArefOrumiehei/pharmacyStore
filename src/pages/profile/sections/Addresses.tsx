@@ -259,7 +259,7 @@ export default function Addresses() {
     if (formState.type !== "edit") return;
     const payload: IEditAddressFormParams = {
       ...data,
-      shippinginfoId: String(formState.address.id),
+      id: String(formState.address.id),
     };
     await editUserAddress(payload);
     setFormState({ type: "hidden" });
