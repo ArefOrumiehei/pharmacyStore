@@ -65,6 +65,9 @@ importers:
       react-toastify:
         specifier: ^11.0.5
         version: 11.0.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      smart-persian-tools:
+        specifier: ^1.0.1
+        version: 1.0.1
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
@@ -1747,6 +1750,10 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
+  smart-persian-tools@1.0.1:
+    resolution: {integrity: sha512-L9wRE84BRCINFJoXlnvqeuR4TqkbD35GBrqKXuaPgJRW7bJFrzuGxxi33M6i1EabD6Vimc3AbWnl2WeKQfWr0A==}
+    engines: {node: '>=20'}
+
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -3371,6 +3378,8 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  smart-persian-tools@1.0.1: {}
 
   source-map-js@1.2.1: {}
 
