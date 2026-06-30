@@ -210,7 +210,7 @@ export default function Orders() {
       {/* Content */}
       {loading.orders ? (
         <OrderSkeleton />
-      ) : filtered.length === 0 ? (
+      ) : filtered?.length === 0 ? (
         <EmptyState filterStatus={filterStatus} />
       ) : (
         <div className="flex flex-col gap-3">
