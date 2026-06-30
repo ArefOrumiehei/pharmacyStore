@@ -64,6 +64,7 @@ export interface IOrder {
 
 export interface ITicket {
     userId: number;
+    ticketId: number;
     subject: string;
     message: string;
     adminReply: string | null;
@@ -73,7 +74,7 @@ export interface ITicket {
     trackingCode: string;
 }
 
-export interface IApiResponse<T> {
+export interface IApiResponse<T = null> {
     success: boolean;
     message: string;
     data: T;
@@ -126,7 +127,7 @@ export interface IAddressFormParams {
 }
 
 export interface IEditAddressFormParams extends IAddressFormParams {
-    shippinginfoId: string;
+    id: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -155,31 +156,37 @@ const buildProfileForm = (
 
 // ─── User ─────────────────────────────────────────────────────────────────────
 
-export const getUser = async (): Promise<IUserProfile> => {
+export const getUser = async (): Promise<IApiResponse<IUserProfile>> => {
     const res = await apiInstance.get<IApiResponse<IUserProfile>>("/api/Account/me");
-    return res.data.data;
+    return res.data;
 };
 
-export const updateProfile = async (data: IUpdateProfileParams): Promise<IUserProfile> => {
+export const updateProfile = async (
+    data: IUpdateProfileParams
+): Promise<IApiResponse<IUserProfile>> => {
     const res = await apiInstance.post<IApiResponse<IUserProfile>>(
         "/api/Account/update-profile",
         buildProfileForm(data),
         { isFormDataRequest: true }
     );
-    return res.data.data;
+    return res.data;
 };
 
-export const completeProfile = async (data: ICompleteProfileParams): Promise<IUserProfile> => {
+export const completeProfile = async (
+    data: ICompleteProfileParams
+): Promise<IApiResponse<IUserProfile>> => {
     const res = await apiInstance.post<IApiResponse<IUserProfile>>(
         "/api/Account/complete-profile",
         buildProfileForm(data),
         { isFormDataRequest: true }
     );
-    return res.data.data;
+    return res.data;
 };
 
-export const changePassword = async (data: IChangePasswordParams): Promise<void> => {
-    await apiInstance.post(
+export const changePassword = async (
+    data: IChangePasswordParams
+): Promise<IApiResponse> => {
+    const res = await apiInstance.post<IApiResponse>(
         "/api/Account/change-password",
         toFormData({
             CurrentPassword: data.currentPassword,
@@ -188,75 +195,95 @@ export const changePassword = async (data: IChangePasswordParams): Promise<void>
         }),
         { isFormDataRequest: true }
     );
+    return res.data;
 };
 
-export const setPassword = async (data: ISetPasswordParams): Promise<void> => {
-    await apiInstance.post(
+export const setPassword = async (
+    data: ISetPasswordParams
+): Promise<IApiResponse> => {
+    const res = await apiInstance.post<IApiResponse>(
         "/api/Account/set-password",
         toFormData({ password: data.password, rePassword: data.rePassword }),
         { isFormDataRequest: true }
     );
+    return res.data;
 };
 
-export const changeMobileReqOTP = async (data: IChangeMobileRequestParams): Promise<void> => {
-    await apiInstance.post("/api/Account/change-mobile/request", data);
+export const changeMobileReqOTP = async (
+    data: IChangeMobileRequestParams
+): Promise<IApiResponse> => {
+    const res = await apiInstance.post<IApiResponse>("/api/Account/change-mobile/request", data);
+    return res.data;
 };
 
-export const changeMobileVerify = async (data: IChangeMobileVerifyParams): Promise<void> => {
-    await apiInstance.post("/api/Account/change-mobile/verify", data);
+export const changeMobileVerify = async (
+    data: IChangeMobileVerifyParams
+): Promise<IApiResponse> => {
+    const res = await apiInstance.post<IApiResponse>("/api/Account/change-mobile/verify", data);
+    return res.data;
 };
 
 // ─── Favorites ────────────────────────────────────────────────────────────────
 
-export const getUserFavorites = async () => {
-    const res = await apiInstance.get("/api/Account/favorites");
-    return res.data.data;
+// NOTE: replace `unknown` with the actual favorite item type once known.
+export const getUserFavorites = async (): Promise<IApiResponse<unknown[]>> => {
+    const res = await apiInstance.get<IApiResponse<unknown[]>>("/api/Account/favorites");
+    return res.data;
 };
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
-export const getUserOrders = async (): Promise<IOrder[]> => {
+export const getUserOrders = async (): Promise<IApiResponse<IOrder[]>> => {
     const res = await apiInstance.get<IApiResponse<IOrder[]>>("/api/Account/orders");
-    return res.data.data;
+    return res.data;
 };
 
-export const getUserOrder = async (orderId: number): Promise<IOrder> => {
+export const getUserOrder = async (orderId: number): Promise<IApiResponse<IOrder>> => {
     const res = await apiInstance.get<IApiResponse<IOrder>>(`/api/Account/orders/${orderId}`);
-    return res.data.data;
+    return res.data;
 };
 
 // ─── Tickets ──────────────────────────────────────────────────────────────────
 
-export const getUserTickets = async (): Promise<ITicket[]> => {
+export const getUserTickets = async (): Promise<IApiResponse<ITicket[]>> => {
     const res = await apiInstance.get<IApiResponse<ITicket[]>>("/api/Account/tickets");
-    return res.data.data;
+    return res.data;
 };
 
-export const getTicketDetails = async (ticketId: string): Promise<ITicket> => {
-    const res = await apiInstance.get<IApiResponse<ITicket>>(`/api/Account/ticket/${ticketId}`);
-    return res.data.data;
+export const getTicketDetails = async (
+    ticketId: string
+): Promise<IApiResponse<ITicket>> => {
+    const res = await apiInstance.get<IApiResponse<ITicket>>(`/api/Account/tickets/${ticketId}`);
+    return res.data;
 };
 
 // ─── Addresses ────────────────────────────────────────────────────────────────
 
-export const getAllUserAddresses = async (): Promise<IAddress[]> => {
+export const getAllUserAddresses = async (): Promise<IApiResponse<IAddress[]>> => {
     const res = await apiInstance.get<IApiResponse<IAddress[]>>("/api/Account/ShippingInfos");
-    return res.data.data;
+    return res.data;
 };
 
-export const getUserAddress = async (addressId: number): Promise<IAddress> => {
+export const getUserAddress = async (addressId: number): Promise<IApiResponse<IAddress>> => {
     const res = await apiInstance.get<IApiResponse<IAddress>>(`/api/Account/ShippingInfos/${addressId}`);
-    return res.data.data;
+    return res.data;
 };
 
-export const createUserAddress = async (data: IAddressFormParams): Promise<void> => {
-    await apiInstance.post("/api/Account/ShippingInfos", data);
+export const createUserAddress = async (
+    data: IAddressFormParams
+): Promise<IApiResponse> => {
+    const res = await apiInstance.post<IApiResponse>("/api/Account/ShippingInfos", data);
+    return res.data;
 };
 
-export const editUserAddress = async (data: IEditAddressFormParams): Promise<void> => {
-    await apiInstance.put("/api/Account/ShippingInfos", data);
+export const editUserAddress = async (
+    data: IEditAddressFormParams
+): Promise<IApiResponse> => {
+    const res = await apiInstance.put<IApiResponse>("/api/Account/ShippingInfos", data);
+    return res.data;
 };
 
-export const deleteUserAddress = async (addressId: number): Promise<void> => {
-    await apiInstance.delete(`/api/Account/ShippingInfos/${addressId}`);
+export const deleteUserAddress = async (addressId: number): Promise<IApiResponse> => {
+    const res = await apiInstance.delete<IApiResponse>(`/api/Account/ShippingInfos/${addressId}`);
+    return res.data;
 };
