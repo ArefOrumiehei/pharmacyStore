@@ -12,8 +12,8 @@ import {
   IconTag,
   IconFileText,
   IconChevronLeft,
-  IconCheck,
   IconHash,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import { useTicketStore } from "@/store/useTicketStore";
 import { useState } from "react";
@@ -38,22 +38,12 @@ const PRIORITIES = [
   { value: "high",   label: "فوری",  subLabel: "پاسخ در ۴ ساعت",  activeClass: "border-rose-400 bg-rose-50 text-rose-700"    },
 ] as const;
 
-/* ─────────────────────────────────────────
-   SUBJECT SKELETONS
-───────────────────────────────────────── */
+/* ─────── SKELETONS ───────────────────── */
 function SubjectSkeleton() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="h-16 bg-blue-50 animate-pulse rounded-xl" />
-      ))}
-    </div>
-  );
+  return <div className="h-11 w-full bg-blue-50 animate-pulse rounded-xl" />;
 }
 
-/* ─────────────────────────────────────────
-   SECTION HEADER
-───────────────────────────────────────── */
+/* ───────── SECTION HEADER ───────────────────── */
 function SectionHeader({
   icon: Icon,
   title,
@@ -130,9 +120,7 @@ function SuccessScreen({
   );
 }
 
-/* ─────────────────────────────────────────
-   MAIN PAGE
-───────────────────────────────────────── */
+/* ─────────── MAIN PAGE ──────────────────── */
 export default function SendTicket() {
   const navigate = useNavigate();
   const { submitLoading, submitTicket } = useTicketStore();
@@ -149,7 +137,6 @@ export default function SendTicket() {
     formState: { errors },
   } = useForm<TicketFormValues>({ defaultValues: { priority: "low" } });
 
-  const selectedSubject  = watch("subject");
   const selectedPriority = watch("priority");
 
   useEffect(() => {
@@ -221,32 +208,24 @@ export default function SendTicket() {
           {titlesLoading ? (
             <SubjectSkeleton />
           ) : titles.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {titles.map(({ titleName }) => {
-                const isActive = selectedSubject === titleName;
-                return (
-                  <button
-                    key={titleName}
-                    type="button"
-                    onClick={() => setValue("subject", titleName, { shouldValidate: true })}
-                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-right transition-all duration-200 ${
-                      isActive
-                        ? "border-blue-800 bg-blue-50 shadow-sm"
-                        : "border-blue-100 bg-white hover:border-blue-200 hover:bg-blue-50/40"
-                    }`}
-                  >
-                    {/* Checkbox indicator */}
-                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                      isActive ? "bg-blue-800 border-blue-800" : "border-gray-300 bg-white"
-                    }`}>
-                      {isActive && <IconCheck size={12} className="text-white" strokeWidth={3} />}
-                    </div>
-                    <p className={`text-sm font-semibold truncate ${isActive ? "text-blue-800" : "text-gray-700"}`}>
-                      {titleName}
-                    </p>
-                  </button>
-                );
-              })}
+            /* Select list of predefined subjects */
+            <div className="relative">
+              <IconTag size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <select
+                {...register("subject", { required: "لطفاً موضوع را انتخاب کنید" })}
+                defaultValue=""
+                className={`w-full appearance-none border rounded-xl pr-9 pl-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all duration-200 ${
+                  errors.subject ? "border-rose-200 bg-rose-50/30 text-gray-700" : "border-blue-100 bg-blue-50/30 text-gray-700"
+                }`}
+              >
+                <option value="" disabled>موضوع تیکت را انتخاب کنید</option>
+                {titles.map(({ titleName, numberOfRow }) => (
+                  <option key={numberOfRow} value={titleName}>
+                    {titleName}
+                  </option>
+                ))}
+              </select>
+              <IconChevronDown size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             </div>
           ) : (
             /* Fallback: free-text subject if API returns nothing */
@@ -262,13 +241,6 @@ export default function SendTicket() {
             </div>
           )}
 
-          {/* Hidden input to register subject when using button selection */}
-          {titles.length > 0 && (
-            <input
-              type="hidden"
-              {...register("subject", { required: "لطفاً موضوع را انتخاب کنید" })}
-            />
-          )}
           {errors.subject && (
             <p className="text-rose-500 text-xs">{errors.subject.message}</p>
           )}
