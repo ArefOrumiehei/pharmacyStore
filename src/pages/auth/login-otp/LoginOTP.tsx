@@ -183,8 +183,8 @@ export default function LoginOTP() {
     // ── Step 2: verify OTP ──────────────────────────────────────────────────────
     const handleVerifyOTP = async () => {
         setOtpError("");
-        if (otp.replace(/\D/g, "").length < 6) {
-            setOtpError("کد ۶ رقمی را کامل وارد کنید");
+        if (otp.replace(/\D/g, "").length < 5) {
+            setOtpError("کد ۵ رقمی را کامل وارد کنید");
             return;
         }
 
@@ -227,7 +227,7 @@ export default function LoginOTP() {
                 <p className="text-sm text-gray-400 mt-1.5">
                     {step === "mobile"
                         ? "کد تأیید به شماره شما ارسال می‌شود"
-                        : `کد ۶ رقمی ارسال شده به ${mobile} را وارد کنید`}
+                        : `کد ۵ رقمی ارسال شده به ${mobile} را وارد کنید`}
                 </p>
             </div>
 
