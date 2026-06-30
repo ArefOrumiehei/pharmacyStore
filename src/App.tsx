@@ -57,6 +57,7 @@ const Notifications   = lazy(() => import('./pages/profile/sections/Notification
 const Settings        = lazy(() => import('./pages/profile/sections/Settings'))
 const Comments        = lazy(() => import('./pages/profile/sections/Comments'))
 const Tickets         = lazy(() => import('./pages/profile/sections/tickets/Tickets'))
+const TicketDetails   = lazy(() => import('./pages/profile/sections/tickets/TicketDetails'))
 const SendTicket      = lazy(() => import('./pages/profile/sections/tickets/SendTicket'))
 
 // ─── Blog ─────────────────────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ function PageLoader() {
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { accessToken } = useAuthStore();
   const location = useLocation();
-  if (!accessToken)
+  if (accessToken)
     return <Navigate to="/login" state={{ returnTo: location.pathname }} replace />
   return <>{children}</>
 }
@@ -139,6 +140,7 @@ function App() {
                 <Route path="comments" element={<Comments />} />
                 <Route path="addresses" element={<Addresses />} />
                 <Route path="tickets" element={<Tickets />} />
+                <Route path="tickets/:ticketId" element={<TicketDetails />} />
                 <Route path="tickets/new" element={<SendTicket />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<Settings />} />
