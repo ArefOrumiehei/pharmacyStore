@@ -20,9 +20,9 @@ import { useProductStore } from "@/store/useProductsStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa } from "@/helpers/formaters";
 import type { Product } from "@/store/useProductsStore";
 import type { Brand } from "@/store/useBrandStore";
+import { toPersianDigits } from "smart-persian-tools";
 
 /* ─────────────────────────────────────────
   CONSTANTS
@@ -136,7 +136,7 @@ export default function BrandPage() {
         {/* Sort + result count */}
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-gray-400">
-            {formatNumberToFa(pagination?.totalCount ?? 0)} محصول
+            {toPersianDigits(pagination?.totalCount ?? 0)} محصول
           </p>
           <SortDropdown value={sortBy} onChange={(v) => { setSortBy(v); setPage(1); }} />
         </div>
@@ -194,11 +194,11 @@ function BrandHero({ brand }: { brand: Brand }) {
         )}
         <div className="flex items-center gap-3 justify-center sm:justify-start flex-wrap mt-1">
           <span className="text-xs text-blue-800 font-medium bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
-            {formatNumberToFa(brand.productsCount)} محصول
+            {toPersianDigits(brand.productsCount)} محصول
           </span>
           {brand.categories?.length > 0 && (
             <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-3 py-1 rounded-full">
-              {formatNumberToFa(brand.categories.length)} دسته‌بندی
+              {toPersianDigits(brand.categories.length)} دسته‌بندی
             </span>
           )}
         </div>
@@ -403,12 +403,12 @@ function ProductCard({ product }: { product: Product }) {
           <div className="flex flex-col">
             {product.hasDiscount && (
               <span className="text-[10px] text-gray-400 line-through">
-                {formatNumberToFa(Number(product.price))}
+                {toPersianDigits(Number(product.price))}
               </span>
             )}
             <div className="flex items-baseline gap-0.5">
               <span className="text-sm font-bold text-blue-800">
-                {formatNumberToFa(Number(displayPrice))}
+                {toPersianDigits(Number(displayPrice))}
               </span>
               <span className="text-[10px] text-gray-400">ت</span>
             </div>

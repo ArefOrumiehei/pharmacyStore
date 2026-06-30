@@ -13,7 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { useUserStore } from "@/store/useAccountStore";
-import { formatNumberToFa } from "@/helpers/formaters";
+import { toPersianDigits } from "smart-persian-tools";
 
 const STATUS_STYLES: Record<
     string,
@@ -190,7 +190,7 @@ export default function Overview() {
                                 </div>
                                 <div className="flex items-center gap-3 flex-shrink-0">
                                     <p className="text-sm font-semibold text-blue-800 hidden sm:block">
-                                        {formatNumberToFa(order.total)} تومان
+                                        {toPersianDigits(order.total)} تومان
                                     </p>
                                     <span
                                         className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border ${s.class}`}

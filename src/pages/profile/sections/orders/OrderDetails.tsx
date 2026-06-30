@@ -15,15 +15,11 @@ import {
     IconReceipt,
     IconPill,
 } from "@tabler/icons-react";
-import { formatNumberToFa } from "@/helpers/formaters";
 import { useUserStore } from "@/store/useAccountStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import type { IOrder, IOrderItem } from "@/services/accountServices/accountServices";
+import { toPersianDigits } from "smart-persian-tools";
 
-/* ─────────────────────────────────────────
-   STATUS CONFIG
-   Maps order status codes → display config
-───────────────────────────────────────── */
 const STATUS_CONFIG: Record<number, {
     label: string;
     cardClass: string;
@@ -125,7 +121,7 @@ function OrderItemRow({ item }: { item: IOrderItem }) {
                     {item.totalPriceWithDiscountDisplay}
                 </p>
                 <p className="text-xs text-gray-400">
-                    {formatNumberToFa(item.qty)} × {item.unitPriceDisplay}
+                    {toPersianDigits(item.qty)} × {item.unitPriceDisplay}
                 </p>
             </div>
         </div>
@@ -250,7 +246,7 @@ export default function OrderDetail() {
                     </button>
                     <div>
                         <h1 className="text-lg font-bold text-blue-800">
-                            سفارش #{formatNumberToFa(order.id)}
+                            سفارش #{toPersianDigits(order.id)}
                         </h1>
                         <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
                             <IconCalendar size={12} />
@@ -295,7 +291,7 @@ export default function OrderDetail() {
                 <div className="lg:col-span-2 flex flex-col gap-5">
 
                     {/* Items */}
-                    <SectionCard title={`اقلام سفارش (${formatNumberToFa(order.items.length)})`}>
+                    <SectionCard title={`اقلام سفارش (${toPersianDigits(order.items.length)})`}>
                         <div className="flex flex-col divide-y divide-blue-50">
                             {order.items.map((item) => (
                                 <OrderItemRow key={item.id} item={item} />

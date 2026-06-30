@@ -19,7 +19,7 @@ import type { AddressData } from "../../CheckoutLayout";
 import { useOrderStore } from "@/store/useOrderStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCartStore } from "@/store/useCartStore";
-import { formatNumberToFa } from "@/helpers/formaters";
+import { toPersianDigits } from "smart-persian-tools";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -634,7 +634,7 @@ export default function PaymentStep() {
                             <div className="h-px bg-blue-50 my-1" />
                             <SummaryRow
                                 label="مبلغ قابل پرداخت"
-                                value={preview ? `${formatNumberToFa(preview.finalPayAmount)} تومان` : ""}
+                                value={preview ? `${toPersianDigits(preview.finalPayAmount)} تومان` : ""}
                                 bold
                                 loading={previewLoading}
                             />

@@ -5,7 +5,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Link, useNavigate } from "react-router";
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa } from "@/helpers/formaters";
+import { toPersianDigits } from "smart-persian-tools";
 
 interface CartItem {
     productId: number;
@@ -101,11 +101,11 @@ export default function CartStep() {
                 </div>
 
                 <div className="px-6 py-5 space-y-3">
-                    <SummaryRow label="تعداد اقلام" value={`${formatNumberToFa(items.length)} محصول`} loading={loading} />
-                    <SummaryRow label="جمع کالاها" value={`${formatNumberToFa(totalAmount)} تومان`} loading={loading} />
+                    <SummaryRow label="تعداد اقلام" value={`${toPersianDigits(items.length)} محصول`} loading={loading} />
+                    <SummaryRow label="جمع کالاها" value={`${toPersianDigits(totalAmount)} تومان`} loading={loading} />
                     <SummaryRow label="هزینه ارسال" value="رایگان" loading={loading} highlight="green" />
                     <div className="border-t border-dashed border-blue-100 pt-3">
-                        <SummaryRow label="مبلغ قابل پرداخت" value={`${formatNumberToFa(totalAmount)} تومان`} loading={loading} bold />
+                        <SummaryRow label="مبلغ قابل پرداخت" value={`${toPersianDigits(totalAmount)} تومان`} loading={loading} bold />
                     </div>
                 </div>
 
@@ -163,9 +163,9 @@ function CartItemRow({
             />
             <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-gray-800 text-sm truncate">{item.productName}</h4>
-                <p className="text-xs text-gray-400 mt-0.5">{formatNumberToFa(item.unitPrice)} تومان</p>
+                <p className="text-xs text-gray-400 mt-0.5">{toPersianDigits(item.unitPrice)} تومان</p>
                 <p className="text-xs font-semibold text-blue-800 mt-1">
-                    جمع: {formatNumberToFa(item.unitPrice * item.qty)} تومان
+                    جمع: {toPersianDigits(item.unitPrice * item.qty)} تومان
                 </p>
             </div>
             <div className="flex items-center gap-1 bg-blue-50 border border-blue-100 rounded-xl p-1 flex-shrink-0">

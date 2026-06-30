@@ -34,7 +34,7 @@ import {
   IconBuildingStore,
 } from "@tabler/icons-react";
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa } from "@/helpers/formaters";
+import { toPersianDigits } from "smart-persian-tools";
 
 /* ─────────────────────────────────────────
    TYPES
@@ -284,7 +284,7 @@ export default function ProductPage() {
               <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-xl">
                 <IconStarFilled size={13} className="text-amber-400" />
                 <span className="font-bold text-sm text-amber-700">{Number(product.avgRate).toFixed(1)}</span>
-                <span className="text-xs text-amber-400">({formatNumberToFa(product.rateCount)} نظر)</span>
+                <span className="text-xs text-amber-400">({toPersianDigits(product.rateCount)} نظر)</span>
               </div>
               <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-xl">
                 کد: {product.code}
@@ -353,7 +353,7 @@ export default function ProductPage() {
               {product.hasDiscount && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-400 line-through">
-                    {formatNumberToFa(Number(product.price))} تومان
+                    {toPersianDigits(Number(product.price))} تومان
                   </span>
                   <span className="flex items-center gap-0.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full">
                     <IconPercentage size={10} />
@@ -363,7 +363,7 @@ export default function ProductPage() {
               )}
               <div className="flex items-baseline gap-1.5">
                 <span className="text-3xl font-bold text-blue-800">
-                  {formatNumberToFa(Number(displayPrice))}
+                  {toPersianDigits(Number(displayPrice))}
                 </span>
                 <span className="text-sm text-gray-400">تومان</span>
               </div>
@@ -466,7 +466,7 @@ export default function ProductPage() {
                     : "text-gray-400 hover:text-gray-600"
                 }`}
               >
-                {tab === "description" ? "معرفی محصول" : `نظرات کاربران (${formatNumberToFa(comments.length)})`}
+                {tab === "description" ? "معرفی محصول" : `نظرات کاربران (${toPersianDigits(comments.length)})`}
               </button>
             ))}
           </div>
@@ -680,7 +680,7 @@ function VoteButton({ icon, count, active, activeClass, onClick }: { icon: React
   return (
     <button onClick={onClick} className={`flex items-center gap-1.5 text-sm transition-colors ${active ? activeClass : "text-gray-400 hover:text-gray-600"}`}>
       {icon}
-      <span className="font-medium tabular-nums">{formatNumberToFa(count)}</span>
+      <span className="font-medium tabular-nums">{toPersianDigits(count)}</span>
     </button>
   );
 }

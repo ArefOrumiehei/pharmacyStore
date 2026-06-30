@@ -9,7 +9,7 @@ import {
     IconPackage,
 } from "@tabler/icons-react";
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa } from "@/helpers/formaters";
+import { toPersianDigits } from "smart-persian-tools";
 
 const DROPDOWN_LIMIT = 6;
 
@@ -209,7 +209,7 @@ function SearchBox() {
                                                 <div className="flex flex-col items-end flex-shrink-0">
                                                     {item.hasDiscount && (
                                                         <span className="text-xs text-gray-400 line-through">
-                                                            {formatNumberToFa(
+                                                            {toPersianDigits(
                                                                 Number(
                                                                     item.price
                                                                 )
@@ -217,7 +217,7 @@ function SearchBox() {
                                                         </span>
                                                     )}
                                                     <span className="text-sm font-bold text-blue-800">
-                                                        {formatNumberToFa(
+                                                        {toPersianDigits(
                                                             Number(displayPrice)
                                                         )}
                                                         <span className="text-xs font-normal text-gray-400 mr-0.5">

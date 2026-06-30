@@ -23,9 +23,9 @@ import { useSearchStore } from "@/store/useSearchStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useProductStore } from "@/store/useProductsStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa } from "@/helpers/formaters";
 import type { Product } from "@/store/useProductsStore";
 import type { SortOption } from "@/store/useSearchStore";
+import { toPersianDigits } from "smart-persian-tools";
 
 /* ─────────────────────────────────────────
     TYPES
@@ -421,8 +421,8 @@ function FilterPanel({
                 <FilterSection title="محدوده قیمت">
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>{formatNumberToFa(filters.minPrice)} تومان</span>
-                            <span>{formatNumberToFa(filters.maxPrice)} تومان</span>
+                            <span>{toPersianDigits(filters.minPrice)} تومان</span>
+                            <span>{toPersianDigits(filters.maxPrice)} تومان</span>
                         </div>
                         <input
                             type="range"
@@ -750,12 +750,12 @@ function ProductCard({ product }: { product: Product }) {
                     <div className="flex flex-col items-start">
                         {product.hasDiscount && (
                             <span className="text-xs text-gray-400 line-through">
-                                {formatNumberToFa(Number(product.price))} ت
+                                {toPersianDigits(Number(product.price))} ت
                             </span>
                         )}
                         <div className="flex items-baseline gap-1">
                             <span className="text-base font-bold text-blue-800">
-                                {formatNumberToFa(Number(displayPrice))}
+                                {toPersianDigits(Number(displayPrice))}
                             </span>
                             <span className="text-xs text-gray-400">تومان</span>
                         </div>

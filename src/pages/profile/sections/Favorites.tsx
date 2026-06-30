@@ -5,7 +5,7 @@ import { Link } from "react-router";
 import { useProductStore } from "@/store/useProductsStore";
 import { useUserStore } from "@/store/useAccountStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa } from "@/helpers/formaters";
+import { toPersianDigits } from "smart-persian-tools";
 
 export default function Favorites() {
     const { removeFromFavorites, loading } = useProductStore();
@@ -122,19 +122,17 @@ export default function Favorites() {
                                     {item.hasDiscount ? (
                                         <div className="flex flex-col">
                                             <span className="text-xs text-gray-400 line-through">
-                                                {formatNumberToFa(item.price)}{" "}
+                                                {toPersianDigits(item.price)}{" "}
                                                 تومان
                                             </span>
                                             <span className="text-base font-bold text-blue-800">
-                                                {formatNumberToFa(
-                                                    item.priceWithDiscount
-                                                )}{" "}
+                                                {toPersianDigits(item.priceWithDiscount)}{" "}
                                                 تومان
                                             </span>
                                         </div>
                                     ) : (
                                         <span className="text-base font-bold text-blue-800">
-                                            {formatNumberToFa(item.price)} تومان
+                                            {toPersianDigits(item.price)} تومان
                                         </span>
                                     )}
                                 </div>

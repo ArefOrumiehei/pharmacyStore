@@ -1,7 +1,8 @@
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { formatNumberToFa, toPersianNums } from "@/helpers/formaters";
+import { toPersianNums } from "@/helpers/formaters";
 import type { Product } from "@/store/useProductsStore";
 import { IconShoppingCartPlus, IconStarFilled, IconPackageOff } from "@tabler/icons-react";
+import { toPersianDigits } from "smart-persian-tools"
 
 type ProductCardProps = {
   productData: Product;
@@ -42,7 +43,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
         {/* Discount bubble */}
         {inStock && productData.hasDiscount && discountPercent && (
           <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-red-500 flex flex-col items-center justify-center shadow-sm">
-            <span className="text-white font-black text-[10px] sm:text-xs leading-none">{formatNumberToFa(discountPercent)}٪</span>
+            <span className="text-white font-black text-[10px] sm:text-xs leading-none">{toPersianDigits(discountPercent)}٪</span>
             <span className="text-red-200 text-[7px] sm:text-[8px] leading-none mt-0.5">تخفیف</span>
           </div>
         )}
@@ -92,10 +93,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
           </div>
           <span className="text-[11px] sm:text-xs text-gray-500">
             {Number(productData.avgRate)
-              ? formatNumberToFa(productData.avgRate)
+              ? toPersianDigits(productData.avgRate)
               : Number(productData.avgRate).toFixed(1)}
           </span>
-          <span className="text-[11px] sm:text-xs text-gray-400">({formatNumberToFa(productData.rateCount)})</span>
+          <span className="text-[11px] sm:text-xs text-gray-400">({toPersianDigits(productData.rateCount)})</span>
         </div>
 
         {/* ── Low stock indicator ── */}
@@ -150,11 +151,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
             ) : productData.hasDiscount && productData.priceWithDiscount ? (
               <>
                 <span className="text-[11px] sm:text-xs text-gray-400 line-through">
-                  {formatNumberToFa(productData.price)} تومان
+                  {toPersianDigits(productData.price)} تومان
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-sm sm:text-base font-black text-blue-800">
-                    {formatNumberToFa(productData.priceWithDiscount)}
+                    {toPersianDigits(productData.priceWithDiscount)}
                   </span>
                   <span className="text-[11px] sm:text-xs text-gray-500">تومان</span>
                 </div>
@@ -162,7 +163,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productData, onAddToCart }) =
             ) : (
               <div className="flex items-baseline gap-1">
                 <span className="text-sm sm:text-base font-black text-blue-800">
-                  {formatNumberToFa(productData.price)}
+                  {toPersianDigits(productData.price)}
                 </span>
                 <span className="text-[11px] sm:text-xs text-gray-500">تومان</span>
               </div>
