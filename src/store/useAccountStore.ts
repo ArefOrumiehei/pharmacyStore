@@ -20,10 +20,15 @@ import {
     setPassword,
     changeMobileReqOTP,
     changeMobileVerify,
+    getUserOverview,
+    requestReturn,
+    getUserComments,
     type IUserProfile,
     type IAddress,
     type IOrder,
     type ITicket,
+    type IOverview,
+    type IUserComments,
     type IUpdateProfileParams,
     type ICompleteProfileParams,
     type IChangePasswordParams,
@@ -32,6 +37,7 @@ import {
     type IChangeMobileVerifyParams,
     type IAddressFormParams,
     type IEditAddressFormParams,
+    type IRequestReturnParams,
 } from "@/services/accountServices/accountServices";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -52,6 +58,9 @@ interface ILoadingState {
     createAddress: boolean;
     editAddress: boolean;
     deleteAddress: boolean;
+    overview: boolean;
+    requestReturn: boolean;
+    comments: boolean;
 }
 
 interface IUserStore {
@@ -62,6 +71,8 @@ interface IUserStore {
     userTickets: ITicket[] | null;
     selectedTicket: ITicket | null;
     userAddresses: IAddress[] | null;
+    overview: IOverview | null;
+    userComments: IUserComments[] | null;
     loading: ILoadingState;
 
     fetchUser: () => Promise<void>;
@@ -81,6 +92,9 @@ interface IUserStore {
     setPassword: (data: ISetPasswordParams) => Promise<void>;
     changeMobileReqOTP: (data: IChangeMobileRequestParams) => Promise<void>;
     changeMobileVerify: (data: IChangeMobileVerifyParams) => Promise<void>;
+    fetchOverview: () => Promise<void>;
+    requestReturn: (data: IRequestReturnParams) => Promise<void>;
+    fetchUserComments: () => Promise<void>;
     clearSelectedOrder: () => void;
     clearSelectedTicket: () => void;
     clearUser: () => void;
@@ -104,6 +118,9 @@ const DEFAULT_LOADING: ILoadingState = {
     createAddress: false,
     editAddress: false,
     deleteAddress: false,
+    overview: false,
+    requestReturn: false,
+    comments: false,
 };
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
@@ -128,6 +145,8 @@ export const useUserStore = create<IUserStore>()(
             userTickets: null,
             selectedTicket: null,
             userAddresses: null,
+            overview: null,
+            userComments: null,
             loading: DEFAULT_LOADING,
 
             // ── User ──────────────────────────────────────────────────────────
@@ -357,6 +376,47 @@ export const useUserStore = create<IUserStore>()(
                 }
             },
 
+            // ── Overview ──────────────────────────────────────────────────────
+
+            fetchOverview: async () => {
+                set((s) => ({ loading: { ...s.loading, overview: true } }));
+                try {
+                    const res = await getUserOverview();
+                    set((s) => ({ overview: res.data, loading: { ...s.loading, overview: false } }));
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, overview: false } }));
+                    toast.error(extractMessage(err, "خطا در دریافت اطلاعات کلی"));
+                }
+            },
+
+            // ── Return request ────────────────────────────────────────────────
+
+            requestReturn: async (data) => {
+                set((s) => ({ loading: { ...s.loading, requestReturn: true } }));
+                try {
+                    await requestReturn(data);
+                    set((s) => ({ loading: { ...s.loading, requestReturn: false } }));
+                    toast.success("درخواست مرجوعی با موفقیت ثبت شد");
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, requestReturn: false } }));
+                    toast.error(extractMessage(err, "خطا در ثبت درخواست مرجوعی"));
+                    throw err;
+                }
+            },
+
+            // ── Comments ──────────────────────────────────────────────────────
+
+            fetchUserComments: async () => {
+                set((s) => ({ loading: { ...s.loading, comments: true } }));
+                try {
+                    const res = await getUserComments();
+                    set((s) => ({ userComments: res.data, loading: { ...s.loading, comments: false } }));
+                } catch (err) {
+                    set((s) => ({ loading: { ...s.loading, comments: false } }));
+                    toast.error(extractMessage(err, "خطا در دریافت نظرات"));
+                }
+            },
+
             // ── Clear ─────────────────────────────────────────────────────────
 
             clearUser: () =>
@@ -368,6 +428,8 @@ export const useUserStore = create<IUserStore>()(
                     userTickets: null,
                     selectedTicket: null,
                     userAddresses: null,
+                    overview: null,
+                    userComments: null,
                     loading: DEFAULT_LOADING,
                 }),
         }),
