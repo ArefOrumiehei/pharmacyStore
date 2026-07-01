@@ -4,18 +4,17 @@ import {
   IconShoppingBag,
   IconHeart,
   IconMapPin,
-  IconSettings,
   IconLogout,
-  IconBell,
   IconChevronLeft,
   IconHeadset,
   IconMessage2,
+  IconHome,
 } from "@tabler/icons-react";
 import { useUserStore } from "@/store/useAccountStore";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const MENU_ITEMS = [
-  { path: "/profile", icon: IconUser, label: "خلاصه فعالیت", end: true },
+  { path: "/profile", icon: IconHome , label: "خلاصه فعالیت", end: true },
   { path: "/profile/orders", icon: IconShoppingBag, label: "سفارش‌های من" },
   { path: "/profile/favorites", icon: IconHeart, label: "علاقه‌مندی‌ها" },
   { path: "/profile/comments", icon: IconMessage2, label: "نظرات من" },
