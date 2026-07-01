@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import {
     IconArrowRight,
@@ -14,11 +14,17 @@ import {
     IconCalendar,
     IconReceipt,
     IconPill,
+    IconRotateClockwise,
+    IconLoader2,
+    IconAlertTriangle,
+    IconLock,
 } from "@tabler/icons-react";
 import { useUserStore } from "@/store/useAccountStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import type { IOrder, IOrderItem } from "@/services/accountServices/accountServices";
 import { toPersianDigits } from "smart-persian-tools";
+
+// ─── Status config ────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<number, {
     label: string;
@@ -52,8 +58,119 @@ const STATUS_CONFIG: Record<number, {
     },
 };
 
-// Fallback for unknown status codes
 const DEFAULT_STATUS = STATUS_CONFIG[1];
+
+// ─── Helper: days since a date string ─────────────────────────────────────────
+
+const daysSince = (dateStr: string): number => {
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed.getTime())) return 0;
+    return Math.floor((Date.now() - parsed.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+/* ─────────────────────────────────────────
+   RETURN REQUEST PANEL
+───────────────────────────────────────── */
+function ReturnRequestPanel({ orderId, deliveredDate }: { orderId: number; deliveredDate: string }) {
+    const { requestReturn, loading } = useUserStore();
+    const [open,   setOpen]   = useState(false);
+    const [reason, setReason] = useState("");
+    const [done,   setDone]   = useState(false);
+
+    const days    = daysSince(deliveredDate);
+    const expired = days > 7;
+
+    const handleSubmit = async () => {
+        if (!reason.trim()) return;
+        try {
+            await requestReturn({ orderId, reason });
+            setDone(true);
+            setOpen(false);
+        } catch {
+            // toast shown by store
+        }
+    };
+
+    // ── Already submitted ──
+    if (done) {
+        return (
+            <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+                <IconCircleCheck size={15} className="text-green-600 flex-shrink-0" />
+                <p className="text-xs font-medium text-green-700">درخواست مرجوعی ثبت شد</p>
+            </div>
+        );
+    }
+
+    // ── Expired (> 7 days) ──
+    if (expired) {
+        return (
+            <div className="flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <IconLock size={15} className="text-gray-400 flex-shrink-0 mt-0.5" />
+                <div>
+                    <p className="text-xs font-semibold text-gray-500">مهلت مرجوعی پایان یافته</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                        {toPersianDigits(days)} روز از تحویل گذشته — مهلت مرجوعی ۷ روز است
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-2">
+            {/* Main button */}
+            {!open && (
+                <button
+                    onClick={() => setOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 text-sm font-semibold transition-all"
+                >
+                    <IconRotateClockwise size={15} />
+                    درخواست مرجوعی
+                    <span className="text-xs font-normal text-rose-400">
+                        ({toPersianDigits(7 - days)} روز مانده)
+                    </span>
+                </button>
+            )}
+
+            {/* Inline reason form */}
+            {open && (
+                <div className="flex flex-col gap-3 bg-rose-50 border border-rose-100 rounded-2xl p-4">
+                    <div className="flex items-center gap-2">
+                        <IconAlertTriangle size={14} className="text-rose-500 flex-shrink-0" />
+                        <p className="text-xs font-semibold text-rose-700">دلیل مرجوعی را بنویسید</p>
+                    </div>
+
+                    <textarea
+                        rows={3}
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder="لطفاً دلیل مرجوع کردن سفارش را توضیح دهید..."
+                        className="w-full border border-rose-200 bg-white rounded-xl px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-200 resize-none leading-7"
+                    />
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={!reason.trim() || loading.requestReturn}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all"
+                        >
+                            {loading.requestReturn
+                                ? <IconLoader2 size={13} className="animate-spin" />
+                                : <IconRotateClockwise size={13} />}
+                            ثبت درخواست
+                        </button>
+                        <button
+                            onClick={() => { setOpen(false); setReason(""); }}
+                            className="px-4 py-2 rounded-xl bg-white border border-rose-100 hover:bg-white/80 text-rose-400 text-xs font-semibold transition-all"
+                        >
+                            انصراف
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 /* ─────────────────────────────────────────
    SUB-COMPONENTS
@@ -93,7 +210,6 @@ function InfoRow({
 function OrderItemRow({ item }: { item: IOrderItem }) {
     return (
         <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-            {/* Product image or fallback icon */}
             <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {item.productPicture ? (
                     <img
@@ -134,7 +250,6 @@ function OrderItemRow({ item }: { item: IOrderItem }) {
 function OrderDetailSkeleton() {
     return (
         <div className="flex flex-col gap-5">
-            {/* Header */}
             <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 animate-pulse" />
                 <div className="flex flex-col gap-1.5">
@@ -142,7 +257,6 @@ function OrderDetailSkeleton() {
                     <div className="h-3 w-24 bg-blue-50 animate-pulse rounded" />
                 </div>
             </div>
-            {/* Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="lg:col-span-2 flex flex-col gap-5">
                     <div className="bg-white border border-blue-100 rounded-2xl p-5 space-y-3">
@@ -206,10 +320,8 @@ export default function OrderDetail() {
         return () => clearSelectedOrder();
     }, [orderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    /* ── Loading ── */
     if (loading.order) return <OrderDetailSkeleton />;
 
-    /* ── Not found ── */
     if (!loading.order && !selectedOrder) {
         return (
             <div className="flex flex-col items-center justify-center bg-white rounded-xl border border-blue-100 py-24 gap-4 text-center" dir="rtl">
@@ -227,10 +339,11 @@ export default function OrderDetail() {
         );
     }
 
-    const order = selectedOrder as IOrder;
-    const s     = STATUS_CONFIG[order.status] ?? DEFAULT_STATUS;
+    const order      = selectedOrder as IOrder;
+    const s          = STATUS_CONFIG[order.status] ?? DEFAULT_STATUS;
     const StatusIcon = s.icon;
-    const isShipping = order.status === 2;
+    const isShipping  = order.status === 2;
+    const isDelivered = order.status === 3;
 
     return (
         <div className="flex flex-col gap-5" dir="rtl">
@@ -302,7 +415,7 @@ export default function OrderDetail() {
                     {/* Receiver */}
                     <SectionCard title="اطلاعات گیرنده و پرداخت">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <InfoRow icon={IconUser}    label="نام گیرنده"   value={order.items[0]?.productName ? "—" : "—"} />
+                            <InfoRow icon={IconUser}    label="نام گیرنده"   value="—" />
                             <InfoRow icon={IconPhone}   label="موبایل"       value="—" />
                             <InfoRow icon={IconMapPin}  label="کد پستی"      value="—" />
                             <InfoRow icon={IconReceipt} label="روش پرداخت"   value={order.paymentMethod || "—"} />
@@ -315,13 +428,13 @@ export default function OrderDetail() {
 
                 {/* ── Right column ── */}
                 <div className="flex flex-col gap-5">
+
+                    {/* Financial summary */}
                     <SectionCard title="خلاصه مالی">
                         <div className="flex flex-col gap-3 text-sm">
                             <div className="flex justify-between text-gray-600">
                                 <span>جمع اقلام</span>
-                                <span className="font-medium text-gray-800">
-                                    {order.totalAmountDisplay}
-                                </span>
+                                <span className="font-medium text-gray-800">{order.totalAmountDisplay}</span>
                             </div>
 
                             {order.discountAmount > 0 && (
@@ -347,7 +460,7 @@ export default function OrderDetail() {
                         </div>
                     </SectionCard>
 
-                    {/* Coupon code if used */}
+                    {/* Coupon code */}
                     {order.couponCode && (
                         <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
                             <IconReceipt size={14} className="text-green-600 flex-shrink-0" />
@@ -358,7 +471,15 @@ export default function OrderDetail() {
                         </div>
                     )}
 
-                    {/* Quick actions */}
+                    {/* Return request — only for delivered orders */}
+                    {isDelivered && (
+                        <ReturnRequestPanel
+                            orderId={order.id}
+                            deliveredDate={order.lastModifiedDate}
+                        />
+                    )}
+
+                    {/* Support ticket */}
                     <Link
                         to="/profile/tickets/new"
                         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-blue-100 hover:bg-blue-50 text-blue-800 text-sm font-semibold transition-all"
