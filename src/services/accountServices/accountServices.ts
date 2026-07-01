@@ -62,6 +62,18 @@ export interface IOrder {
     items: IOrderItem[];
 }
 
+export interface ILatestOrder {
+    id: number;
+    userId: number;
+    creationDate: string;
+    creationDateDisplay: string;
+    status: number;
+    statusTitle: string;
+    payAmount: number;
+    payAmountDisplay: string;
+    itemsCount: number;
+}
+
 export interface ITicket {
     userId: number;
     ticketId: number;
@@ -72,6 +84,27 @@ export interface ITicket {
     adminReplyDate: string | null;
     isAnswered: boolean;
     trackingCode: string;
+}
+
+export interface IOverview {
+    totalOrders: number;
+    totalRefundedOrders: number;
+    totalDeliveredOrders: number;
+    totalFaves: number;
+    totalAddresses: number;
+    latestOrders: ILatestOrder[];
+}
+
+export interface IUserComments {
+    message: string;
+    creationDate: string;
+    rate: number;
+    likeCount: number;
+    dislikeCount: number;
+    reply: string;
+    replyDate: string;
+    productSlug: string;
+    categorySlug: string;
 }
 
 export interface IApiResponse<T = null> {
@@ -129,6 +162,13 @@ export interface IAddressFormParams {
 export interface IEditAddressFormParams extends IAddressFormParams {
     id: string;
 }
+
+
+export interface IRequestReturnParams {
+    orderId: number;
+    reason: string;
+}
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -287,3 +327,21 @@ export const deleteUserAddress = async (addressId: number): Promise<IApiResponse
     const res = await apiInstance.delete<IApiResponse>(`/api/Account/ShippingInfos/${addressId}`);
     return res.data;
 };
+
+// --- Overview ---------------
+export const getUserOverview = async (): Promise<IApiResponse<IOverview>> => {
+    const res = await apiInstance.get<IApiResponse<IOverview>>("/api/Account/overview");
+    return res.data;
+}
+
+// ---- Request Return --------------
+export const requestReturn = async (data: IRequestReturnParams): Promise<IApiResponse> => {
+    const res = await apiInstance.post<IApiResponse>("api/Account/request-return", data);
+    return res.data;
+}
+
+// ---- Comments ----------------
+export const getUserComments = async (): Promise<IApiResponse<IUserComments[]>> => {
+    const res = await apiInstance.get<IApiResponse<IUserComments[]>>("/api/Account/comments");
+    return res.data;
+}
