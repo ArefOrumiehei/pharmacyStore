@@ -1,7 +1,11 @@
 import apiInstance from "@/apis/apiInstance"
 
 // ─── Types ───────────────────
-export interface ITicketTitle {
+export interface ITicketTitles {
+  titles: ITicketSubjects[];
+}
+
+export interface ITicketSubjects {
   titleName: string;
   numberOfRow: number;
 }
@@ -12,7 +16,7 @@ interface IApiResponse<T> {
   data: T;
 }
 
-export const getTicketTitles = async (): Promise<ITicketTitle[]> => {
-  const res = await apiInstance.get<IApiResponse<ITicketTitle[]>>("/api/site-settings/ticket-titles");
+export const getTicketTitles = async (): Promise<ITicketTitles> => {
+  const res = await apiInstance.get<IApiResponse<ITicketTitles>>("/api/site-settings/ticket-titles");
   return res.data.data;
 };
