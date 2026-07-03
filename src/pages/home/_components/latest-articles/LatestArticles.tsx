@@ -96,7 +96,7 @@ export default function LatestArticles() {
     fetchLatestArticles();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isEmpty = !loading.latest && latestArticles.length === 0;
+  const isEmpty = !loading.latest && (latestArticles.length ?? 0) === 0;
 
   return (
     <section className="flex flex-col gap-4" dir="rtl">
