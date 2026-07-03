@@ -1,10 +1,10 @@
-import { getTicketTitles, type ITicketTitle } from "@/services/siteServices/siteServices";
+import { getTicketTitles, type ITicketSubjects } from "@/services/siteServices/siteServices";
 import { toast } from "react-toastify";
 import { create } from "zustand";
 
 // ----- Types ----------
 interface SiteStore {
-  titles: ITicketTitle[];
+  titles: ITicketSubjects[];
   titlesLoading: boolean;
   error: string | null;
 
@@ -33,8 +33,8 @@ export const useSiteStore = create<SiteStore>((set) => ({
   fetchTitles: async () => {
     set({ titlesLoading: true, error: null });
     try {
-      const titles = await getTicketTitles();
-      set({ titles, titlesLoading: false });
+      const res = await getTicketTitles();
+      set({ titles: res.titles, titlesLoading: false });
     } catch (err) {
       const message = extractMessage(err, "خطا در دریافت موضوعات");
       set({ titlesLoading: false, error: message });
