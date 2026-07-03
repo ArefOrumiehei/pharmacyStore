@@ -72,6 +72,7 @@ function OrderCard({ order }: { order: IOrder }) {
   const navigate   = useNavigate();
   const s          = STATUS_CONFIG[order.statusTitle] ?? FALLBACK_STATUS;
   const StatusIcon = s.icon;
+  const orderItems = order.items ?? [];
 
   return (
     <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden hover:border-blue-200 hover:shadow-sm transition-all duration-200">
@@ -85,7 +86,7 @@ function OrderCard({ order }: { order: IOrder }) {
           <div>
             <p className="text-sm font-bold text-gray-800">سفارش #{order.id}</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {order.creationDateDisplay} • {order.items.length} محصول
+              {order.creationDateDisplay} • {orderItems.length} محصول
             </p>
           </div>
         </div>
@@ -129,9 +130,9 @@ function OrderCard({ order }: { order: IOrder }) {
       </div>
 
       {/* Items preview strip */}
-      {order.items.length > 0 && (
+      {orderItems.length > 0 && (
         <div className="border-t border-blue-50 px-5 py-3 flex items-center gap-2 overflow-x-auto">
-          {order.items.slice(0, 4).map((item) => (
+          {orderItems.slice(0, 4).map((item) => (
             <div
               key={item.id}
               className="flex items-center gap-2 bg-blue-50/60 border border-blue-100 rounded-xl px-2.5 py-1.5 flex-shrink-0"
@@ -146,8 +147,8 @@ function OrderCard({ order }: { order: IOrder }) {
               <span className="text-xs font-semibold text-blue-800 flex-shrink-0">×{item.qty}</span>
             </div>
           ))}
-          {order.items.length > 4 && (
-            <span className="text-xs text-gray-400 flex-shrink-0">+{order.items.length - 4} مورد دیگر</span>
+          {orderItems.length > 4 && (
+            <span className="text-xs text-gray-400 flex-shrink-0">+{orderItems.length - 4} مورد دیگر</span>
           )}
         </div>
       )}
