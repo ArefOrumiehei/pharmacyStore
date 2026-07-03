@@ -96,7 +96,7 @@ export interface IOverview {
 }
 
 export interface IUserComments {
-    message: string;
+    message: string | null;
     creationDate: string;
     rate: number;
     likeCount: number;
@@ -104,7 +104,9 @@ export interface IUserComments {
     reply: string;
     replyDate: string;
     productSlug: string;
-    categorySlug: string;
+    productName: string;
+    categoryName: string;
+    categoryFullSlug: string;
 }
 
 export interface IApiResponse<T = null> {
