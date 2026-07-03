@@ -145,7 +145,7 @@ export default function Overview() {
             iconColor: "text-rose-500",
         },
         {
-            label: "آدرس های ذخیره",
+            label: "آدرس های ذخیره شده",
             value: overview?.totalAddresses,
             icon: IconMapPin,
             link: "/profile/addresses",
@@ -232,16 +232,16 @@ export default function Overview() {
                                         </div>
                                         <div>
                                             <p className="text-sm font-semibold text-gray-700">
-                                                سفارش #{toPersianDigits(order.id)}
+                                                سفارش {toPersianDigits(order.id)}#
                                             </p>
                                             <p className="text-xs text-gray-400 mt-0.5">
-                                                {order.creationDateDisplay} • {toPersianDigits(order.itemsCount)} محصول
+                                                {toPersianDigits(order.creationDateDisplay)} • {toPersianDigits(order.itemsCount)} محصول
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 flex-shrink-0">
                                         <p className="text-sm font-semibold text-blue-800 hidden sm:block">
-                                            {order.payAmountDisplay}
+                                            {toPersianDigits(order.payAmountDisplay)}
                                         </p>
                                         <span className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border ${s.class}`}>
                                             <StatusIcon size={12} />
