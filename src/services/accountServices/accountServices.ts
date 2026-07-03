@@ -60,6 +60,11 @@ export interface IOrder {
     payAmount: number;
     payAmountDisplay: string;
     items: IOrderItem[];
+    itemsCount: number;
+    receiverFullName: string;
+    receiverMobile: string;
+    receiverAddress: string;
+    receiverZipCode: string;
 }
 
 export interface ILatestOrder {
