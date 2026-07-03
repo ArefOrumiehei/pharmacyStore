@@ -79,7 +79,7 @@ function CommentCard({ comment }: { comment: IUserComments }) {
       {/* Product row */}
       <div className="flex items-start justify-between gap-3">
         <Link
-          to={`/product/${comment.categorySlug}/${comment.productSlug}`}
+          to={`/product/${encodeURIComponent(comment.categoryFullSlug)}/${encodeURIComponent(comment.productSlug)}`}
           className="flex items-center gap-3 min-w-0 group"
         >
           <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
@@ -87,9 +87,9 @@ function CommentCard({ comment }: { comment: IUserComments }) {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-800 transition-colors truncate">
-              {comment.productSlug}
+              {comment.productName}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">{comment.categorySlug}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{comment.categoryName}</p>
           </div>
         </Link>
 
