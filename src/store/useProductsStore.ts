@@ -9,6 +9,7 @@ import {
   removeProductFromFavorites,
 } from "@/services/productServices/productServices";
 import { create } from "zustand";
+import { useUserStore } from "./useAccountStore";
 
 export interface Product {
   id: number;
@@ -164,6 +165,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     set({ error: null });
     try {
       await removeProductFromFavorites(productId);
+      await useUserStore.getState().fetchUserFavorites();
     } catch (err) {
       const message = err instanceof Error ? err.message : "خطای ناشناخته";
       set({ error: message });
