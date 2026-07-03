@@ -139,10 +139,13 @@ export default function Favorites() {
 
                                 {/* Actions */}
                                 <div className="flex gap-2">
-                                    <button className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-blue-800 hover:bg-blue-700 active:scale-95 py-2.5 rounded-xl transition-all duration-150">
+                                    <Link 
+                                        to={`/product/${encodeURIComponent(item.categoryFullSlug)}/${encodeURIComponent(item.slug)}`} 
+                                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-blue-800 hover:bg-blue-700 active:scale-95 py-2.5 rounded-xl transition-all duration-150"
+                                    >
                                         <IconShoppingCart size={14} />
                                         افزودن به سبد
-                                    </button>
+                                    </Link>
                                     <button
                                         onClick={() =>
                                             removeFromFavorites(item.id)
