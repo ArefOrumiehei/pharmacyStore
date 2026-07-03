@@ -255,8 +255,8 @@ export default function ForgotPassword() {
 
     const onVerifyOTP = () => {
         setOtpError("");
-        if (otp.replace(/\D/g, "").length < 6) {
-            setOtpError("کد ۶ رقمی را کامل وارد کنید");
+        if (otp.replace(/\D/g, "").length < 5) {
+            setOtpError("کد ۵ رقمی را کامل وارد کنید");
             return;
         }
         // OTP is valid client-side — move to step 3
@@ -437,7 +437,7 @@ export default function ForgotPassword() {
                         type="button"
                         onClick={onVerifyOTP}
                         disabled={
-                            isLoading || otp.replace(/\D/g, "").length < 6
+                            isLoading || otp.replace(/\D/g, "").length < 5
                         }
                         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-800 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 text-white font-semibold text-sm transition-all duration-150 shadow-sm shadow-blue-100"
                     >
