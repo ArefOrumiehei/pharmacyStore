@@ -5,7 +5,6 @@ import {
     IconPackage,
     IconTruck,
     IconCircleCheck,
-    IconClockHour4,
     IconX,
     IconDownload,
     IconMapPin,
@@ -18,49 +17,110 @@ import {
     IconLoader2,
     IconAlertTriangle,
     IconLock,
+    IconCreditCard,
+    IconClockDollar,
+    IconHomeCheck,
+    IconArrowBackUp,
+    IconArrowBack,
 } from "@tabler/icons-react";
 import { useUserStore } from "@/store/useAccountStore";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import type { IOrder, IOrderItem } from "@/services/accountServices/accountServices";
 import { toPersianDigits } from "smart-persian-tools";
+import { useOrderStore } from "@/store/useOrderStore";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<number, {
-    label: string;
-    cardClass: string;
-    badgeClass: string;
-    icon: React.ComponentType<{ size?: number; className?: string }>;
-}> = {
+const STATUS_CONFIG: Record<
+    number,
+    {
+        label: string;
+        cardClass: string;
+        badgeClass: string;
+        icon: React.ComponentType<{ size?: number; className?: string }>;
+    }
+    > = {
     1: {
-        label:      "در حال پردازش",
-        cardClass:  "bg-amber-50 border-amber-200",
-        badgeClass: "bg-amber-50 border-amber-200 text-amber-700",
-        icon:       IconClockHour4,
+        label: "ثبت شده، پرداخت نشده",
+        cardClass: "bg-gray-50 border-gray-200",
+        badgeClass: "bg-gray-50 border-gray-200 text-gray-700",
+        icon: IconReceipt,
     },
+
     2: {
-        label:      "در حال ارسال",
-        cardClass:  "bg-blue-50 border-blue-200",
-        badgeClass: "bg-blue-50 border-blue-200 text-blue-800",
-        icon:       IconTruck,
+        label: "در انتظار پرداخت درگاه",
+        cardClass: "bg-yellow-50 border-yellow-200",
+        badgeClass: "bg-yellow-50 border-yellow-200 text-yellow-700",
+        icon: IconCreditCard,
     },
+
     3: {
-        label:      "تحویل شده",
-        cardClass:  "bg-green-50 border-green-200",
-        badgeClass: "bg-green-50 border-green-200 text-green-700",
-        icon:       IconCircleCheck,
+        label: "در انتظار تایید کارت به کارت",
+        cardClass: "bg-amber-50 border-amber-200",
+        badgeClass: "bg-amber-50 border-amber-200 text-amber-700",
+        icon: IconClockDollar,
     },
+
     4: {
-        label:      "لغو شده",
-        cardClass:  "bg-rose-50 border-rose-200",
+        label: "پرداخت موفق",
+        cardClass: "bg-emerald-50 border-emerald-200",
+        badgeClass: "bg-emerald-50 border-emerald-200 text-emerald-700",
+        icon: IconCircleCheck,
+    },
+
+    5: {
+        label: "در حال آماده سازی",
+        cardClass: "bg-orange-50 border-orange-200",
+        badgeClass: "bg-orange-50 border-orange-200 text-orange-700",
+        icon: IconPackage,
+    },
+
+    6: {
+        label: "ارسال شده",
+        cardClass: "bg-blue-50 border-blue-200",
+        badgeClass: "bg-blue-50 border-blue-200 text-blue-800",
+        icon: IconTruck,
+    },
+
+    7: {
+        label: "تحویل داده شده",
+        cardClass: "bg-green-50 border-green-200",
+        badgeClass: "bg-green-50 border-green-200 text-green-700",
+        icon: IconHomeCheck,
+    },
+
+    8: {
+        label: "نیازمند بازگشت وجه",
+        cardClass: "bg-purple-50 border-purple-200",
+        badgeClass: "bg-purple-50 border-purple-200 text-purple-700",
+        icon: IconRotateClockwise,
+    },
+
+    9: {
+        label: "لغو شده",
+        cardClass: "bg-rose-50 border-rose-200",
         badgeClass: "bg-rose-50 border-rose-200 text-rose-600",
-        icon:       IconX,
+        icon: IconX,
+    },
+
+    10: {
+        label: "مرجوع شده",
+        cardClass: "bg-red-50 border-red-200",
+        badgeClass: "bg-red-50 border-red-200 text-red-700",
+        icon: IconArrowBackUp,
+    },
+
+    11: {
+        label: "درخواست مرجوعی",
+        cardClass: "bg-indigo-50 border-indigo-200",
+        badgeClass: "bg-indigo-50 border-indigo-200 text-indigo-700",
+        icon: IconArrowBack,
     },
 };
 
-const DEFAULT_STATUS = STATUS_CONFIG[1];
+const DEFAULT_STATUS = STATUS_CONFIG[5];
 
-// ─── Helper: days since a date string ─────────────────────────────────────────
+// ─── Helper: days since a date string ──────────────────────────────
 
 const daysSince = (dateStr: string): number => {
     const parsed = new Date(dateStr);
@@ -68,9 +128,7 @@ const daysSince = (dateStr: string): number => {
     return Math.floor((Date.now() - parsed.getTime()) / (1000 * 60 * 60 * 24));
 };
 
-/* ─────────────────────────────────────────
-   RETURN REQUEST PANEL
-───────────────────────────────────────── */
+/* ──────────── RETURN REQUEST PANEL ────────────────────────── */
 function ReturnRequestPanel({ orderId, deliveredDate }: { orderId: number; deliveredDate: string }) {
     const { requestReturn, loading } = useUserStore();
     const [open,   setOpen]   = useState(false);
@@ -172,9 +230,7 @@ function ReturnRequestPanel({ orderId, deliveredDate }: { orderId: number; deliv
     );
 }
 
-/* ─────────────────────────────────────────
-   SUB-COMPONENTS
-───────────────────────────────────────── */
+/* ────── SUB-COMPONENTS ─────────────────────────────── */
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden">
@@ -227,26 +283,24 @@ function OrderItemRow({ item }: { item: IOrderItem }) {
                 <p className="text-sm font-semibold text-gray-800 truncate">{item.productName}</p>
                 {item.discountRate > 0 && (
                     <span className="text-xs text-rose-500 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-md mt-0.5 inline-block">
-                        {item.discountRateDisplay} تخفیف
+                        {toPersianDigits(item.discountRateDisplay)} تخفیف
                     </span>
                 )}
             </div>
 
             <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
                 <p className="text-sm font-bold text-blue-800">
-                    {item.totalPriceWithDiscountDisplay}
+                    {toPersianDigits(item.totalPriceWithDiscountDisplay)}
                 </p>
-                <p className="text-xs text-gray-400">
-                    {toPersianDigits(item.qty)} × {item.unitPriceDisplay}
+                <p className="text-xs text-gray-400 flex flex-row-reverse">
+                    {toPersianDigits(item.qty)} × {toPersianDigits(item.unitPriceDisplay)}
                 </p>
             </div>
         </div>
     );
 }
 
-/* ─────────────────────────────────────────
-   SKELETON
-───────────────────────────────────────── */
+/* ────────── SKELETON ──────────────────────── */
 function OrderDetailSkeleton() {
     return (
         <div className="flex flex-col gap-5">
@@ -306,13 +360,16 @@ function OrderDetailSkeleton() {
     );
 }
 
-/* ─────────────────────────────────────────
-   MAIN PAGE
-───────────────────────────────────────── */
+/* ──────────── MAIN PAGE ──────────────────────── */
 export default function OrderDetail() {
     const { orderId }   = useParams<{ orderId: string }>();
     const navigate      = useNavigate();
     const { selectedOrder, loading, fetchUserOrder, clearSelectedOrder } = useUserStore();
+    const { downloadInvoice } = useOrderStore();
+
+    const handleDownload = async (orderId: number) => {
+        await downloadInvoice(orderId);
+    };
 
     useEffect(() => {
         if (!orderId) return;
@@ -342,8 +399,8 @@ export default function OrderDetail() {
     const order      = selectedOrder as IOrder;
     const s          = STATUS_CONFIG[order.status] ?? DEFAULT_STATUS;
     const StatusIcon = s.icon;
-    const isShipping  = order.status === 2;
-    const isDelivered = order.status === 3;
+    const isShipping  = order.status === 6;
+    const isDelivered = order.status === 7;
 
     return (
         <div className="flex flex-col gap-5" dir="rtl">
@@ -359,11 +416,11 @@ export default function OrderDetail() {
                     </button>
                     <div>
                         <h1 className="text-lg font-bold text-blue-800">
-                            سفارش #{toPersianDigits(order.id)}
+                            سفارش {toPersianDigits(order.id)}#
                         </h1>
                         <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
                             <IconCalendar size={12} />
-                            {order.creationDateDisplay}
+                            {toPersianDigits(order.creationDateDisplay)}
                         </p>
                     </div>
                 </div>
@@ -373,7 +430,7 @@ export default function OrderDetail() {
                         <StatusIcon size={13} />
                         {s.label}
                     </span>
-                    <button className="flex items-center gap-1.5 text-xs font-medium text-blue-800 bg-white hover:bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-xl transition-all">
+                    <button onClick={() => handleDownload(order.id)} className="flex items-center gap-1.5 text-xs font-medium text-blue-800 bg-white hover:bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-xl transition-all">
                         <IconDownload size={13} />
                         فاکتور
                     </button>
@@ -388,7 +445,7 @@ export default function OrderDetail() {
                         <div>
                             <p className="text-sm font-bold text-blue-800">مرسوله در راه است</p>
                             <p className="text-xs text-blue-600 mt-0.5">
-                                کد رهگیری: {order.postTrackingNumber}
+                                کد رهگیری: {toPersianDigits(order.postTrackingNumber)}
                             </p>
                         </div>
                     </div>
@@ -415,18 +472,18 @@ export default function OrderDetail() {
                     {/* Receiver */}
                     <SectionCard title="اطلاعات گیرنده و پرداخت">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <InfoRow icon={IconUser}    label="نام گیرنده"   value="—" />
-                            <InfoRow icon={IconPhone}   label="موبایل"       value="—" />
-                            <InfoRow icon={IconMapPin}  label="کد پستی"      value="—" />
+                            <InfoRow icon={IconUser}    label="نام گیرنده"   value={order.receiverFullName || "—"} />
+                            <InfoRow icon={IconPhone}   label="موبایل"       value={order.receiverMobile || "—"} />
+                            <InfoRow icon={IconMapPin}  label="کد پستی"      value={order.receiverZipCode || "—"} />
                             <InfoRow icon={IconReceipt} label="روش پرداخت"   value={order.paymentMethod || "—"} />
                         </div>
                         <div className="mt-4 pt-4 border-t border-blue-50">
-                            <InfoRow icon={IconMapPin} label="آدرس تحویل" value="—" />
+                            <InfoRow icon={IconMapPin} label="آدرس تحویل" value={order.receiverAddress || "—"} />
                         </div>
                     </SectionCard>
                 </div>
 
-                {/* ── Right column ── */}
+                {/* ── left column ── */}
                 <div className="flex flex-col gap-5">
 
                     {/* Financial summary */}
@@ -434,20 +491,20 @@ export default function OrderDetail() {
                         <div className="flex flex-col gap-3 text-sm">
                             <div className="flex justify-between text-gray-600">
                                 <span>جمع اقلام</span>
-                                <span className="font-medium text-gray-800">{order.totalAmountDisplay}</span>
+                                <span className="font-medium text-gray-800">{toPersianDigits(order.totalAmountDisplay)}</span>
                             </div>
 
                             {order.discountAmount > 0 && (
                                 <div className="flex justify-between text-green-600">
                                     <span>تخفیف</span>
-                                    <span className="font-medium">− {order.discountAmountDisplay}</span>
+                                    <span className="font-medium">{toPersianDigits(order.discountAmountDisplay)}</span>
                                 </div>
                             )}
 
                             {order.orderCouponAmount > 0 && (
                                 <div className="flex justify-between text-green-600">
                                     <span>تخفیف کوپن</span>
-                                    <span className="font-medium">− {order.orderCouponAmountDisplay}</span>
+                                    <span className="font-medium">{toPersianDigits(order.orderCouponAmountDisplay)}</span>
                                 </div>
                             )}
 
@@ -455,7 +512,7 @@ export default function OrderDetail() {
 
                             <div className="flex justify-between text-blue-800 font-bold text-base">
                                 <span>مبلغ پرداخت شده</span>
-                                <span>{order.payAmountDisplay}</span>
+                                <span>{toPersianDigits(order.payAmountDisplay)}</span>
                             </div>
                         </div>
                     </SectionCard>

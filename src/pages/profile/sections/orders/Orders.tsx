@@ -4,26 +4,101 @@ import {
   IconEye,
   IconTruck,
   IconCircleCheck,
-  IconClockHour4,
   IconX,
   IconShoppingBag,
   IconChevronLeft,
   IconLoader2,
+  IconArrowBack,
+  IconArrowBackUp,
+  IconRotateClockwise,
+  IconHomeCheck,
+  IconClockDollar,
+  IconCreditCard,
+  IconReceipt,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/useAccountStore";
 import type { IOrder } from "@/services/accountServices/accountServices";
+import { toPersianDigits } from "smart-persian-tools";
 
 // ─── Status config — keyed on statusTitle from API ───────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; class: string; icon: typeof IconTruck }> = {
-  "در حال ارسال":   { label: "در حال ارسال",   class: "bg-blue-50 border-blue-100 text-blue-800",    icon: IconTruck       },
-  "تحویل شده":      { label: "تحویل شده",      class: "bg-green-50 border-green-100 text-green-700", icon: IconCircleCheck },
-  "در حال پردازش": { label: "در حال پردازش",  class: "bg-amber-50 border-amber-100 text-amber-700",  icon: IconClockHour4  },
-  "لغو شده":        { label: "لغو شده",        class: "bg-rose-50 border-rose-100 text-rose-600",    icon: IconX           },
+const STATUS_CONFIG: Record<
+  number,
+  {
+    label: string;
+    class: string;
+    icon: React.ComponentType<{ className?: string; size?: number }>;
+  }
+> = {
+  1: {
+    label: "ثبت شده، پرداخت نشده",
+    class: "bg-gray-50 border-gray-100 text-gray-700",
+    icon: IconReceipt,
+  },
+
+  2: {
+    label: "در انتظار پرداخت درگاه",
+    class: "bg-yellow-50 border-yellow-100 text-yellow-700",
+    icon: IconCreditCard,
+  },
+
+  3: {
+    label: "در انتظار تایید کارت به کارت",
+    class: "bg-amber-50 border-amber-100 text-amber-700",
+    icon: IconClockDollar,
+  },
+
+  4: {
+    label: "پرداخت موفق",
+    class: "bg-emerald-50 border-emerald-100 text-emerald-700",
+    icon: IconCircleCheck,
+  },
+
+  5: {
+    label: "در حال آماده سازی",
+    class: "bg-orange-50 border-orange-100 text-orange-700",
+    icon: IconPackage,
+  },
+
+  6: {
+    label: "ارسال شده",
+    class: "bg-blue-50 border-blue-100 text-blue-800",
+    icon: IconTruck,
+  },
+
+  7: {
+    label: "تحویل داده شده",
+    class: "bg-green-50 border-green-100 text-green-700",
+    icon: IconHomeCheck,
+  },
+
+  8: {
+    label: "نیازمند بازگشت وجه",
+    class: "bg-purple-50 border-purple-100 text-purple-700",
+    icon: IconRotateClockwise,
+  },
+
+  9: {
+    label: "لغو شده",
+    class: "bg-rose-50 border-rose-100 text-rose-600",
+    icon: IconX,
+  },
+
+  10: {
+    label: "مرجوع شده",
+    class: "bg-red-50 border-red-100 text-red-700",
+    icon: IconArrowBackUp,
+  },
+
+  11: {
+    label: "درخواست مرجوعی",
+    class: "bg-indigo-50 border-indigo-100 text-indigo-700",
+    icon: IconArrowBack,
+  },
 };
 
-const FALLBACK_STATUS = STATUS_CONFIG["در حال پردازش"];
+const FALLBACK_STATUS = STATUS_CONFIG[5];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -70,9 +145,8 @@ function EmptyState({ filterStatus }: { filterStatus: string }) {
 
 function OrderCard({ order }: { order: IOrder }) {
   const navigate   = useNavigate();
-  const s          = STATUS_CONFIG[order.statusTitle] ?? FALLBACK_STATUS;
+  const s          = STATUS_CONFIG[order.status] ?? FALLBACK_STATUS;
   const StatusIcon = s.icon;
-  const orderItems = order.items ?? [];
 
   return (
     <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden hover:border-blue-200 hover:shadow-sm transition-all duration-200">
@@ -84,9 +158,9 @@ function OrderCard({ order }: { order: IOrder }) {
             <IconPackage size={18} className="text-blue-800" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-800">سفارش #{order.id}</p>
+            <p className="text-sm font-bold text-gray-800">سفارش {toPersianDigits(order.id)}#</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {order.creationDateDisplay} • {orderItems.length} محصول
+              {toPersianDigits(order.creationDateDisplay)} • {toPersianDigits(order.itemsCount)} محصول
             </p>
           </div>
         </div>
@@ -98,10 +172,10 @@ function OrderCard({ order }: { order: IOrder }) {
           <div className="flex flex-col items-end">
             {order.discountAmount > 0 && (
               <span className="text-[11px] text-gray-400 line-through">
-                {order.totalAmountDisplay}
+                {toPersianDigits(order.totalAmountDisplay)}
               </span>
             )}
-            <p className="text-sm font-bold text-blue-800">{order.payAmountDisplay}</p>
+            <p className="text-sm font-bold text-blue-800">{toPersianDigits(order.payAmountDisplay)}</p>
           </div>
 
           {/* Status badge */}
@@ -113,7 +187,7 @@ function OrderCard({ order }: { order: IOrder }) {
           {/* Tracking number */}
           {order.postTrackingNumber && (
             <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-xl">
-              رهگیری: {order.postTrackingNumber}
+              رهگیری: {toPersianDigits(order.postTrackingNumber)}
             </span>
           )}
 
@@ -130,9 +204,9 @@ function OrderCard({ order }: { order: IOrder }) {
       </div>
 
       {/* Items preview strip */}
-      {orderItems.length > 0 && (
+      {/* {order.items > 0 && (
         <div className="border-t border-blue-50 px-5 py-3 flex items-center gap-2 overflow-x-auto">
-          {orderItems.slice(0, 4).map((item) => (
+          {order.items.slice(0, 4).map((item) => (
             <div
               key={item.id}
               className="flex items-center gap-2 bg-blue-50/60 border border-blue-100 rounded-xl px-2.5 py-1.5 flex-shrink-0"
@@ -151,7 +225,7 @@ function OrderCard({ order }: { order: IOrder }) {
             <span className="text-xs text-gray-400 flex-shrink-0">+{orderItems.length - 4} مورد دیگر</span>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 }
@@ -181,7 +255,7 @@ export default function Orders() {
         <div>
           <h1 className="text-xl font-bold text-blue-800">سفارش‌های من</h1>
           {!loading.orders && (
-            <p className="text-sm text-gray-400 mt-0.5">{orders?.length} سفارش ثبت شده</p>
+            <p className="text-sm text-gray-400 mt-0.5">{toPersianDigits(orders?.length)} سفارش ثبت شده</p>
           )}
         </div>
         {loading.orders && (
