@@ -224,7 +224,17 @@ export default function Account() {
   } = useForm<ChangePasswordFormValues>({ resolver: zodResolver(changePasswordSchema) });
 
   const onChangePassword = async (data: ChangePasswordFormValues) => {
-    try { await changePassword(data); resetCp(); } catch { /* toast shown by store */ }
+    try {
+      await changePassword(data);
+
+      resetCp({
+        currentPassword: "",
+        password: "",
+        rePassword: "",
+      });
+    } catch {
+      /* toast shown by store */
+    }
   };
 
   // ── Set password form (no password yet) ────────────────────────────────────
@@ -236,7 +246,16 @@ export default function Account() {
   } = useForm<SetPasswordFormValues>({ resolver: zodResolver(setPasswordSchema) });
 
   const onSetPassword = async (data: SetPasswordFormValues) => {
-    try { await setPassword(data); resetSp(); } catch { /* toast shown by store */ }
+    try {
+      await setPassword(data);
+
+      resetSp({
+        password: "",
+        rePassword: "",
+      });
+    } catch {
+      /* toast shown by store */
+    }
   };
 
   // ── Mobile form ─────────────────────────────────────────────────────────────
