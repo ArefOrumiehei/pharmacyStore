@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock } from "@tabler/icons-react";
 
@@ -17,10 +17,14 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const { login } = useAuthStore();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const redirectTo = searchParams.get("redirectTo") ?? "/";
+  
+  const otpHref = `otp?redirectTo=${encodeURIComponent(redirectTo)}`;
 
   const {
     register,
@@ -41,8 +45,7 @@ export default function Login() {
         rememberMe: data.rememberMe,
       });
       if (res) {
-        const returnTo = (location.state as { returnTo?: string })?.returnTo ?? "/";
-        navigate(returnTo, { replace: true });
+        navigate(redirectTo, { replace: true });
       } else {
         setServerError("نام کاربری/موبایل یا رمز عبور اشتباه است");
       }
@@ -173,7 +176,7 @@ export default function Login() {
       <p className="text-sm text-gray-500 text-center">
         حساب کاربری ندارید؟{" "}
         <Link
-          to="otp"
+          to={otpHref}
           className="text-blue-800 font-semibold hover:text-blue-600 transition-colors"
         >
           ورود با شماره موبایل

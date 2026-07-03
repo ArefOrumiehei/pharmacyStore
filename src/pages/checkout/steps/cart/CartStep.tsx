@@ -44,10 +44,8 @@ export default function CartStep() {
     const handleProceed = () => {
         if (isEmpty || loading) return;
         if (isGuest) {
-            // Guest: go to login, come back to address after auth
-            navigate("/login/otp", { state: { returnTo: "/checkout/address" } });
+            navigate(`/login?redirectTo=${encodeURIComponent("/checkout/address")}`);
         } else {
-            // Authenticated: go directly to address (sync happens there on mount)
             navigate("/checkout/address");
         }
     };

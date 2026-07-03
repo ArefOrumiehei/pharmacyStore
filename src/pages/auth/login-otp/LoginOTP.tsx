@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useAccountStore";
 import {
@@ -137,6 +137,8 @@ type Step = "mobile" | "otp";
 export default function LoginOTP() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+
     const { sendLoginOTP, verifyLoginOTP, loading } = useAuthStore();
     const { fetchUser } = useUserStore();
 
@@ -149,6 +151,10 @@ export default function LoginOTP() {
 
     const remaining = useCountdown(120, countdownActive);
     const canResend = remaining === 0 && step === "otp";
+
+    const redirectTo = searchParams.get("redirectTo") ?? "/";
+
+    const loginHref = `/login?redirectTo=${encodeURIComponent(redirectTo)}`;
 
     const formatRemaining = (s: number) => {
         const m = Math.floor(s / 60)
@@ -191,8 +197,7 @@ export default function LoginOTP() {
         const res = await verifyLoginOTP(mobile, otp);
         if (res) {
             await fetchUser();
-            const returnTo = (location.state as { returnTo?: string })?.returnTo ?? "/";
-            navigate(returnTo, { replace: true });
+            navigate(redirectTo, { replace: true });
         }
     };
 
@@ -363,7 +368,7 @@ export default function LoginOTP() {
             <div className="flex flex-col gap-3 text-center text-sm text-gray-500">
                 <p>
                     <Link
-                        to="/login"
+                        to={loginHref}
                         state={location.state}
                         className="text-blue-800 font-semibold hover:text-blue-600 transition-colors"
                     >
