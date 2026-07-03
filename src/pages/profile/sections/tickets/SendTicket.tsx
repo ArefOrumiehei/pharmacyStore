@@ -125,7 +125,7 @@ export default function SendTicket() {
   const navigate = useNavigate();
   const { submitLoading, submitTicket } = useTicketStore();
   const { fetchTitles, titles, titlesLoading} = useSiteStore();
-console.log("ticket titles ->", titles);
+  
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
 
   const {
