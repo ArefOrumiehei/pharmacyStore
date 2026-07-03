@@ -86,13 +86,14 @@ export default function Login() {
                   ? "border-rose-200 bg-rose-50/30"
                   : "border-blue-100 bg-blue-50/30"
               }`}
+              autoComplete="username"
             />
             <IconUser
               size={16}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
           </div>
-          {errors.usernameOrMobile && (  // ✅ fixed
+          {errors.usernameOrMobile && (
             <p className="text-rose-500 text-xs mt-0.5">
               {errors.usernameOrMobile.message}
             </p>
@@ -117,6 +118,7 @@ export default function Login() {
                   ? "border-rose-200 bg-rose-50/30"
                   : "border-blue-100 bg-blue-50/30"
               }`}
+              autoComplete="current-password"
             />
             <IconLock
               size={16}
