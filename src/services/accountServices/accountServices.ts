@@ -10,6 +10,8 @@ export interface IUserProfile {
     mobile?: string;
     profilePhoto?: string;
     hasPassword: boolean;
+    isCompleted: boolean;
+    creationDate: string;
 }
 
 export interface IAddress {
@@ -81,7 +83,7 @@ export interface ILatestOrder {
 
 export interface ITicket {
     userId: number;
-    ticketId: number;
+    id: number;
     subject: string;
     message: string;
     adminReply: string | null;
