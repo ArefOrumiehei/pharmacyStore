@@ -37,7 +37,8 @@ export const useTicketStore = create<TicketStore>((set) => ({
     try {
       const res = await createTicket(params);
       set({ submitLoading: false });
-      return res.trackingCode;
+      toast.success(res.message || "تیکت شما ثبت شد");
+      return res.data.trackingCode;
     } catch (err) {
       const message = extractMessage(err, "خطا در ارسال تیکت");
       set({ submitLoading: false, error: message });
