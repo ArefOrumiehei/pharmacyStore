@@ -166,8 +166,9 @@ export const useUserStore = create<IUserStore>()(
                 set((s) => ({ loading: { ...s.loading, updateProfile: true } }));
                 try {
                     const res = await updateProfile(data);
-                    set((s) => ({ user: { ...s.user, ...res.data }, loading: { ...s.loading, updateProfile: false } }));
-                    toast.success("پروفایل با موفقیت بروزرسانی شد");
+                    await useUserStore.getState().fetchUser();
+                    set((s) => ({ loading: { ...s.loading, updateProfile: false } }));
+                    toast.success(res.message || "پروفایل با موفقیت بروزرسانی شد");
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, updateProfile: false } }));
                     toast.error(extractMessage(err, "خطا در بروزرسانی پروفایل"));
