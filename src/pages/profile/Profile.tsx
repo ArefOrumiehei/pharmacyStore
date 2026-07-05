@@ -12,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { useUserStore } from "@/store/useAccountStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { IMAGE_BASE } from "@/apis/apiInstance";
 
 const MENU_ITEMS = [
   { path: "/profile", icon: IconHome , label: "خلاصه فعالیت", end: true },
@@ -46,9 +47,17 @@ export default function Profile() {
             {/* User info */}
             <div className="flex items-center gap-3 p-5 border-b border-blue-50 bg-blue-50/50">
               <div className="w-12 h-12 rounded-2xl bg-blue-800 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-lg">
-                  {user?.fullname?.[0] ?? user?.username?.[0] ?? "؟"}
-                </span>
+                {user?.profilePhoto ? (
+                  <img
+                    src={`${IMAGE_BASE}/${user.profilePhoto}`}
+                    alt={user.fullname ?? user.username ?? "پروفایل"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-lg">
+                    {user?.fullname?.[0] ?? user?.username?.[0] ?? "؟"}
+                  </span>
+                )}
               </div>
               <div className="min-w-0">
                 <h3 className="font-bold text-gray-800 text-sm truncate">
