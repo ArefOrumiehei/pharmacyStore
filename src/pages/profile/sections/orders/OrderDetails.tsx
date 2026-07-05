@@ -257,7 +257,7 @@ function InfoRow({
             </div>
             <div>
                 <p className="text-xs text-gray-400">{label}</p>
-                <p className="text-sm font-semibold text-gray-700 mt-0.5">{value}</p>
+                <p className="text-sm font-semibold text-gray-700 mt-0.5">{toPersianDigits(value)}</p>
             </div>
         </div>
     );
@@ -292,8 +292,10 @@ function OrderItemRow({ item }: { item: IOrderItem }) {
                 <p className="text-sm font-bold text-blue-800">
                     {toPersianDigits(item.totalPriceWithDiscountDisplay)}
                 </p>
-                <p className="text-xs text-gray-400 flex flex-row-reverse">
-                    {toPersianDigits(item.qty)} × {toPersianDigits(item.unitPriceDisplay)}
+                <p className="text-xs text-gray-400 flex flex-row-reverse gap-1">
+                    <span>{toPersianDigits(item.qty)}</span> 
+                    ×
+                    <span>{toPersianDigits(item.unitPriceDisplay)}</span>
                 </p>
             </div>
         </div>
