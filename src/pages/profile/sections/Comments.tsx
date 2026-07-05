@@ -123,7 +123,7 @@ function CommentCard({ comment }: { comment: IUserComments }) {
             {comment.replyDate && (
               <span className="text-xs text-gray-400 mr-auto flex items-center gap-1">
                 <IconCalendar size={11} />
-                {comment.replyDate}
+                <span dir="ltr">{toPersianDigits(comment.replyDate)}</span>
               </span>
             )}
           </div>
@@ -134,7 +134,7 @@ function CommentCard({ comment }: { comment: IUserComments }) {
       {/* Footer */}
       <p className="text-xs text-gray-400 flex items-center gap-1">
         <IconCalendar size={11} />
-        ثبت شده در: {comment.creationDate}
+        ثبت شده در: <span dir="ltr">{toPersianDigits(comment.creationDate)}</span>
       </p>
     </div>
   );

@@ -6,6 +6,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useUserStore } from "@/store/useAccountStore";
 import type { IAddress, IAddressFormParams, IEditAddressFormParams } from "@/services/accountServices/accountServices";
+import { toPersianDigits } from "smart-persian-tools";
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
@@ -178,9 +179,9 @@ function AddressCard({
 
       {/* Details */}
       <div className="flex flex-col gap-1 text-xs text-gray-500">
-        <p className="leading-5">{address.receiverAddress}</p>
-        <p>کد پستی: {address.receiverZipCode}</p>
-        <p>موبایل: {address.receiverMobile}</p>
+        <p className="leading-5">{toPersianDigits(address.receiverAddress)}</p>
+        <p>کد پستی: {toPersianDigits(address.receiverZipCode)}</p>
+        <p>موبایل: {toPersianDigits(address.receiverMobile)}</p>
       </div>
 
       {/* Actions */}
