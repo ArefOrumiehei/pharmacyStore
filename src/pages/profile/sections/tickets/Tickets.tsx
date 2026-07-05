@@ -49,7 +49,7 @@ function TicketCard({ ticket }: { ticket: ITicket }) {
 
   return (
     <Link
-      to={`/profile/tickets/${ticket.ticketId}`}
+      to={`/profile/tickets/${ticket.id}`}
       className="group w-full text-right bg-white border border-blue-100 rounded-2xl p-5 flex flex-col gap-3 hover:border-blue-300 hover:shadow-sm transition-all duration-200"
     >
       <div className="flex items-start justify-between gap-3">
@@ -74,12 +74,12 @@ function TicketCard({ ticket }: { ticket: ITicket }) {
       <div className="flex items-center justify-between text-xs text-gray-400">
         <span className="flex items-center gap-1">
           <IconCalendar size={11} />
-          ثبت: {toPersianDigits(ticket.creationDate)}
+          ثبت: <span dir="ltr">{toPersianDigits(ticket.creationDate)}</span>
         </span>
         {ticket.adminReplyDate && (
           <span className="flex items-center gap-1">
             <IconClock size={11} />
-            پاسخ: {toPersianDigits(ticket.adminReplyDate)}
+            پاسخ: <span dir="ltr">{toPersianDigits(ticket.adminReplyDate)}</span>
           </span>
         )}
       </div>
@@ -140,7 +140,7 @@ export default function Tickets() {
       ) : (
         <div className="flex flex-col gap-3">
           {tickets.map((ticket) => (
-            <TicketCard key={ticket.ticketId} ticket={ticket} />
+            <TicketCard key={ticket.id} ticket={ticket} />
           ))}
         </div>
       )}
