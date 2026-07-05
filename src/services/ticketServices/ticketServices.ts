@@ -12,20 +12,21 @@ export interface ICreateTicketResponse {
   trackingCode: string;
 }
 
-interface IApiResponse<T> {
+export interface IApiResponse<T = null> {
   success: boolean;
   message: string;
   data: T;
+  errors: Record<string, string[]>;
 }
 
 // ─── Services ─────────────────────────────────────────────────────────────────
 export const createTicket = async (
   params: ICreateTicketParams
-): Promise<ICreateTicketResponse> => {
+): Promise<IApiResponse<ICreateTicketResponse>> => {
   const res = await apiInstance.post<IApiResponse<ICreateTicketResponse>>(
     "/api/Ticket",
     params,
     { isFormDataRequest: true }
   );
-  return res.data.data;
+  return res.data;
 };
