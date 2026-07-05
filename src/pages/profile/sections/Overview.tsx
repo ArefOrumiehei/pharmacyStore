@@ -6,50 +6,101 @@ import {
     IconShoppingBag,
     IconSparkles,
     IconChevronLeft,
-    IconClockHour4,
     IconTruck,
     IconCircleCheck,
     IconX,
     IconRotateClockwise,
+    IconReceipt,
+    IconCreditCard,
+    IconClockDollar,
+    IconHomeCheck,
+    IconArrowBackUp,
+    IconArrowBack,
+    IconArrowLeft,
+    IconAlertCircle,
 } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { useUserStore } from "@/store/useAccountStore";
 import { toPersianDigits } from "smart-persian-tools";
 
-// ─── Status map (keyed by statusTitle from API) ───────────────────────────────
+// ─── Status map (keyed by status from API) ───────────────────────────────
 
-const STATUS_STYLES: Record<
-    string,
-    { label: string; class: string; icon: typeof IconTruck }
-> = {
-    "در حال ارسال": {
-        label: "در حال ارسال",
+const STATUS_CONFIG: Record<
+    number,
+    {
+        label: string;
+        class: string;
+        icon: React.ComponentType<{ className?: string; size?: number }>;
+    }
+    > = {
+    1: {
+        label: "ثبت شده، پرداخت نشده",
+        class: "bg-gray-50 border-gray-100 text-gray-700",
+        icon: IconReceipt,
+    },
+
+    2: {
+        label: "در انتظار پرداخت درگاه",
+        class: "bg-yellow-50 border-yellow-100 text-yellow-700",
+        icon: IconCreditCard,
+    },
+
+    3: {
+        label: "در انتظار تایید کارت به کارت",
+        class: "bg-amber-50 border-amber-100 text-amber-700",
+        icon: IconClockDollar,
+    },
+
+    4: {
+        label: "پرداخت موفق",
+        class: "bg-emerald-50 border-emerald-100 text-emerald-700",
+        icon: IconCircleCheck,
+    },
+
+    5: {
+        label: "در حال آماده سازی",
+        class: "bg-orange-50 border-orange-100 text-orange-700",
+        icon: IconPackage,
+    },
+
+    6: {
+        label: "ارسال شده",
         class: "bg-blue-50 border-blue-100 text-blue-800",
         icon: IconTruck,
     },
-    "تحویل شده": {
-        label: "تحویل شده",
+
+    7: {
+        label: "تحویل داده شده",
         class: "bg-green-50 border-green-100 text-green-700",
-        icon: IconCircleCheck,
+        icon: IconHomeCheck,
     },
-    "در حال پردازش": {
-        label: "در حال پردازش",
-        class: "bg-amber-50 border-amber-100 text-amber-700",
-        icon: IconClockHour4,
+
+    8: {
+        label: "نیازمند بازگشت وجه",
+        class: "bg-purple-50 border-purple-100 text-purple-700",
+        icon: IconRotateClockwise,
     },
-    "لغو شده": {
+
+    9: {
         label: "لغو شده",
         class: "bg-rose-50 border-rose-100 text-rose-600",
         icon: IconX,
     },
-    "مرجوع شده": {
+
+    10: {
         label: "مرجوع شده",
-        class: "bg-purple-50 border-purple-100 text-purple-600",
-        icon: IconRotateClockwise,
+        class: "bg-red-50 border-red-100 text-red-700",
+        icon: IconArrowBackUp,
+    },
+
+    11: {
+        label: "درخواست مرجوعی",
+        class: "bg-indigo-50 border-indigo-100 text-indigo-700",
+        icon: IconArrowBack,
     },
 };
 
-const FALLBACK_STATUS = STATUS_STYLES["در حال پردازش"];
+const FALLBACK_STATUS = STATUS_CONFIG[5];
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 
@@ -59,6 +110,35 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
             <span className="w-1 h-5 bg-blue-800 rounded-full inline-block flex-shrink-0" />
             {children}
         </h2>
+    );
+}
+
+// ─── Incomplete profile banner ────────────────────────────────────────────────
+function IncompleteProfileBanner() {
+    return (
+        <Link
+            to="/profile/account"
+            className="group flex items-center gap-4 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 hover:bg-amber-100 hover:border-amber-300 transition-all duration-200"
+        >
+            {/* Icon */}
+            <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-200 transition-colors">
+                <IconAlertCircle size={20} className="text-amber-600" />
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-amber-800">پروفایل شما ناقص است</p>
+                <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
+                    برای استفاده کامل از امکانات، نام، نام کاربری و رمز عبور خود را تکمیل کنید.
+                </p>
+            </div>
+
+            {/* CTA */}
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-200 group-hover:bg-amber-300 px-3 py-1.5 rounded-xl flex-shrink-0 transition-colors whitespace-nowrap">
+                تکمیل پروفایل
+                <IconArrowLeft size={13} />
+            </div>
+        </Link>
     );
 }
 
@@ -156,6 +236,7 @@ export default function Overview() {
 
     return (
         <div className="flex flex-col gap-5" dir="rtl">
+            {user && !user.isCompleted && <IncompleteProfileBanner />}
 
             {/* Welcome */}
             <div className="bg-white border-2 border-blue-800 rounded-2xl p-6 text-blue-800">
@@ -218,7 +299,7 @@ export default function Overview() {
                 ) : (
                     <div className="flex flex-col gap-3">
                         {overview.latestOrders.map((order) => {
-                            const s = STATUS_STYLES[order.statusTitle] ?? FALLBACK_STATUS;
+                            const s = STATUS_CONFIG[order.status] ?? FALLBACK_STATUS;
                             const StatusIcon = s.icon;
                             return (
                                 <Link
