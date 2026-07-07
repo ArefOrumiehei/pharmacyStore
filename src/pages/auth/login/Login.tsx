@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
-import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock } from "@tabler/icons-react";
+import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock, IconAlertCircle } from "@tabler/icons-react";
+import { useState } from "react";
 
 const loginSchema = z.object({
   usernameOrMobile: z.string().min(2, "نام کاربری یا شماره موبایل الزامی است"),
@@ -15,20 +15,18 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const { login } = useAuthStore();
+  const { login, loading } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
-  const [serverError, setServerError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const redirectTo = searchParams.get("redirectTo") ?? "/";
-  
   const otpHref = `otp?redirectTo=${encodeURIComponent(redirectTo)}`;
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -36,23 +34,17 @@ export default function Login() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setServerError("");
-    setIsLoading(true);
     try {
-      const res = await login({
+      await login({
         usernameOrMobile: data.usernameOrMobile,
         password: data.password,
         rememberMe: data.rememberMe,
       });
-      if (res) {
-        navigate(redirectTo, { replace: true });
-      } else {
-        setServerError("نام کاربری/موبایل یا رمز عبور اشتباه است");
-      }
-    } catch {
-      setServerError("خطایی رخ داده است. لطفاً دوباره تلاش کنید");
-    } finally {
-      setIsLoading(false);
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      setError("root", {
+        message: err instanceof Error ? err.message : "خطایی رخ داده است. لطفاً دوباره تلاش کنید",
+      });
     }
   };
 
@@ -65,13 +57,15 @@ export default function Login() {
       </div>
 
       {/* Server error */}
-      {serverError && (
-        <div className="bg-rose-50 border border-rose-100 text-rose-600 text-sm rounded-xl px-4 py-3 mb-4 text-center">
-          {serverError}
+      {errors.root && (
+        <div className="flex items-center gap-2 bg-rose-50 border border-rose-100 text-rose-600 text-sm rounded-xl px-4 py-3 mb-4">
+          <IconAlertCircle size={16} className="flex-shrink-0" />
+          {errors.root.message}
         </div>
       )}
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+
         {/* Username or Mobile */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-gray-600">
@@ -81,22 +75,15 @@ export default function Login() {
             <input
               {...register("usernameOrMobile")}
               placeholder="نام کاربری یا شماره موبایل را وارد کنید"
-              className={`w-full border rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
-                errors.usernameOrMobile
-                  ? "border-rose-200 bg-rose-50/30"
-                  : "border-blue-100 bg-blue-50/30"
-              }`}
               autoComplete="username"
+              className={`w-full border rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
+                errors.usernameOrMobile ? "border-rose-200 bg-rose-50/30" : "border-blue-100 bg-blue-50/30"
+              }`}
             />
-            <IconUser
-              size={16}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
+            <IconUser size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
           {errors.usernameOrMobile && (
-            <p className="text-rose-500 text-xs mt-0.5">
-              {errors.usernameOrMobile.message}
-            </p>
+            <p className="text-rose-500 text-xs mt-0.5">{errors.usernameOrMobile.message}</p>
           )}
         </div>
 
@@ -113,17 +100,12 @@ export default function Login() {
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="رمز عبور خود را وارد کنید"
-              className={`w-full border rounded-xl px-3 py-2.5 pr-10 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
-                errors.password
-                  ? "border-rose-200 bg-rose-50/30"
-                  : "border-blue-100 bg-blue-50/30"
-              }`}
               autoComplete="current-password"
+              className={`w-full border rounded-xl px-3 py-2.5 pr-10 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 placeholder-gray-400 transition-all duration-200 ${
+                errors.password ? "border-rose-200 bg-rose-50/30" : "border-blue-100 bg-blue-50/30"
+              }`}
             />
-            <IconLock
-              size={16}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
+            <IconLock size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <button
               type="button"
               onClick={() => setShowPassword((p) => !p)}
@@ -145,10 +127,7 @@ export default function Login() {
             {...register("rememberMe")}
             className="w-4 h-4 rounded border-blue-200 accent-blue-800 cursor-pointer"
           />
-          <label
-            htmlFor="remember-me"
-            className="text-sm text-gray-500 cursor-pointer select-none"
-          >
+          <label htmlFor="remember-me" className="text-sm text-gray-500 cursor-pointer select-none">
             مرا به خاطر بسپار
           </label>
         </div>
@@ -156,14 +135,10 @@ export default function Login() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={loading.login}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-800 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 text-white font-semibold text-sm transition-all duration-150 shadow-sm shadow-blue-100 mt-2"
         >
-          {isLoading ? (
-            <IconLoader2 size={18} className="animate-spin" />
-          ) : (
-            "ورود به حساب"
-          )}
+          {loading.login ? <IconLoader2 size={18} className="animate-spin" /> : "ورود به حساب"}
         </button>
       </form>
 
@@ -174,13 +149,10 @@ export default function Login() {
         <div className="flex-1 h-px bg-blue-50" />
       </div>
 
-      {/* Signup link */}
+      {/* OTP link */}
       <p className="text-sm text-gray-500 text-center">
         حساب کاربری ندارید؟{" "}
-        <Link
-          to={otpHref}
-          className="text-blue-800 font-semibold hover:text-blue-600 transition-colors"
-        >
+        <Link to={otpHref} className="text-blue-800 font-semibold hover:text-blue-600 transition-colors">
           ورود با شماره موبایل
         </Link>
       </p>

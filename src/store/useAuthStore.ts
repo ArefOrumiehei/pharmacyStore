@@ -20,8 +20,8 @@ interface ILoadingState {
     login: boolean;
     logout: boolean;
     refresh: boolean;
-    otp: boolean; // covers both send + verify OTP
-    forgotPass: boolean; // covers both send + verify/reset
+    otp: boolean;
+    forgotPass: boolean;
 }
 
 interface AuthState {
@@ -29,17 +29,13 @@ interface AuthState {
     refreshToken: string | null;
     loading: ILoadingState;
 
-    // Credentials login
-    login: (params: IAuthLoginParams) => Promise<IAuthTokenResponse | null>;
+    login: (params: IAuthLoginParams) => Promise<IAuthTokenResponse>;
     logout: () => Promise<void>;
     refresh: () => Promise<IAuthTokenResponse | null>;
 
     // OTP login
     sendLoginOTP: (mobile: string) => Promise<void>;
-    verifyLoginOTP: (
-        mobile: string,
-        code: string
-    ) => Promise<IAuthTokenResponse | null>;
+    verifyLoginOTP: (mobile: string, code: string) => Promise<IAuthTokenResponse | null>;
 
     // Forgot password
     sendForgotOTP: (mobile: string) => Promise<void>;
@@ -64,8 +60,7 @@ const DEFAULT_LOADING: ILoadingState = {
 
 const extractMessage = (err: unknown, fallback: string): string => {
     if (err && typeof err === "object" && "response" in err) {
-        const res = (err as { response?: { data?: { message?: string } } })
-            .response;
+        const res = (err as { response?: { data?: { message?: string } } }).response;
         return res?.data?.message ?? fallback;
     }
     return fallback;
@@ -85,40 +80,32 @@ export const useAuthStore = create<AuthState>()(
             refreshToken: null,
             loading: DEFAULT_LOADING,
 
-            // ── Helpers ─────────────────────────────────────────────────────────────
+            // ── Helpers ──────────────────────────────────────────────────────
 
             setTokens: (accessToken, refreshToken) =>
                 set({ accessToken, refreshToken }),
 
             clearAuth: () =>
-                set({
-                    accessToken: null,
-                    refreshToken: null,
-                    loading: DEFAULT_LOADING,
-                }),
-
-            // ── Credentials login ────────────────────────────────────────────────────
+                set({ accessToken: null, refreshToken: null, loading: DEFAULT_LOADING }),
 
             login: async (params) => {
                 set((s) => ({ loading: { ...s.loading, login: true } }));
                 try {
                     const res = await authLogin(params);
                     set((s) => ({
-                        ...applyTokens(res),
+                        ...applyTokens(res.data),
                         loading: { ...s.loading, login: false },
                     }));
                     toast.success("ورود با موفقیت انجام شد");
-                    return res;
+                    return res.data;
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, login: false } }));
-                    toast.error(
-                        extractMessage(err, "نام کاربری یا رمز عبور اشتباه است")
-                    );
-                    return null;
+                    const message = extractMessage(err, "نام کاربری یا رمز عبور اشتباه است");
+                    throw new Error(message);
                 }
             },
 
-            // ── Logout ───────────────────────────────────────────────────────────────
+            // ── Logout ────────────────────────────────────────────────────────
 
             logout: async () => {
                 set((s) => ({ loading: { ...s.loading, logout: true } }));
@@ -127,16 +114,12 @@ export const useAuthStore = create<AuthState>()(
                 } catch {
                     // Always clear locally even if the server call fails
                 } finally {
-                    set({
-                        accessToken: null,
-                        refreshToken: null,
-                        loading: DEFAULT_LOADING,
-                    });
+                    set({ accessToken: null, refreshToken: null, loading: DEFAULT_LOADING });
                     toast.success("از حساب کاربری خارج شدید");
                 }
             },
 
-            // ── Refresh token ─────────────────────────────────────────────────────────
+            // ── Refresh token ─────────────────────────────────────────────────
 
             refresh: async () => {
                 const token = get().refreshToken;
@@ -145,25 +128,16 @@ export const useAuthStore = create<AuthState>()(
                 set((s) => ({ loading: { ...s.loading, refresh: true } }));
                 try {
                     const res = await authRefreshToken(token);
-                    set((s) => ({
-                        ...applyTokens(res),
-                        loading: { ...s.loading, refresh: false },
-                    }));
+                    set((s) => ({ ...applyTokens(res), loading: { ...s.loading, refresh: false } }));
                     return res;
                 } catch (err) {
-                    set({
-                        accessToken: null,
-                        refreshToken: null,
-                        loading: DEFAULT_LOADING,
-                    });
-                    toast.error(
-                        extractMessage(err, "نشست منقضی شد، دوباره وارد شوید")
-                    );
+                    set({ accessToken: null, refreshToken: null, loading: DEFAULT_LOADING });
+                    toast.error(extractMessage(err, "نشست منقضی شد، دوباره وارد شوید"));
                     return null;
                 }
             },
 
-            // ── OTP login — send ──────────────────────────────────────────────────────
+            // ── OTP login — send ──────────────────────────────────────────────
 
             sendLoginOTP: async (mobile) => {
                 set((s) => ({ loading: { ...s.loading, otp: true } }));
@@ -174,65 +148,52 @@ export const useAuthStore = create<AuthState>()(
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, otp: false } }));
                     toast.error(extractMessage(err, "خطا در ارسال کد تأیید"));
-                    throw err; // let the form disable the resend button etc.
+                    throw err;
                 }
             },
 
-            // ── OTP login — verify ────────────────────────────────────────────────────
+            // ── OTP login — verify ────────────────────────────────────────────
 
             verifyLoginOTP: async (mobile, code) => {
                 set((s) => ({ loading: { ...s.loading, otp: true } }));
                 try {
                     const res = await loginVerifyOTP(mobile, code);
-                    set((s) => ({
-                        ...applyTokens(res),
-                        loading: { ...s.loading, otp: false },
-                    }));
+                    set((s) => ({ ...applyTokens(res), loading: { ...s.loading, otp: false } }));
                     toast.success("ورود با موفقیت انجام شد");
                     return res;
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, otp: false } }));
-                    toast.error(
-                        extractMessage(err, "کد وارد شده اشتباه یا منقضی است")
-                    );
+                    toast.error(extractMessage(err, "کد وارد شده اشتباه یا منقضی است"));
                     return null;
                 }
             },
 
-            // ── Forgot password — send OTP ────────────────────────────────────────────
+            // ── Forgot password — send OTP ────────────────────────────────────
 
             sendForgotOTP: async (mobile) => {
                 set((s) => ({ loading: { ...s.loading, forgotPass: true } }));
                 try {
                     await forgotPassSendOTP(mobile);
-                    set((s) => ({
-                        loading: { ...s.loading, forgotPass: false },
-                    }));
+                    set((s) => ({ loading: { ...s.loading, forgotPass: false } }));
                     toast.info("کد بازیابی رمز ارسال شد");
                 } catch (err) {
-                    set((s) => ({
-                        loading: { ...s.loading, forgotPass: false },
-                    }));
+                    set((s) => ({ loading: { ...s.loading, forgotPass: false } }));
                     toast.error(extractMessage(err, "خطا در ارسال کد بازیابی"));
                     throw err;
                 }
             },
 
-            // ── Forgot password — verify & reset ──────────────────────────────────────
+            // ── Forgot password — verify & reset ──────────────────────────────
 
             verifyAndResetPass: async (params) => {
                 set((s) => ({ loading: { ...s.loading, forgotPass: true } }));
                 try {
                     await forgotPassVerifyAndReset(params);
-                    set((s) => ({
-                        loading: { ...s.loading, forgotPass: false },
-                    }));
+                    set((s) => ({ loading: { ...s.loading, forgotPass: false } }));
                     toast.success("رمز عبور با موفقیت تغییر یافت");
                     return true;
                 } catch (err) {
-                    set((s) => ({
-                        loading: { ...s.loading, forgotPass: false },
-                    }));
+                    set((s) => ({ loading: { ...s.loading, forgotPass: false } }));
                     toast.error(extractMessage(err, "خطا در بازیابی رمز عبور"));
                     return false;
                 }
@@ -242,7 +203,7 @@ export const useAuthStore = create<AuthState>()(
         {
             name: "auth_data",
             partialize: (state) => ({
-                accessToken: state.accessToken,
+                accessToken:  state.accessToken,
                 refreshToken: state.refreshToken,
             }),
         }

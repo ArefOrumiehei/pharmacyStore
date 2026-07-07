@@ -20,11 +20,18 @@ export interface IForgotPasswordParams {
   confirmPassword: string;
 }
 
+export interface IApiResponse<T = null> {
+  success: boolean;
+  message: string;
+  data: T;
+  errors: Record<string, string[]>;
+}
+
 // ─── Auth API calls ───────────────────────────────────────────────────────────
 
-export const authLogin = async (params: IAuthLoginParams): Promise<IAuthTokenResponse> => {
+export const authLogin = async (params: IAuthLoginParams): Promise<IApiResponse<IAuthTokenResponse>> => {
   const res = await apiInstance.post("/api/Auth/login", params);
-  return res.data.data;
+  return res.data;
 };
 
 export const authRefreshToken = async (refreshToken: string): Promise<IAuthTokenResponse> => {
