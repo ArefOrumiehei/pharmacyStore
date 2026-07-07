@@ -124,6 +124,13 @@ const DEFAULT_LOADING: ILoadingState = {
 };
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
+const getStatus = (err: unknown): number | null => {
+    if (err && typeof err === "object" && "response" in err) {
+        const status = (err as { response?: { status?: number } }).response?.status;
+        return status ?? null;
+    }
+    return null;
+};
 
 const extractMessage = (err: unknown, fallback: string): string => {
     if (err && typeof err === "object" && "response" in err) {
@@ -131,6 +138,12 @@ const extractMessage = (err: unknown, fallback: string): string => {
         return r?.data?.message ?? fallback;
     }
     return fallback;
+};
+
+const toastIfNot404 = (err: unknown, fallback: string) => {
+    if (getStatus(err) !== 404) {
+        toast.error(extractMessage(err, fallback));
+    }
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -254,7 +267,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ userFavorites: res.data, loading: { ...s.loading, favorites: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, favorites: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت علاقه‌مندی‌ها"));
+                    toastIfNot404(err, "خطا در دریافت علاقه‌مندی‌ها");
                 }
             },
 
@@ -267,7 +280,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ userOrders: res.data, loading: { ...s.loading, orders: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, orders: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت سفارش‌ها"));
+                    toastIfNot404(err, "خطا در دریافت سفارش‌ها");
                 }
             },
 
@@ -278,7 +291,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ selectedOrder: res.data, loading: { ...s.loading, order: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, order: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت جزئیات سفارش"));
+                    toastIfNot404(err, "خطا در دریافت جزئیات سفارش");
                 }
             },
 
@@ -293,7 +306,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ userTickets: res.data, loading: { ...s.loading, tickets: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, tickets: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت تیکت‌ها"));
+                    toastIfNot404(err, "خطا در دریافت تیکت‌ها");
                 }
             },
 
@@ -304,7 +317,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ selectedTicket: res.data, loading: { ...s.loading, ticket: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, ticket: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت جزئیات تیکت"));
+                    toastIfNot404(err, "خطا در دریافت جزئیات تیکت");
                 }
             },
 
@@ -319,7 +332,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ userAddresses: res.data, loading: { ...s.loading, addresses: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, addresses: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت آدرس‌ها"));
+                    toastIfNot404(err, "خطا در دریافت آدرس‌ها");
                 }
             },
 
@@ -328,7 +341,7 @@ export const useUserStore = create<IUserStore>()(
                     const res = await getUserAddress(id);
                     return res.data;
                 } catch (err) {
-                    toast.error(extractMessage(err, "خطا در دریافت آدرس"));
+                    toastIfNot404(err, "خطا در دریافت آدرس");
                     throw err;
                 }
             },
@@ -386,7 +399,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ overview: res.data, loading: { ...s.loading, overview: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, overview: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت اطلاعات کلی"));
+                    toastIfNot404(err, "خطا در دریافت اطلاعات کلی");
                 }
             },
 
@@ -414,7 +427,7 @@ export const useUserStore = create<IUserStore>()(
                     set((s) => ({ userComments: res.data, loading: { ...s.loading, comments: false } }));
                 } catch (err) {
                     set((s) => ({ loading: { ...s.loading, comments: false } }));
-                    toast.error(extractMessage(err, "خطا در دریافت نظرات"));
+                    toastIfNot404(err, "خطا در دریافت نظرات");
                 }
             },
 
