@@ -51,7 +51,7 @@ export default function Profile() {
                   <img
                     src={`${IMAGE_BASE}/${user.profilePhoto}`}
                     alt={user.fullname ?? user.username ?? "پروفایل"}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
                   <span className="text-white font-bold text-lg">
