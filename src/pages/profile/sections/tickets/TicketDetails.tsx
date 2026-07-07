@@ -13,6 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { useUserStore } from "@/store/useAccountStore";
 import type { ITicket } from "@/services/accountServices/accountServices";
+import { toPersianDigits } from "smart-persian-tools";
 
 /* ──────────────── HELPERS ───────────────────────────── */
 const getStatus = (ticket: ITicket) =>
@@ -121,7 +122,7 @@ export default function TicketDetails() {
           </div>
           <span className="flex items-center gap-1.5 text-xs text-gray-400">
             <IconCalendar size={11} />
-            {ticket.creationDate}
+            <span dir="ltr">{toPersianDigits(ticket.creationDate)}</span>
           </span>
         </div>
 
@@ -143,7 +144,7 @@ export default function TicketDetails() {
             {ticket.adminReplyDate && (
               <span className="flex items-center gap-1.5 text-xs text-gray-400">
                 <IconCalendar size={11} />
-                {ticket.adminReplyDate}
+                <span dir="ltr">{toPersianDigits(ticket.adminReplyDate)}</span>
               </span>
             )}
           </div>
@@ -168,12 +169,12 @@ export default function TicketDetails() {
       <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs text-gray-400 flex-wrap gap-2">
         <span className="flex items-center gap-1.5">
           <IconCalendar size={12} />
-          تاریخ ثبت: {ticket.creationDate}
+          تاریخ ثبت: <span dir="ltr">{toPersianDigits(ticket.creationDate)}</span>
         </span>
         {ticket.adminReplyDate && (
           <span className="flex items-center gap-1.5">
             <IconMessageCircle size={12} />
-            تاریخ پاسخ: {ticket.adminReplyDate}
+            تاریخ پاسخ: <span dir="ltr">{toPersianDigits(ticket.adminReplyDate)}</span>
           </span>
         )}
       </div>
