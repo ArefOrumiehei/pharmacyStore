@@ -114,6 +114,8 @@ export const useAuthStore = create<AuthState>()(
                 } catch {
                     // Always clear locally even if the server call fails
                 } finally {
+                    localStorage.clear();
+
                     set({ accessToken: null, refreshToken: null, loading: DEFAULT_LOADING });
                     toast.success("از حساب کاربری خارج شدید");
                 }
