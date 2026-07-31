@@ -1,31 +1,17 @@
 import apiInstance from "@/apis/apiInstance";
 
-/* ─────────────────────────────────────────
-  TYPES
-───────────────────────────────────────── */
-export type SortOption =
-  | "newest"
-  | "cheapest"
-  | "mostExpensive"
-  | "mostPopular"
-  | "mostVisited";
+/* ──────── TYPES ──────────────────── */
 
 export interface SearchParams {
-  // Core search
-  query?: string;
-
-  // Scope filters (replacing separate brand/category endpoints)
-  brandSlug?: string;
-  categorySlug?: string;
-
-  // Attribute filters
+  searchTerm?: string;
+  brand?: string;
+  categoryFullSlug?: string;
   minPrice?: number;
   maxPrice?: number;
-  inStock?: boolean;
+  onlyInStock?: boolean;
+  hasDiscount?: boolean;
   attributes?: Record<string, string[]>;
-
-  // Sort & pagination
-  sort?: SortOption;
+  sortBy?: number;
   page?: number;
   pageSize?: number;
 }
@@ -34,29 +20,28 @@ export interface SearchProduct {
   id: number;
   name: string;
   slug: string;
-  price: number;
+  categoryFullSlug: string;
+  price: string;
+  priceWithDiscount: string;
   discountedPrice: number | null;
   picture: string | null;
   pictureAlt: string | null;
   brand: string | null;
   categorySlug: string | null;
+  categoryName: string | null;
   inStock: boolean;
+  hasDiscount: boolean;
   rating: number | null;
   reviewCount: number;
 }
 
 export interface SearchMeta {
-  // Brand info (populated when brandSlug is provided)
   brandName: string | null;
   brandPicture: string | null;
   brandDescription: string | null;
-
-  // Category info (populated when categorySlug is provided)
   categoryName: string | null;
   categoryDescription: string | null;
   categoryPicture: string | null;
-
-  // Available filters returned by the server for this result set
   availablePriceRange: { min: number; max: number } | null;
   availableAttributes: Record<string, string[]>;
 }
@@ -72,9 +57,6 @@ export interface SearchResult {
   meta: SearchMeta;
 }
 
-/* ─────────────────────────────────────────
-   API CALL
-───────────────────────────────────────── */
 export const search = async (params: SearchParams): Promise<SearchResult> => {
   // Flatten attributes into repeated query params: attributes[color]=red&attributes[color]=blue
   const { attributes, ...rest } = params;
@@ -86,7 +68,7 @@ export const search = async (params: SearchParams): Promise<SearchResult> => {
     }
   }
 
-  const res = await apiInstance.get("/api/search", {
+  const res = await apiInstance.get("/api/Product/search", {
     params: {
       ...rest,
       ...flatAttributes,

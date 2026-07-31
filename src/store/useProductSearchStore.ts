@@ -1,22 +1,14 @@
 import { create } from "zustand";
-import { search } from "@/services/searchServices/searchServices";
+import { search } from "@/services/searchServices/productSearchServices";
 import type {
   SearchParams,
   SearchProduct,
   SearchMeta,
-  SortOption,
-} from "@/services/searchServices/searchServices";
+} from "@/services/searchServices/productSearchServices";
 
-/* ─────────────────────────────────────────
-   RE-EXPORT TYPES consumers may need
-───────────────────────────────────────── */
-export type { SearchParams, SearchProduct, SearchMeta, SortOption };
+/* ──── RE-EXPORT TYPES consumers may need ──────────────── */
+export type { SearchParams, SearchProduct, SearchMeta };
 
-/* ─────────────────────────────────────────
-   FILTER STATE
-   Mirrors SearchParams minus pagination/sort
-   so the UI can build filters incrementally.
-───────────────────────────────────────── */
 export interface ActiveFilters {
   query?: string;
   brandSlug?: string;
@@ -27,15 +19,11 @@ export interface ActiveFilters {
   attributes: Record<string, string[]>;
 }
 
-/* ─────────────────────────────────────────
-   STORE STATE
-───────────────────────────────────────── */
+/* ──── STORE STATE ──────────────────── */
 interface SearchState {
-  // Results
   items: SearchProduct[];
   meta: SearchMeta | null;
 
-  // Pagination
   currentPage: number;
   pageSize: number;
   totalCount: number;
@@ -43,20 +31,15 @@ interface SearchState {
   hasNext: boolean;
   hasPrevious: boolean;
 
-  // Sorting
-  sort: SortOption;
+  sortBy: number;
 
-  // Active filters (what the user has selected)
   filters: ActiveFilters;
 
-  // Async state
   loading: boolean;
   error: string | null;
 }
 
-/* ─────────────────────────────────────────
-   STORE ACTIONS
-───────────────────────────────────────── */
+/* ─────── STORE ACTIONS ───────────────── */
 interface SearchActions {
   /**
    * Main fetch — merges any provided params on top of current state.
@@ -72,7 +55,7 @@ interface SearchActions {
   /**
    * Convenience: change sort without changing other params.
    */
-  setSort: (sort: SortOption) => Promise<void>;
+  setSortBy: (sortBy: number) => Promise<void>;
 
   /**
    * Update one or more filters and re-fetch from page 1.
@@ -90,9 +73,7 @@ interface SearchActions {
   reset: () => void;
 }
 
-/* ─────────────────────────────────────────
-   INITIAL STATE
-───────────────────────────────────────── */
+/* ────── INITIAL STATE ─────────────── */
 const DEFAULT_PAGE_SIZE = 12;
 
 const initialState: SearchState = {
@@ -104,7 +85,7 @@ const initialState: SearchState = {
   totalPages: 0,
   hasNext: false,
   hasPrevious: false,
-  sort: "newest",
+  sortBy: 1,
   filters: {
     attributes: {},
   },
@@ -112,33 +93,26 @@ const initialState: SearchState = {
   error: null,
 };
 
-/* ─────────────────────────────────────────
-   STORE
-───────────────────────────────────────── */
-export const useSearchStore = create<SearchState & SearchActions>((set, get) => ({
+export const useProductSearchStore = create<SearchState & SearchActions>((set, get) => ({
   ...initialState,
 
-  /* ── Core fetch ─────────────────────────── */
   fetchResults: async (overrides = {}) => {
     const state = get();
 
     const params: SearchParams = {
       // Active filters
-      query: state.filters.query,
-      brandSlug: state.filters.brandSlug,
-      categorySlug: state.filters.categorySlug,
+      searchTerm: state.filters.query,
+      brand: state.filters.brandSlug,
+      categoryFullSlug: state.filters.categorySlug,
       minPrice: state.filters.minPrice,
       maxPrice: state.filters.maxPrice,
-      inStock: state.filters.inStock,
-      attributes:
-        Object.keys(state.filters.attributes).length > 0
-          ? state.filters.attributes
-          : undefined,
+      onlyInStock: state.filters.inStock,
+    
 
       // Pagination & sort
       page: state.currentPage,
       pageSize: state.pageSize,
-      sort: state.sort,
+      sortBy: state.sortBy,
 
       // Caller can override anything above
       ...overrides,
@@ -165,19 +139,16 @@ export const useSearchStore = create<SearchState & SearchActions>((set, get) => 
     }
   },
 
-  /* ── Page navigation ────────────────────── */
   goToPage: async (page) => {
     set({ currentPage: page });
     await get().fetchResults({ page });
   },
 
-  /* ── Sort ───────────────────────────────── */
-  setSort: async (sort) => {
-    set({ sort, currentPage: 1 });
-    await get().fetchResults({ sort, page: 1 });
+  setSortBy: async (sortBy) => {
+    set({ sortBy, currentPage: 1 });
+    await get().fetchResults({ sortBy, page: 1 });
   },
 
-  /* ── Filters ────────────────────────────── */
   applyFilters: async (incoming) => {
     const merged: ActiveFilters = {
       ...get().filters,
