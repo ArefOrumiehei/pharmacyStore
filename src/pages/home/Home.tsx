@@ -2,124 +2,80 @@
 import BannerSlider from "@/pages/home/_components/banner-slider/BannerSlider";
 import Categories from "./_components/categories/Categories";
 import ProductsCarousel from "./_components/products-carousel/ProductsCarousel";
-import Banner from "./_components/banner/Banner";
-import { useUserStore } from "@/store/useAccountStore";
-import { useProductStore } from "@/store/useProductsStore";
-import { useEffect } from "react";
 import Blogs from "./_components/latest-articles/LatestArticles";
+import { useUserStore } from "@/store/useAccountStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
+import {
+    useLatestArrivals,
+    useTopRated,
+    useMostViewed,
+    useRandomRecommendation,
+} from "@/queries/useHomeQueries";
 
 function Home() {
     const { fetchUser } = useUserStore();
     const { accessToken } = useAuthStore();
-    const {
-        fetchLatestArrivals,
-        fetchTopRated,
-        fetchMostViewed,
-        fetchRandomRecommendation,
-        latestArrivals,
-        topRated,
-        mostViewed,
-        randomRecommendation,
-        loading,
-    } = useProductStore();
+
+    const { data: latestArrivals, isLoading: loadingLatest } = useLatestArrivals();
+    const { data: topRated, isLoading: loadingTopRated } = useTopRated();
+    const { data: mostViewed, isLoading: loadingMostViewed } = useMostViewed();
+    const { data: randomRecommendation, isLoading: loadingRandom } = useRandomRecommendation();
 
     useEffect(() => {
-        const fetchAll = async () => {
-            const productFetches = [
-                fetchLatestArrivals(),
-                fetchTopRated(),
-                fetchMostViewed(),
-                fetchRandomRecommendation(),
-            ];
-            if (accessToken) {
-                await Promise.all([fetchUser(), ...productFetches]);
-            } else {
-                await Promise.all(productFetches);
-            }
-        };
-        fetchAll();
-    }, []);
+        if (accessToken) fetchUser();
+    }, [accessToken]);
 
     return (
         <div className="flex flex-col gap-6 w-full px-4 py-4">
-            {/* Hero banner */}
             <BannerSlider />
-
-            {/* Categories row */}
             <Categories />
 
-            {/* Promotional banner */}
-            <Banner
+            {/* <Banner
                 items={[
-                    {
-                        src: "https://picsum.photos/seed/product5/800/400",
-                        alt: "تخفیف ویژه مکمل‌ها",
-                        href: "/plp?discount=1",
-                        badge: "تخفیف ویژه",
-                    },
-                    {
-                        src: "https://picsum.photos/seed/product8/800/400",
-                        alt: "محصولات مراقبت پوست",
-                        href: "/plp/skincare",
-                        badge: "جدید",
-                    },
+                { src: "https://picsum.photos/seed/product5/800/400", alt: "تخفیف ویژه مکمل‌ها", href: "/plp?discount=1", badge: "تخفیف ویژه" },
+                { src: "https://picsum.photos/seed/product8/800/400", alt: "محصولات مراقبت پوست", href: "/plp/skincare", badge: "جدید" },
                 ]}
-            />
+            /> */}
 
-            {/* Top rated — wonderful style */}
             <ProductsCarousel
-                title="پیشنهاد شگفت‌انگیز"
-                products={topRated}
-                loading={loading}
-                viewMoreLink="/plp?sort=rating"
+                title="محبوب‌ترین‌ محصولات"
+                products={topRated ?? []}
+                loading={loadingTopRated}
+                viewMoreLink="/plp?sort=Popularuty"
                 variant="topRated"
             />
 
-            {/* Latest arrivals */}
             <ProductsCarousel
                 title="جدیدترین محصولات"
-                products={latestArrivals}
-                loading={loading}
-                viewMoreLink="/plp?sort=newest"
+                products={latestArrivals ?? []}
+                loading={loadingLatest}
+                viewMoreLink="/plp?sort=Newest"
                 variant="latest"
             />
 
-            {/* Second promotional banner */}
-            <Banner
+            {/* <Banner
                 items={[
-                    {
-                        src: "https://picsum.photos/seed/product2/800/400",
-                        alt: "داروهای بدون نسخه",
-                        href: "/plp/medications",
-                    },
-                    {
-                        src: "https://picsum.photos/seed/product7/800/400",
-                        alt: "تجهیزات پزشکی",
-                        href: "/plp/medical-equipment",
-                        badge: "پرفروش",
-                    },
+                { src: "https://picsum.photos/seed/product2/800/400", alt: "داروهای بدون نسخه", href: "/plp/medications" },
+                { src: "https://picsum.photos/seed/product7/800/400", alt: "تجهیزات پزشکی", href: "/plp/medical-equipment", badge: "پرفروش" },
                 ]}
-            />
+            /> */}
 
-            {/* Most viewed — recommended */}
             <ProductsCarousel
-                title="پرفروش‌ترین‌ها"
-                products={mostViewed}
-                loading={loading}
-                viewMoreLink="/plp?sort=popular"
+                title="پربازدیدترین‌ها"
+                products={mostViewed ?? []}
+                loading={loadingMostViewed}
+                viewMoreLink="/plp?sort=MostViewed"
                 variant="recommended"
             />
 
-            {/* Random recommendation — for you */}
             <ProductsCarousel
                 title="پیشنهاد ویژه برای شما"
-                products={randomRecommendation}
-                loading={loading}
+                products={randomRecommendation ?? []}
+                loading={loadingRandom}
                 variant="forYou"
             />
 
-            {/* Blogs section */}
             <Blogs />
         </div>
     );
