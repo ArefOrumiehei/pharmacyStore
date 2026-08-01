@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { IconShare2, IconBrandWhatsapp, IconBrandTelegram, IconBrandX, IconLink, IconCheck, IconShare } from "@tabler/icons-react";
-import { useShare, type ShareData } from "@/hooks/useShare";
+import { useShare } from "@/hooks/useShare";
+import type { ShareButtonProps } from "@/pages/product/types/productPageTypes";
 
-interface ShareButtonProps {
-  data: ShareData;
-  className?: string;
-  btnStyle?: "icon&text" | "icon";
-}
+
 
 export default function ShareButton({ data, className, btnStyle }: ShareButtonProps) {
   const { isNativeShareSupported, share, shareTo, copied } = useShare();
@@ -36,14 +33,14 @@ export default function ShareButton({ data, className, btnStyle }: ShareButtonPr
           onClick={handleClick}
           className={
             className ??
-            "flex items-center gap-1.5 h-9 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl px-3 py-2 transition-all duration-200"
+            "flex items-center gap-1.5 h-7 sm:h-9 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-lg sm:rounded-xl px-3 py-2 transition-all duration-200"
           }
         >
           <IconShare2 size={16} />
           اشتراک‌گذاری
         </button>
         :
-          <button onClick={handleClick} title="اشتراک گذاری" className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-all active:scale-90">
+          <button onClick={handleClick} title="اشتراک گذاری" className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-100 transition-all active:scale-90">
             <IconShare size={16} className="text-gray-400" />
           </button>
       }
