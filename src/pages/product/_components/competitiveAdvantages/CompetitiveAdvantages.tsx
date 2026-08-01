@@ -60,7 +60,7 @@ const ADVANTAGES: Advantage[] = [
 
 export default function CompetitiveAdvantages() {
     return (
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 py-4 px-4 rounded-2xl border border-blue-100 bg-white select-none">
+        <div className="w-full grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 py-3 sm:py-4 px-3 sm:px-4 rounded-xl sm:rounded-2xl border border-blue-100 bg-white select-none">
             {ADVANTAGES.map(
                 ({
                     id,
@@ -72,18 +72,18 @@ export default function CompetitiveAdvantages() {
                 }) => (
                     <div
                         key={id}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 border bg-white hover:shadow-sm transition-all duration-200 border-blue-50 hover:border-blue-100"
+                        className="flex items-center gap-2.5 sm:gap-3 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 border bg-white hover:shadow-sm transition-all duration-200 border-blue-50 hover:border-blue-100"
                     >
                         <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${bgClass}`}
+                            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 border ${bgClass}`}
                         >
-                            <Icon size={18} className={iconClass} />
+                            <Icon size={16} className={`${iconClass} sm:w-[18px] sm:h-[18px]`} />
                         </div>
-                        <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-semibold text-gray-700">
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-xs sm:text-sm font-semibold text-gray-700 truncate">
                                 {title}
                             </span>
-                            <span className="text-xs text-gray-400 leading-4">
+                            <span className="text-[10px] sm:text-xs text-gray-400 leading-4 line-clamp-2 sm:line-clamp-none">
                                 {description}
                             </span>
                         </div>
