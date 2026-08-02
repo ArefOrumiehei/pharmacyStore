@@ -9,7 +9,7 @@ function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen pb-18 md:pb-0 bg-gray-50/50">
       <Header />
-      <main className="flex-1 w-full px-4 md:px-[3rem]">
+      <main className="flex-1 w-full mx-auto px-1 sm:px-3 md:px-[2rem]">
         <Outlet />
       </main>
       {!isProfile && <Footer />}
