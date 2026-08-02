@@ -9,20 +9,9 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { useUserStore } from "@/store/useAccountStore";
+import type { MobileBottomBarProps } from "../../types/HeaderTypes";
 
-interface MobileBottomBarProps {
-  onCategoriesOpen: () => void;
-  categoriesOpen: boolean;
-  searchOpen: boolean;
-  onSearchToggle: () => void;
-}
-
-export default function MobileBottomBar({
-  onCategoriesOpen,
-  categoriesOpen,
-  searchOpen,
-  onSearchToggle,
-}: MobileBottomBarProps) {
+export default function MobileBottomBar({ onCategoriesOpen, categoriesOpen, searchOpen, onSearchToggle }: MobileBottomBarProps) {
   const location = useLocation();
   const { user } = useUserStore();
 
@@ -36,29 +25,29 @@ export default function MobileBottomBar({
         {/* Home */}
         <Link
           to="/"
-          className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 ${
+          className={`flex flex-col items-center gap-0.5 px-3 py-2 max-[320px]:px-1.5 max-[320px]:py-1.5 rounded-xl transition-all duration-200 ${
             isActive("/") ? "text-blue-800" : "text-gray-400 hover:text-blue-800"
           }`}
         >
-          <IconHome size={22} stroke={isActive("/") ? 2.2 : 1.7} />
-          <span className="text-[10px] font-medium">خانه</span>
+          <IconHome size={22} stroke={isActive("/") ? 2.2 : 1.7} className="max-[320px]:w-[18px] max-[320px]:h-[18px]" />
+          <span className="text-[10px] font-medium max-[320px]:hidden">خانه</span>
         </Link>
 
         {/* Categories */}
         <button
           onClick={onCategoriesOpen}
-          className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 ${
+          className={`flex flex-col items-center gap-0.5 px-3 py-2 max-[320px]:px-1.5 max-[320px]:py-1.5 rounded-xl transition-all duration-200 ${
             categoriesOpen ? "text-blue-800" : "text-gray-400 hover:text-blue-800"
           }`}
         >
-          <IconCategory size={22} stroke={categoriesOpen ? 2.2 : 1.7} />
-          <span className="text-[10px] font-medium">دسته‌بندی</span>
+          <IconCategory size={22} stroke={categoriesOpen ? 2.2 : 1.7} className="max-[320px]:w-[18px] max-[320px]:h-[18px]" />
+          <span className="text-[10px] font-medium max-[320px]:hidden">دسته‌بندی</span>
         </button>
 
         {/* Search — center elevated pill, toggles open/close */}
         <button
           onClick={onSearchToggle}
-          className={`flex flex-col items-center gap-0.5 w-16 p-3 rounded-2xl shadow-lg transition-all duration-200 active:scale-95 ${
+          className={`flex flex-col items-center gap-0.5 w-16 max-[320px]:w-10 p-3 max-[320px]:p-2 rounded-2xl shadow-lg transition-all duration-200 active:scale-95 ${
             searchOpen
               ? "bg-gray-100 text-blue-800 shadow-gray-200/60"
               : "bg-blue-50 text-blue-800 shadow-blue-300/40"
@@ -66,10 +55,10 @@ export default function MobileBottomBar({
           aria-label={searchOpen ? "بستن جستجو" : "جستجو"}
         >
           {searchOpen
-            ? <IconX size={22} stroke={2} />
-            : <IconSearch size={22} stroke={1.8} />
+            ? <IconX size={22} stroke={2} className="max-[320px]:w-[18px] max-[320px]:h-[18px]" />
+            : <IconSearch size={22} stroke={1.8} className="max-[320px]:w-[18px] max-[320px]:h-[18px]" />
           }
-          <span className="text-[10px] font-medium">
+          <span className="text-[10px] font-medium max-[320px]:hidden">
             {searchOpen ? "بستن" : "جستجو"}
           </span>
         </button>
@@ -77,34 +66,34 @@ export default function MobileBottomBar({
         {/* Cart */}
         <Link
           to="/checkout/cart"
-          className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 ${
+          className={`flex flex-col items-center gap-0.5 px-3 py-2 max-[320px]:px-1.5 max-[320px]:py-1.5 rounded-xl transition-all duration-200 ${
             isCheckoutRoute("checkout") ? "text-blue-800" : "text-gray-400 hover:text-blue-800"
           }`}
         >
-          <IconShoppingCart size={22} stroke={isCheckoutRoute("checkout") ? 2.2 : 1.7} />
-          <span className="text-[10px] font-medium">سبد خرید</span>
+          <IconShoppingCart size={22} stroke={isCheckoutRoute("checkout") ? 2.2 : 1.7} className="max-[320px]:w-[18px] max-[320px]:h-[18px]" />
+          <span className="text-[10px] font-medium max-[320px]:hidden">سبد خرید</span>
         </Link>
 
         {/* Profile / Login */}
         {user?.id ? (
           <Link
             to="/profile"
-            className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 ${
+            className={`flex flex-col items-center gap-0.5 px-3 py-2 max-[320px]:px-1.5 max-[320px]:py-1.5 rounded-xl transition-all duration-200 ${
               isActive("/profile") ? "text-blue-800" : "text-gray-400 hover:text-blue-800"
             }`}
           >
-            <IconUser size={22} stroke={isActive("/profile") ? 2.2 : 1.7} />
-            <span className="text-[10px] font-medium">پروفایل</span>
+            <IconUser size={22} stroke={isActive("/profile") ? 2.2 : 1.7} className="max-[320px]:w-[18px] max-[320px]:h-[18px]" />
+            <span className="text-[10px] font-medium max-[320px]:hidden">پروفایل</span>
           </Link>
         ) : (
           <Link
             to="/login"
-            className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all duration-200 ${
+            className={`flex flex-col items-center gap-0.5 px-3 py-2 max-[320px]:px-1.5 max-[320px]:py-1.5 rounded-xl transition-all duration-200 ${
               isActive("/login") ? "text-blue-800" : "text-gray-400 hover:text-blue-800"
             }`}
           >
-            <IconLogin size={22} stroke={1.7} />
-            <span className="text-[10px] font-medium">ورود</span>
+            <IconLogin size={22} stroke={1.7} className="max-[320px]:w-[18px] max-[320px]:h-[18px]" />
+            <span className="text-[10px] font-medium max-[320px]:hidden">ورود</span>
           </Link>
         )}
       </div>
