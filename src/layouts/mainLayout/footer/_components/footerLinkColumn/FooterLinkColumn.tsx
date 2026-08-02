@@ -1,14 +1,5 @@
 import { Link } from "react-router";
-
-interface FooterLink {
-  to: string;
-  label: string;
-}
-
-interface FooterLinkColumnProps {
-  title: string;
-  links: FooterLink[];
-}
+import type { FooterLinkColumnProps } from "../../types/FooterTypes";
 
 export default function FooterLinkColumn({ title, links }: FooterLinkColumnProps) {
   return (
