@@ -1,117 +1,60 @@
-import { Outlet, NavLink, useNavigate } from "react-router";
-import {
-  IconUser,
-  IconShoppingBag,
-  IconHeart,
-  IconMapPin,
-  IconLogout,
-  IconChevronLeft,
-  IconHeadset,
-  IconMessage2,
-  IconHome,
-} from "@tabler/icons-react";
-import { useUserStore } from "@/store/useAccountStore";
-import { useAuthStore } from "@/store/useAuthStore";
-import { IMAGE_BASE } from "@/apis/apiInstance";
+import { useState } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router";
 
-const MENU_ITEMS = [
-  { path: "/profile", icon: IconHome , label: "خلاصه فعالیت", end: true },
-  { path: "/profile/orders", icon: IconShoppingBag, label: "سفارش‌های من" },
-  { path: "/profile/favorites", icon: IconHeart, label: "علاقه‌مندی‌ها" },
-  { path: "/profile/comments", icon: IconMessage2, label: "نظرات من" },
-  { path: "/profile/addresses", icon: IconMapPin, label: "آدرس‌های من" },
-  { path: "/profile/tickets", icon: IconHeadset, label: "تیکت‌های پشتیبانی" },
-  { path: "/profile/account", icon: IconUser, label: "حساب کاربری" },
-  // { path: "/profile/notifications", icon: IconBell, label: "اعلان‌ها" },
-  // { path: "/profile/settings", icon: IconSettings, label: "تنظیمات" },
-];
+// Stores
+import { useAuthStore } from "@/store/useAuthStore";
+
+// Consts
+import { MOBILE_HIDE_SIDEBAR_PATTERNS } from "./constants/Constants";
+
+// Components
+import ConfirmModal from "@/components/common/confirmModal/ConfirmModal";
+import ProfileSidebar from "./_components/profileSidebar/ProfileSidebar";
 
 export default function Profile() {
-  const { user } = useUserStore();
   const { logout } = useAuthStore();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const hideSidebarOnMobile = MOBILE_HIDE_SIDEBAR_PATTERNS.some((pattern) => pattern.test(pathname));
+
+  const handleConfirmLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      navigate("/login");
+    } finally {
+      setLoggingOut(false);
+      setLogoutConfirmOpen(false);
+    }
   };
 
   return (
-    <div className="container mx-auto py-8 px-4" dir="rtl">
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+    <div className="container mx-auto py-4 sm:py-8 px-3 sm:px-4" dir="rtl">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[280px_1fr]">
+        <ProfileSidebar
+          hideOnMobile={hideSidebarOnMobile}
+          onLogoutClick={() => setLogoutConfirmOpen(true)}
+        />
 
-        {/* ── Sidebar ── */}
-        <aside>
-          <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden sticky top-36">
-
-            {/* User info */}
-            <div className="flex items-center gap-3 p-5 border-b border-blue-50 bg-blue-50/50">
-              <div className="w-12 h-12 rounded-2xl bg-blue-800 flex items-center justify-center flex-shrink-0">
-                {user?.profilePhoto ? (
-                  <img
-                    src={`${IMAGE_BASE}/${user.profilePhoto}`}
-                    alt={user.fullname ?? user.username ?? "پروفایل"}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-white font-bold text-lg">
-                    {user?.fullname?.[0] ?? user?.username?.[0] ?? "؟"}
-                  </span>
-                )}
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-gray-800 text-sm truncate">
-                  {user?.fullname ?? user?.username ?? "کاربر"}
-                </h3>
-                <p className="text-xs text-gray-400 truncate mt-0.5">
-                  {user?.mobile ?? user?.email ?? ""}
-                </p>
-              </div>
-            </div>
-
-            {/* Nav */}
-            <nav className="p-3 space-y-1">
-              {MENU_ITEMS.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                      isActive
-                        ? "bg-blue-800 text-white"
-                        : "text-gray-600 hover:bg-blue-50 hover:text-blue-800"
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <item.icon size={18} className="flex-shrink-0" />
-                      <span className="flex-1">{item.label}</span>
-                      {isActive && <IconChevronLeft size={15} className="opacity-70" />}
-                    </>
-                  )}
-                </NavLink>
-              ))}
-
-              <div className="pt-2 border-t border-blue-50 mt-2">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all duration-150"
-                >
-                  <IconLogout size={18} />
-                  <span>خروج از حساب</span>
-                </button>
-              </div>
-            </nav>
-          </div>
-        </aside>
-
-        {/* ── Main ── */}
         <main>
           <Outlet />
         </main>
       </div>
+
+      <ConfirmModal
+        open={logoutConfirmOpen}
+        title="خروج از حساب"
+        description="آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟"
+        confirmLabel="خروج از حساب"
+        cancelLabel="انصراف"
+        loading={loggingOut}
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setLogoutConfirmOpen(false)}
+      />
     </div>
   );
 }
