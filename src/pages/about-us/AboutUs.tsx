@@ -51,8 +51,6 @@ const STATS = [
 export default function AboutUs() {
   const {data, isLoading} = useAboutUsQuery();
 
-  console.log(data);
-
   return (
     <div className="container mx-auto max-w-5xl px-4 py-12" dir="rtl">
       {/* Header */}
