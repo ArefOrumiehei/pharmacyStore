@@ -5,16 +5,16 @@ import FooterBottomBar from "./_components/footerBottomBar/FooterBottomBar";
 
 const QUICK_LINKS = [
     { to: "/blog", label: "مقالات" },
-    { to: "/faq", label: "سوالات متداول" },
     { to: "/aboutus", label: "درباره ما" },
     { to: "/contactus", label: "تماس با ما" },
+    { to: "/faq", label: "سوالات متداول" },
     { to: "/terms", label: "قوانین و مقررات" },
+    { to: "/return-policy", label: "شرایط بازگشت کالا" },
 ];
 
 const SERVICE_LINKS = [
     { to: "/faq?q=q7", label: "پیگیری سفارش" },
     { to: "/faq?q=q4", label: "مدت زمان ارسال" },
-    { to: "/faq?q=q5", label: "شرایط بازگشت کالا" },
     { to: "/faq?q=q6", label: "خرید با نسخه پزشکی" },
 ];
 
