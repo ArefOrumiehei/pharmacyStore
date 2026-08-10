@@ -1,20 +1,20 @@
-import SectionTitle from "@/components/common/sectionTitle/SectionTitle";
-import { useTermsQuery } from "@/queries/useSiteSettingsQueries";
-import { IconFileText } from "@tabler/icons-react";
+import SectionTitle from '@/components/common/sectionTitle/SectionTitle';
+import { useReturnPolicyQuery } from '@/queries/useSiteSettingsQueries';
+import { IconArrowBack } from '@tabler/icons-react';
 
-export default function Terms() {
-  const { data, isLoading} = useTermsQuery();
+function ReturnPolicy() {
+  const { data, isLoading} = useReturnPolicyQuery();
   
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12" dir="rtl">
       {/* Header */}
       <div className="text-center mb-10 space-y-3">
         <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto">
-          <IconFileText size={28} className="text-blue-800" />
+          <IconArrowBack size={28} className="text-blue-800" />
         </div>
-        <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-blue-800">قوانین و مقررات</h1>
+        <h1 className="text-lg sm:text-xl md:text-3xl font-bold text-blue-800">قوانین بازگرداندن کالا</h1>
         <p className="text-gray-400 text-xs sm:text-sm">
-          لطفاً پیش از استفاده از خدمات، این قوانین را مطالعه نمایید.
+          لطفاً پیش از مرجوعی کالا، این قوانین را مطالعه نمایید.
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export default function Terms() {
           </div>
         ) : (
           <div className="px-4 sm:px-6 py-4">
-            <SectionTitle extraClass="mb-5">شرایط و قوانین استفاده</SectionTitle>
+            <SectionTitle extraClass="mb-5">شرایط بازگرداندن کالا</SectionTitle>
             <p className="text-xs sm:text-sm text-gray-500 leading-7">
               {data?.text}
             </p>
@@ -45,5 +45,7 @@ export default function Terms() {
         </p>
       }
     </div>
-  );
+  )
 }
+
+export default ReturnPolicy
