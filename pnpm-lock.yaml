@@ -69,8 +69,8 @@ importers:
         specifier: ^11.0.5
         version: 11.0.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       smart-persian-tools:
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.0.2
+        version: 1.0.2
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
@@ -1761,8 +1761,8 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  smart-persian-tools@1.0.1:
-    resolution: {integrity: sha512-L9wRE84BRCINFJoXlnvqeuR4TqkbD35GBrqKXuaPgJRW7bJFrzuGxxi33M6i1EabD6Vimc3AbWnl2WeKQfWr0A==}
+  smart-persian-tools@1.0.2:
+    resolution: {integrity: sha512-lG179r1INAJSiCBfOM3PFI78cd3/eZu2OWX2NBONSBA56nG/oNmoFMWoIFtFdvpEyw3GiYor8O3nDQi4FBMgFQ==}
     engines: {node: '>=20'}
 
   source-map-js@1.2.1:
@@ -3397,7 +3397,7 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
-  smart-persian-tools@1.0.1: {}
+  smart-persian-tools@1.0.2: {}
 
   source-map-js@1.2.1: {}
 
