@@ -53,13 +53,13 @@ function MegaMenu() {
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span
+                    {/* <span
                       className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                         activeCat === i ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800"
                       }`}
                     >
                       {cat.name?.[0]}
-                    </span>
+                    </span> */}
                     <span className="truncate">{cat.name}</span>
                   </div>
                   <ChevronLeft className={`w-3.5 h-3.5 flex-shrink-0 transition-opacity ${activeCat === i ? "opacity-100" : "opacity-0"}`} />
