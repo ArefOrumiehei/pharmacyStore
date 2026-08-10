@@ -9,6 +9,7 @@ export default function ErrorPage({ error, onReset }: ErrorPageProps) {
   const handleReset = () => {
     if (onReset) {
       onReset();
+      window.location.reload();
     } else {
       window.location.href = "/";
     }
