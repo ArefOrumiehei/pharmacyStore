@@ -103,6 +103,7 @@ export interface IOverview {
 }
 
 export interface IUserComments {
+    id: number;
     message: string | null;
     creationDate: string;
     rate: number;
