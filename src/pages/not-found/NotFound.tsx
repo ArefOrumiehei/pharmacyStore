@@ -142,8 +142,7 @@ export default function NotFound() {
             </p>
             <div className="flex flex-wrap gap-2">
               {[
-                { label: "داروخانه",    path: "/plp"       },
-                { label: "سفارش‌های من", path: "/profile/orders" },
+                { label: "محصولات",    path: "/plp"       },
                 { label: "تماس با ما",  path: "/contactus" },
                 { label: "سوالات متداول", path: "/faq"     },
               ].map(({ label, path }) => (
