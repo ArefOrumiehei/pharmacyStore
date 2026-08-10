@@ -15,21 +15,21 @@ export default function Breadcrumb({ categories = "" }: BreadcrumbProps) {
 
     if (categories != "") return (
         <nav
-            className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap"
+            className="flex items-center gap-1 sm:gap-1.5 text-xs text-gray-500 flex-wrap"
             aria-label="breadcrumb"
         >
             <Link
                 to="/"
-                className="text-blue-800 font-medium hover:text-blue-600 transition-colors duration-150 text-s"
+                className="text-blue-800 font-medium hover:text-blue-600 transition-colors duration-150 text-[10px] sm:text-sm"
             >
                 خانه
             </Link>
             {breadcrumbs.map((segment, index) => (
-                <span key={index} className="flex items-center gap-1.5">
-                    <IconChevronLeft size={11} className="flex-shrink-0" />
+                <span key={index} className="flex items-center gap-1 sm:gap-1.5">
+                    <IconChevronLeft size={12} className="flex-shrink-0" />
                     <Link
                         to={`${segment.path}`}
-                        className={`text-s transition-colors duration-150 ${
+                        className={`text-[10px] sm:text-sm transition-colors duration-150 ${
                             index === segments.length - 1
                                 ? "text-blue-800 font-medium pointer-events-none"
                                 : "text-gray-400 hover:text-blue-800"
