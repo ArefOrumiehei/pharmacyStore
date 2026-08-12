@@ -1,17 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import BannerSlider from "@/pages/home/_components/banner-slider/BannerSlider";
-import Categories from "./_components/categories/Categories";
-import ProductsCarousel from "./_components/products-carousel/ProductsCarousel";
-import Blogs from "./_components/latest-articles/LatestArticles";
-import { useUserStore } from "@/store/useAccountStore";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useEffect } from "react";
 import {
     useLatestArrivals,
     useTopRated,
     useMostViewed,
     useRandomRecommendation,
 } from "@/queries/useHomeQueries";
+
+// Stores
+import { useUserStore } from "@/store/useAccountStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
+
+// Components
+import BannerSlider from "@/pages/home/_components/banner-slider/BannerSlider";
+import Categories from "./_components/categories/Categories";
+import ProductsCarousel from "./_components/products-carousel/ProductsCarousel";
+import LatestArticles from "./_components/latest-articles/LatestArticles";
 
 function Home() {
     const { fetchUser } = useUserStore();
@@ -27,7 +31,7 @@ function Home() {
     }, [accessToken]);
 
     return (
-        <div className="flex flex-col gap-6 w-full px-4 py-4">
+        <div className="flex flex-col gap-6 w-full px-3 sm:px-4 py-4">
             <BannerSlider />
             <Categories />
 
@@ -76,7 +80,7 @@ function Home() {
                 variant="forYou"
             />
 
-            <Blogs />
+            <LatestArticles />
         </div>
     );
 }
