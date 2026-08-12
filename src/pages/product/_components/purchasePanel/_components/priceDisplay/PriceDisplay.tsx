@@ -12,9 +12,9 @@ export default function PriceDisplay({ isLoaded, product, displayPrice }: PriceD
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col items-end gap-1">
       {product?.hasDiscount && (
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm text-gray-400 line-through truncate">
             {toPersianDigits(product.price)} تومان
           </span>
