@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { lazy, Suspense, useEffect } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router'
 import type { ReactNode } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 
 // Styles
 import './App.css'
@@ -16,9 +16,9 @@ import BlogLayout from './layouts/blogLayout/BlogLayout'
 
 // Store
 import { useAuthStore } from './store/useAuthStore'
+import { useCartStore } from './store/useCartStore'
 
 import Home from './pages/home/Home'
-import { useCartStore } from './store/useCartStore'
 import ErrorBoundary from './components/error-boundary/ErrorBoundary'
 
 // ─── Auth pages ───────────────────────────────────────────────────────────────
@@ -31,9 +31,11 @@ const AboutUs         = lazy(() => import('./pages/about-us/AboutUs'))
 const ContactUs       = lazy(() => import('./pages/contact-us/ContactUs'))
 const FAQ             = lazy(() => import('./pages/faq/FAQ'))
 const Terms           = lazy(() => import('./pages/terms/Terms'))
+const ReturnPolicy    = lazy(() => import('./pages/returnPolicy/ReturnPolicy'))
 const ProductListPage = lazy(() => import('./pages/product-list/ProductListPage'))
 const ProductPage     = lazy(() => import('./pages/product/ProductPage'))
 const BrandPage       = lazy(() => import('./pages/brand/BrandPage'))
+const CategoryPage    = lazy(() => import('./pages/category/CategoryPage'))
 const NotFound        = lazy(() => import('./pages/not-found/NotFound'))
 
 // ─── Checkout ─────────────────────────────────────────────────────────────────
@@ -47,22 +49,23 @@ const OrderSuccess    = lazy(() => import('./pages/checkout/order-success/OrderS
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 const Profile         = lazy(() => import('./pages/profile/Profile'))
-const Overview        = lazy(() => import('./pages/profile/sections/Overview'))
-const Account         = lazy(() => import('./pages/profile/sections/Account'))
+const Overview        = lazy(() => import('./pages/profile/sections/overview/Overview'))
+const Account         = lazy(() => import('./pages/profile/sections/account/Account'))
 const Orders          = lazy(() => import('./pages/profile/sections/orders/Orders'))
-const OrderDetail     = lazy(() => import('./pages/profile/sections/orders/OrderDetails'))
-const Favorites       = lazy(() => import('./pages/profile/sections/Favorites'))
-const Addresses       = lazy(() => import('./pages/profile/sections/Addresses'))
+const OrderDetail     = lazy(() => import('./pages/profile/sections/orders/orderDetails/OrderDetails'))
+const Favorites       = lazy(() => import('./pages/profile/sections/favorites/Favorites'))
+const Addresses       = lazy(() => import('./pages/profile/sections/addresses/Addresses'))
 const Notifications   = lazy(() => import('./pages/profile/sections/Notifications'))
 const Settings        = lazy(() => import('./pages/profile/sections/Settings'))
-const Comments        = lazy(() => import('./pages/profile/sections/Comments'))
+const Comments        = lazy(() => import('./pages/profile/sections/comments/Comments'))
 const Tickets         = lazy(() => import('./pages/profile/sections/tickets/Tickets'))
-const TicketDetails   = lazy(() => import('./pages/profile/sections/tickets/TicketDetails'))
-const SendTicket      = lazy(() => import('./pages/profile/sections/tickets/SendTicket'))
+const TicketDetails   = lazy(() => import('./pages/profile/sections/tickets/ticketDetails/TicketDetails'))
+const SendTicket      = lazy(() => import('./pages/profile/sections/tickets/sendTicket/SendTicket'))
 
 // ─── Blog ─────────────────────────────────────────────────────────────────────
 const BlogsPage       = lazy(() => import('./pages/blogs/BlogsPage'))
 const BlogPostPage    = lazy(() => import('./pages/blog-post/BlogPostPage'))
+const BlogsSearchResult = lazy(() => import('./pages/blogsSearchResult/BlogsSearchResult'))
 
 // ─── Maintenance page ─────────────────────────────────
 const Maintenance = lazy(() => import('./pages/maintenance/Maintenance'))
@@ -115,16 +118,18 @@ function App() {
               <Route path="contactus" element={<ContactUs />} />
               <Route path="faq" element={<FAQ />} />
               <Route path="terms" element={<Terms />} />
+              <Route path="return-policy" element={<ReturnPolicy />} />
               <Route path="plp/*" element={<ProductListPage />} />
               <Route path="product/:catgSlug/:pSlug" element={<ProductPage />} />
               <Route path="brand/:brandSlug" element={<BrandPage />} />
+              <Route path="category/:catgSlug" element={<CategoryPage />} />
 
               {/* Checkout */}
               <Route path="checkout" element={<CheckoutLayout />}>
                 <Route index element={<Navigate to="cart" replace />} />
                 <Route path="cart" element={<CartStep />} />
-                <Route path="address" element={<AddressStep />} />
-                <Route path="payment" element={<PaymentStep />} />
+                <Route path="address" element={<ProtectedRoute><AddressStep /></ProtectedRoute>} />
+                <Route path="payment" element={<ProtectedRoute><PaymentStep /></ProtectedRoute>} />
                 <Route path="order-success" element={<OrderSuccess />} />
               </Route>
               <Route path="cart" element={<Navigate to="/checkout" replace />} />
@@ -150,6 +155,7 @@ function App() {
             {/* Blog */}
             <Route path="blog" element={<BlogLayout />}>
               <Route index element={<BlogsPage />} />
+              <Route path="search" element={<BlogsSearchResult />} />
               <Route path=":catgSlug/:slug" element={<BlogPostPage />} />
             </Route>
 
