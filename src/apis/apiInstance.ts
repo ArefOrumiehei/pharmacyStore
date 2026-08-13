@@ -4,8 +4,8 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "react-toastify";
 
-/* ────────── CONFIG ───────────────────── */
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const IMAGE_BASE = import.meta.env.VITE_IMAGE_BASE;
 
@@ -20,9 +20,7 @@ interface QueueEntry {
   reject: (err: unknown) => void;
 }
 
-/* ─────────────────────────────────────────
-    TOKEN REFRESH QUEUE
-───────────────────────────────────────── */
+/* ───── TOKEN REFRESH QUEUE ──────────────── */
 let isRefreshing = false;
 let failedQueue: QueueEntry[] = [];
 let hasLoggedOut = false;
@@ -149,12 +147,10 @@ apiInstance.interceptors.response.use(
       }
     }
 
-    /* ── Network error while authenticated → logout ── */
-    if (
-      error.code === "ERR_NETWORK" &&
-      originalRequest?.headers?.Authorization
-    ) {
-      handleLogout();
+    /* ── Network error while authenticated ── */
+    if (error.code === "ERR_NETWORK" && originalRequest?.headers?.Authorization) {
+      // handleLogout();
+      toast.warning("خطا در برقرای ارتباط");
     }
 
     /* ── All other errors (400, 403, 404, 409, 422, 429 etc.)
