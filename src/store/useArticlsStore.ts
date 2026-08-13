@@ -2,7 +2,6 @@ import { create } from "zustand";
 import {
   getArticleBySlugAndCatgSlug,
   getLatestArticles,
-  getArticleBySearch,
   getTopRatedArticles,
   getMostViewedArticles,
   type IArticle,
@@ -13,7 +12,6 @@ import {
 interface ILoadingState {
   article:    boolean;
   latest:     boolean;
-  search:     boolean;
   topRated:   boolean;
   mostViewed: boolean;
 }
@@ -21,7 +19,6 @@ interface ILoadingState {
 interface IErrorState {
   article:    string | null;
   latest:     string | null;
-  search:     string | null;
   topRated:   string | null;
   mostViewed: string | null;
 }
@@ -29,7 +26,6 @@ interface IErrorState {
 interface IArticleStore {
   selectedArticle:    IArticle | null;
   latestArticles:     IArticle[];
-  searchResults:      IArticle[];
   topRatedArticles:   IArticle[];
   mostViewedArticles: IArticle[];
   loading:            ILoadingState;
@@ -37,10 +33,8 @@ interface IArticleStore {
 
   fetchArticle:          (articleSlug: string, catgSlug: string) => Promise<void>;
   fetchLatestArticles:   ()                                       => Promise<void>;
-  fetchArticlesBySearch: (query: string)                          => Promise<void>;
   fetchTopRated:         ()                                       => Promise<void>;
   fetchMostViewed:       ()                                       => Promise<void>;
-  clearSearchResults:    ()                                       => void;
   clearSelectedArticle:  ()                                       => void;
 }
 
@@ -49,7 +43,6 @@ interface IArticleStore {
 const DEFAULT_LOADING: ILoadingState = {
   article:    false,
   latest:     false,
-  search:     false,
   topRated:   false,
   mostViewed: false,
 };
@@ -57,7 +50,6 @@ const DEFAULT_LOADING: ILoadingState = {
 const DEFAULT_ERROR: IErrorState = {
   article:    null,
   latest:     null,
-  search:     null,
   topRated:   null,
   mostViewed: null,
 };
@@ -77,7 +69,6 @@ const extractMessage = (err: unknown, fallback: string): string => {
 export const useArticleStore = create<IArticleStore>((set) => ({
   selectedArticle:    null,
   latestArticles:     [],
-  searchResults:      [],
   topRatedArticles:   [],
   mostViewedArticles: [],
   loading:            DEFAULT_LOADING,
@@ -121,27 +112,6 @@ export const useArticleStore = create<IArticleStore>((set) => ({
       set((s) => ({
         loading: { ...s.loading, latest: false },
         error:   { ...s.error,   latest: extractMessage(err, "خطا در دریافت جدیدترین مقالات") },
-      }));
-    }
-  },
-
-  // ── Search ────────────────────────────────────────────────────────────────
-
-  fetchArticlesBySearch: async (query) => {
-    set((s) => ({
-      loading: { ...s.loading, search: true },
-      error:   { ...s.error,   search: null },
-    }));
-    try {
-      const data = await getArticleBySearch(query);
-      set((s) => ({
-        searchResults: data,
-        loading: { ...s.loading, search: false },
-      }));
-    } catch (err) {
-      set((s) => ({
-        loading: { ...s.loading, search: false },
-        error:   { ...s.error,   search: extractMessage(err, "خطا در جستجوی مقالات") },
       }));
     }
   },
@@ -190,6 +160,5 @@ export const useArticleStore = create<IArticleStore>((set) => ({
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  clearSearchResults:   () => set({ searchResults: [],  error: { ...DEFAULT_ERROR } }),
   clearSelectedArticle: () => set({ selectedArticle: null, error: { ...DEFAULT_ERROR } }),
 }));

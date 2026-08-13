@@ -75,13 +75,6 @@ export const getLatestArticles = async (): Promise<IArticle[]> => {
   return res.data.data;
 };
 
-export const getArticleBySearch = async (query: string): Promise<IArticle[]> => {
-  const res = await apiInstance.get<IApiResponse<IArticle[]>>(
-    `/api/Article/search?value=${encodeURIComponent(query)}`,
-  );
-  return res.data.data;
-};
-
 export const getTopRatedArticles = async (): Promise<IArticle[]> => {
   const res = await apiInstance.get<IApiResponse<IArticle[]>>(
     "/api/Article/top-rated",
