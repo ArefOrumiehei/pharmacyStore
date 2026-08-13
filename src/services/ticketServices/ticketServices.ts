@@ -8,10 +8,6 @@ export interface ICreateTicketParams {
   email?: string;
 }
 
-export interface ICreateTicketResponse {
-  trackingCode: string;
-}
-
 export interface IApiResponse<T = null> {
   success: boolean;
   message: string;
@@ -22,8 +18,8 @@ export interface IApiResponse<T = null> {
 // ─── Services ─────────────────────────────────────────────────────────────────
 export const createTicket = async (
   params: ICreateTicketParams
-): Promise<IApiResponse<ICreateTicketResponse>> => {
-  const res = await apiInstance.post<IApiResponse<ICreateTicketResponse>>(
+): Promise<IApiResponse<string>> => {
+  const res = await apiInstance.post<IApiResponse<string>>(
     "/api/Ticket",
     params,
     { isFormDataRequest: true }

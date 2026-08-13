@@ -37,6 +37,9 @@ export interface ICheckoutPreview {
   shippingCost: number;
   totalAmount: number;
   totalDiscountAmount: number;
+  orderCouponAmount: number; 
+  totalAutoDiscountAmount: number;
+  couponRate: number;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

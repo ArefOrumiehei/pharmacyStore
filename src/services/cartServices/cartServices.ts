@@ -8,11 +8,13 @@ export interface CartItem {
     picture: string;
     unitPrice: number;
     qty: number;
+    TotalItemPrice: number;
 }
 
 export interface Cart {
     items: CartItem[];
     totalAmount: number;
+    totalDiscountAmount: number;
 }
 
 export interface ICartApiResponse<T> {
