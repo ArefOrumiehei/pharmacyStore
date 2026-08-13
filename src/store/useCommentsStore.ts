@@ -16,7 +16,7 @@ export interface Comment {
 
 export interface AddComemnt {
   message: string;
-  ownerRecordId: number;
+  recordId: number;
   type: number;
   rate: number;
 }
@@ -56,13 +56,14 @@ export const useCommentStore = create<CommentStore>((set) => ({
   editExistingComment: async (id: number, message: string, rate: number) => {
     set({ loading: true, error: null });
     try {
-      await editComment(id, message, rate);
+      const res = await editComment(id, message, rate);
       set((state) => ({
         comments: state.comments.map((comment) =>
           comment.id === id ? { ...comment, message, rate } : comment
         ),
         loading: false,
       }));
+      toast.success(res.message)
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }
@@ -71,11 +72,12 @@ export const useCommentStore = create<CommentStore>((set) => ({
   deleteExistingComment: async (commentId: number) => {
     set({ loading: true, error: null });
     try {
-      await deleteComment(commentId);
+      const res = await deleteComment(commentId);
       set((state) => ({
         comments: state.comments.filter((comment) => comment.id !== commentId),
         loading: false,
       }));
+      toast.warning(res.message)
     } catch (err: any) {
       set({ error: err.message || "خطا در حذف نظر", loading: false });
     }
@@ -92,7 +94,9 @@ export const useCommentStore = create<CommentStore>((set) => ({
         loading: false,
       }));
       if (res.success) {
-        toast.success(res.message)
+        // toast.success(res.message)
+      } else {
+        toast.warning(res.message)
       }
     } catch (err: any) {
       set({ error: err.message, loading: false });
@@ -102,13 +106,18 @@ export const useCommentStore = create<CommentStore>((set) => ({
   dislikeExistingComment: async (commentId: number) => {
     set({ loading: true, error: null });
     try {
-      await dislikeComment(commentId);
+      const res = await dislikeComment(commentId);
       set((state) => ({
         comments: state.comments.map((comment) =>
           comment.id === commentId ? { ...comment, rate: comment.rate - 1 } : comment
         ),
         loading: false,
       }));
+      if (res.success) {
+        // toast.success(res.message)
+      } else {
+        toast.warning(res.message)
+      }
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }

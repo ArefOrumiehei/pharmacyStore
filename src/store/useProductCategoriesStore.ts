@@ -8,8 +8,8 @@ export interface ProductCategory {
   icon: string;
   id: number;
   name: string;
-  picture: string | null;
-  pictureAlt: string | null;
+  picture: string;
+  pictureAlt: string;
   pictureTitle: string | null;
   slug: string | null;
   fullSlug: string | null;

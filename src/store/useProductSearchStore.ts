@@ -97,6 +97,7 @@ export const useProductSearchStore = create<SearchState & SearchActions>((set, g
   ...initialState,
 
   fetchResults: async (overrides = {}) => {
+    set(initialState);
     const state = get();
 
     const params: SearchParams = {

@@ -1,7 +1,6 @@
 import {
   getLatestArrivalsProduct,
   getProductByName,
-  getProductsBySearch,
   getRandomRecommendation,
   getTopRatedProducts,
   getMostViewedProducts,
@@ -26,8 +25,8 @@ export interface Product {
   keywords: string | null;
   metaDescription: string;
   doublePrice: number;
-  price: number;
-  priceWithDiscount: number;
+  price: string;
+  priceWithDiscount: string;
   discountRate: number;
   hasDiscount: boolean;
   discountExpireDate: string | null;
@@ -51,7 +50,6 @@ export interface Product {
 interface ProductStore {
   product: Product | null;
   latestArrivals: Product[];
-  searchResults: Product[];
   randomRecommendation: Product[];
   topRated: Product[];
   mostViewed: Product[];
@@ -62,21 +60,17 @@ interface ProductStore {
 
   fetchProductByName: (productName: string) => Promise<void>;
   fetchLatestArrivals: () => Promise<void>;
-  fetchProductsBySearch: (query: string) => Promise<void>;
   fetchRandomRecommendation: () => Promise<void>;
   fetchTopRated: () => Promise<void>;
   fetchMostViewed: () => Promise<void>;
 
   addToFavorites: (productId: number) => Promise<void>;
   removeFromFavorites: (productId: number) => Promise<void>;
-
-  clearSearchResults: () => void;
 }
 
 export const useProductStore = create<ProductStore>((set) => ({
   product: null,
   latestArrivals: [],
-  searchResults: [],
   randomRecommendation: [],
   topRated: [],
   mostViewed: [],
@@ -86,7 +80,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   error: null,
 
   fetchProductByName: async (productName: string) => {
-    set({ loading: true, error: null });
+    set({ loading: true, product: null, error: null });
     try {
       const data = await getProductByName(productName);
       set({ product: data, loading: false });
@@ -104,17 +98,6 @@ export const useProductStore = create<ProductStore>((set) => ({
     } catch (err) {
       const message = err instanceof Error ? err.message : "خطای ناشناخته";
       set({ error: message, loading: false });
-    }
-  },
-
-  fetchProductsBySearch: async (query: string) => {
-    set({ searchLoading: true, error: null });
-    try {
-      const data = await getProductsBySearch(query);
-      set({ searchResults: data, searchLoading: false });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "خطای ناشناخته";
-      set({ error: message, searchLoading: false });
     }
   },
 
@@ -172,5 +155,4 @@ export const useProductStore = create<ProductStore>((set) => ({
     }
   },
 
-  clearSearchResults: () => set({ searchResults: [] }),
 }));

@@ -117,7 +117,7 @@ export const useAuthStore = create<AuthState>()(
                     localStorage.clear();
 
                     set({ accessToken: null, refreshToken: null, loading: DEFAULT_LOADING });
-                    toast.success("از حساب کاربری خارج شدید");
+                    toast.warning("از حساب کاربری خارج شدید");
                 }
             },
 

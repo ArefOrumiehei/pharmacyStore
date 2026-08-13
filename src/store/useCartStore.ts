@@ -17,11 +17,17 @@ import {
 export type { Cart, CartItem };
 
 export interface GuestCartItem {
+    cartKey?: string;
     productId: number;
     productName: string;
     picture: string;
-    unitPrice: number;
+    unitPrice: string;
     qty: number;
+    invQty?: number;
+    priceWithDiscount?: string;
+    discountRate?: number;
+    discountedQty?: number;
+    hasDiscount?: boolean;
 }
 
 type CartState = {
@@ -117,9 +123,7 @@ export const readServerCart = (): Cart | null => {
     }
 };
 
-/* ─────────────────────────────────────────
-   STORE
-───────────────────────────────────────── */
+/* ──── STORE ──────────────────── */
 export const useCartStore = create<CartState>((set, get) => ({
     // Initialize cart from localStorage cache for instant first-paint reads
     cart: readServerCart(),
@@ -190,21 +194,29 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     // ── Server cart: increase ─────────────────────────────────────────────────
     increaseQty: async (productId) => {
+        set({ loading: true });
         const { cart } = get();
         if (!cart) return;
         set({ cart: updateItems(cart, productId, (i) => ({ ...i, qty: i.qty + 1 })) });
         try {
             const res = await increaseCartItemQty(productId);
             await get().fetchCart(true);
-            if (res.message) toast.success(res.message);
+            if (res.success) {
+                // toast.success(res.message);
+            } else {
+                toast.warning(res.message)
+            }
         } catch (err) {
             await get().fetchCart(true);
             toast.error(extractMessage(err, "خطا در افزایش تعداد"));
+        } finally {
+            set({ loading: false });
         }
     },
 
     // ── Server cart: decrease ─────────────────────────────────────────────────
     decreaseQty: async (productId) => {
+        set({ loading: true });
         const { cart } = get();
         if (!cart) return;
         const item = cart.items.find((i) => i.productId === productId);
@@ -214,27 +226,40 @@ export const useCartStore = create<CartState>((set, get) => ({
         try {
             const res = await decreaseCartItemQty(productId);
             await get().fetchCart(true);
-            if (res.message) toast.success(res.message);
+            if (res.success) {
+                // toast.success(res.message);
+            } else {
+                toast.warning(res.message)
+            }
         } catch (err) {
             await get().fetchCart(true);
             toast.error(extractMessage(err, "خطا در کاهش تعداد"));
+        } finally {
+            set({ loading: false });
         }
     },
 
     // ── Server cart: remove ───────────────────────────────────────────────────
     removeItem: async (productId) => {
+        set({ loading: true });
         const { cart } = get();
         if (!cart) return;
         const prevItems = cart.items;
         set({ cart: { ...cart, items: prevItems.filter((i) => i.productId !== productId) } });
         try {
             const res = await deleteCartItem(productId);
-            toast.success(res.message || "محصول از سبد خرید حذف شد");
+            if (res.success) {
+                // toast.success(res.message);
+            } else {
+                toast.warning(res.message)
+            }
             saveServerCart({ ...cart, items: cart.items.filter((i) => i.productId !== productId) });
         } catch (err) {
             set({ cart: { ...cart, items: prevItems } });
             saveServerCart(cart);
             toast.error(extractMessage(err, "خطا در حذف محصول"));
+        } finally {
+            set({ loading: false });
         }
     },
 
@@ -245,10 +270,15 @@ export const useCartStore = create<CartState>((set, get) => ({
             const res = await deleteCart();
             clearServerCart();
             set({ cart: null, loading: false });
-            toast.success(res.message || "سبد خرید پاک شد");
+            if (res.success) {
+                // toast.success(res.message);
+            } else {
+                toast.warning(res.message)
+            }
         } catch (err) {
-            set({ loading: false });
             toast.error(extractMessage(err, "خطا در حذف سبد خرید"));
+        } finally {
+            set({ loading: false });
         }
     },
 
@@ -258,14 +288,14 @@ export const useCartStore = create<CartState>((set, get) => ({
         const existing = guestCart.find((i) => i.productId === newItem.productId);
         const updated = existing
             ? guestCart.map((i) =>
-                  i.productId === newItem.productId
-                      ? { ...i, qty: i.qty + newItem.qty }
-                      : i
-              )
+                i.productId === newItem.productId
+                    ? { ...i, qty: i.qty + newItem.qty }
+                    : i
+                )
             : [...guestCart, newItem];
         saveGuestCart(updated);
         set({ guestCart: updated });
-        toast.success("محصول به سبد خرید اضافه شد");
+        // toast.success("محصول به سبد خرید اضافه شد");
     },
 
     // ── Guest cart: increase ──────────────────────────────────────────────────
