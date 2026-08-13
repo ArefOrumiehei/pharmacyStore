@@ -8,6 +8,7 @@ import {
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import type { IArticle } from "@/services/articleServices/articleServices";
 import { useArticleStore } from "@/store/useArticlsStore";
+import { toPersianDigits } from "smart-persian-tools";
 
 // ─── Content renderer ─────────────────────────────────────────────────────────
 
@@ -89,10 +90,10 @@ function RelatedCard({ article }: { article: IArticle }) {
         </h3>
         <div className="flex items-center gap-2 text-xs text-gray-400 mt-auto">
           <span className="flex items-center gap-1 text-amber-500">
-            <IconStar size={10} />{article.avgRateStr || article.avgRate}
+            <IconStar size={10} />{toPersianDigits(article.avgRateStr || article.avgRate)}
           </span>
           <span className="flex items-center gap-1">
-            <IconEye size={10} />{article.viewsLabel || article.viewCount}
+            <IconEye size={10} />{toPersianDigits(article.viewsLabel || article.viewCount)}
           </span>
         </div>
       </div>
@@ -213,16 +214,17 @@ export default function BlogPostPage() {
             <AuthorAvatar size="md" />
             <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
               <span className="flex items-center gap-1">
-                <IconCalendar size={12} />{article.publishDate}
+                <IconCalendar size={14} />
+                {toPersianDigits(article.publishDate)}
               </span>
               <span className="flex items-center gap-1">
-                <IconEye size={12} />{article.viewsLabel || article.viewCount} بازدید
+                <IconEye size={12} />{toPersianDigits(article.viewsLabel)}
               </span>
               <span className="flex items-center gap-1 text-amber-500">
-                <IconStar size={12} />{article.avgRateStr || article.avgRate}
+                <IconStar size={12} />{toPersianDigits(article.avgRateStr || article.avgRate)}
               </span>
               <span className="flex items-center gap-1">
-                <IconMessageCircle size={12} />{article.commentCountStr || article.commentCount} نظر
+                <IconMessageCircle size={12} />{toPersianDigits(article.commentCountStr || article.commentCount)} نظر
               </span>
             </div>
           </div>
@@ -238,7 +240,7 @@ export default function BlogPostPage() {
               }`}
             >
               {liked ? <IconHeartFilled size={14} /> : <IconHeart size={14} />}
-              {likeCount}
+              {toPersianDigits(likeCount)}
             </button>
             <button
               onClick={() => setBookmarked((p) => !p)}
