@@ -21,10 +21,10 @@ export interface GuestCartItem {
     productId: number;
     productName: string;
     picture: string;
-    unitPrice: string;
     qty: number;
     invQty?: number;
-    priceWithDiscount?: string;
+    unitPrice: number;
+    priceWithDiscount?: number;
     discountRate?: number;
     discountedQty?: number;
     hasDiscount?: boolean;

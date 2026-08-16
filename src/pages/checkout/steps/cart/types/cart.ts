@@ -1,13 +1,13 @@
 export interface CartItem {
-  cartKey?: string;
   productId: number;
   productName: string;
   picture: string;
-  unitPrice: string | number;
+  unitPrice: number;
   qty: number;
   invQty?: number;
-  priceWithDiscount?: string;
+  priceWithDiscount?: number;
   discountRate?: number;
   discountedQty?: number;
   hasDiscount?: boolean;
+  productFullSlug?: string;
 }

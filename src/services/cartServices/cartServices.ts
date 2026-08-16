@@ -6,9 +6,15 @@ export interface CartItem {
     productId: number;
     productName: string;
     picture: string;
-    unitPrice: number;
+    productFullSlug: string;
     qty: number;
+    unitPrice: number;
     TotalItemPrice: number;
+    priceWithDiscount: number;
+    invQty: number;
+    hasDiscount: boolean;
+    discountedQty: number;
+    discountRate: number;
 }
 
 export interface Cart {

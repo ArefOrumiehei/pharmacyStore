@@ -1,10 +1,11 @@
 import { Trash2, Minus, Plus } from "lucide-react";
 import { IconLoader2 } from "@tabler/icons-react";
-import { toPersianDigits } from "smart-persian-tools";
+import { formatCurrency, toPersianDigits } from "smart-persian-tools";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import type { CartItem } from "../../../../types/cart";
 import { calculateLineTotal, getDiscountedQty, getRegularQty, itemHasActiveDiscount } from "../../../../utils/cart";
 import { ControlBtn } from "../controlBtn/ControlBtn";
+import { Link } from "react-router";
 
 interface CartItemRowProps {
   item: CartItem;
@@ -19,9 +20,12 @@ export function CartItemRow({ item, loading, onIncrease, onDecrease, onRemove }:
   const discountedQty = getDiscountedQty(item);
   const regularQty = getRegularQty(item);
 
-  const unitPriceNum = Number(item.unitPrice);
-  const discountedPriceNum = Number(item.priceWithDiscount ?? item.unitPrice);
+  const unitPriceNum = item.unitPrice;
+  const discountedPriceNum = item.priceWithDiscount ?? item.unitPrice;
   const lineTotal = calculateLineTotal(item);
+
+  const catgSlug = item.productFullSlug?.split("/").slice(0,3).join("/") ?? ""
+  const productSlug = item.productFullSlug?.split("/").pop() ?? ""
 
   return (
     <li
@@ -45,15 +49,17 @@ export function CartItemRow({ item, loading, onIncrease, onDecrease, onRemove }:
         </div>
 
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-gray-800 text-sm">{item.productName}</h4>
+          <Link to={`/product/${encodeURIComponent(catgSlug)}/${encodeURIComponent(productSlug)}`}>
+            <h4 className="font-semibold text-gray-800 text-sm">{item.productName}</h4>
+          </Link>
 
           {hasDiscount ? (
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-gray-400 line-through">{toPersianDigits(unitPriceNum)}</span>
-              <span className="text-xs font-bold text-rose-600">{toPersianDigits(discountedPriceNum)} تومان</span>
+              <span className="text-xs text-gray-400 line-through">{formatCurrency(unitPriceNum, "toman", false)}</span>
+              <span className="text-xs font-bold text-rose-600">{formatCurrency(discountedPriceNum)}</span>
             </div>
           ) : (
-            <p className="text-xs text-gray-400 mt-0.5">{toPersianDigits(unitPriceNum)} تومان</p>
+            <p className="text-xs text-gray-400 mt-0.5">قیمت واحد: {formatCurrency(unitPriceNum)}</p>
           )}
 
           {hasDiscount && regularQty > 0 && (
@@ -63,7 +69,7 @@ export function CartItemRow({ item, loading, onIncrease, onDecrease, onRemove }:
           )}
 
           <p className={`text-xs font-semibold mt-1 ${hasDiscount ? "text-rose-600" : "text-blue-800"}`}>
-            جمع: {toPersianDigits(lineTotal)} تومان
+            جمع: {formatCurrency(lineTotal)}
           </p>
         </div>
       </div>

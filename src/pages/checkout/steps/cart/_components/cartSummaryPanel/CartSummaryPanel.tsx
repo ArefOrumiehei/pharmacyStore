@@ -1,19 +1,20 @@
 import { ArrowLeft } from "lucide-react";
 import { IconTag } from "@tabler/icons-react";
-import { toPersianDigits } from "smart-persian-tools";
+import { formatCurrency, toPersianDigits } from "smart-persian-tools";
 import { SummaryRow } from "./_components/summaryRow/SummaryRow";
 import NoteText from "./_components/noteText/NoteText";
 
 interface CartSummaryPanelProps {
   totalQty: number;
   totalAmount: number;
+  totalDiscountAmount: number;
   initialLoading: boolean;
   isEmpty: boolean;
   isGuest: boolean;
   onProceed: () => void;
 }
 
-export function CartSummaryPanel({ totalQty, totalAmount, initialLoading, isEmpty, isGuest, onProceed }: CartSummaryPanelProps) {
+export function CartSummaryPanel({ totalQty, totalAmount, totalDiscountAmount, initialLoading, isEmpty, isGuest, onProceed }: CartSummaryPanelProps) {
   return (
     <div className="lg:w-80 flex flex-col bg-white rounded-2xl border border-blue-100 overflow-hidden h-fit">
       <div className="flex items-center gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-blue-50">
@@ -24,10 +25,10 @@ export function CartSummaryPanel({ totalQty, totalAmount, initialLoading, isEmpt
       </div>
 
       <div className="px-4 sm:px-6 py-5 space-y-3">
-        <SummaryRow label="تعداد اقلام" value={`${toPersianDigits(totalQty)} محصول`} loading={initialLoading} />
-        <SummaryRow label="جمع محصولات" value={`${toPersianDigits(totalAmount)} تومان`} loading={initialLoading} />
+        <SummaryRow label={`مجموع اقلام (${toPersianDigits(totalQty)})`} value={`${formatCurrency(totalAmount)}`} loading={initialLoading} />
+        {totalDiscountAmount !== 0 && <SummaryRow label="مجموع تخفیف" value={`${formatCurrency(totalDiscountAmount)}`} loading={initialLoading} />}
         <div className="border-t border-dashed border-blue-100 pt-3">
-          <SummaryRow label="مبلغ قابل پرداخت" value={`${toPersianDigits(totalAmount)} تومان`} loading={initialLoading} bold />
+          <SummaryRow label="مبلغ قابل پرداخت" value={`${formatCurrency(totalAmount - totalDiscountAmount)}`} loading={initialLoading} bold />
         </div>
       </div>
 

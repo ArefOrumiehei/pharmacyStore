@@ -1,10 +1,10 @@
 import SectionTitle from "@/components/common/sectionTitle/SectionTitle";
 import { formatCurrency, toPersianDigits } from "smart-persian-tools";
 import { SummaryRow } from "../../../cart/_components/cartSummaryPanel/_components/summaryRow/SummaryRow";
-import type { OrderPreviewSummary } from "../../types/payment";
+import type { ICheckoutPreview } from "@/services/orderServices/orderServices";
 
 interface OrderSummaryProps {
-  preview: OrderPreviewSummary | null;
+  preview: ICheckoutPreview | null;
   loading: boolean;
   totalQty: number;
 }
@@ -16,12 +16,15 @@ export function OrderSummary({ preview, loading, totalQty }: OrderSummaryProps) 
       <div className="flex flex-col gap-2">
         <SummaryRow label="تعداد اقلام" value={preview ? `${toPersianDigits(totalQty)} محصول` : "—"} loading={loading} />
         <SummaryRow
-          label="جمع کالاها"
+          label="جمع محصولات"
           value={preview?.totalAmount ? `${formatCurrency(preview.totalAmount)}` : "—"}
           loading={loading}
         />
-        {preview && preview.totalDiscountAmount > 0 && (
-          <SummaryRow label="تخفیف" value={`${formatCurrency(preview.totalDiscountAmount)}`} highlight="green" loading={loading} />
+        {preview && preview.totalAutoDiscountAmount > 0 && (
+          <SummaryRow label="تخفیف محصولات" value={`${formatCurrency(preview.totalAutoDiscountAmount)}`} highlight="green" loading={loading} />
+        )}
+        {preview && preview.orderCouponAmount > 0 && (
+          <SummaryRow label={`کد تخفیف (%${toPersianDigits(preview.couponRate)})`} value={`${formatCurrency(preview.orderCouponAmount)}`} highlight="green" loading={loading} />
         )}
         <SummaryRow
           label="هزینه ارسال"

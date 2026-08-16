@@ -105,12 +105,13 @@ export default function CartStep() {
 
             {!isEmpty && (
                 <CartSummaryPanel
-                totalQty={totalQty}
-                totalAmount={totalAmount}
-                initialLoading={initialLoading}
-                isEmpty={isEmpty}
-                isGuest={isGuest}
-                onProceed={handleProceed}
+                    totalQty={totalQty}
+                    totalAmount={totalAmount}
+                    totalDiscountAmount={cart?.totalDiscountAmount ?? 0}
+                    initialLoading={initialLoading}
+                    isEmpty={isEmpty}
+                    isGuest={isGuest}
+                    onProceed={handleProceed}
                 />
             )}
         </div>
