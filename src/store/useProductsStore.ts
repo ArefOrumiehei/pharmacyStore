@@ -17,21 +17,19 @@ export interface Product {
   pictureAlt: string;
   pictureTitle: string;
   slug: string;
-  code: string | null;
   brand: string;
   shortDescription: string | null;
   description: string | null;
   specifications: string | null;
   keywords: string | null;
   metaDescription: string;
-  doublePrice: number;
-  price: string;
-  priceWithDiscount: string;
+  price: number;
+  priceWithDiscount: number;
   discountRate: number;
   hasDiscount: boolean;
   discountExpireDate: string | null;
   isInStock: boolean;
-  inStockQty: number;
+  invQty: number;
   category: string;
   categoryId: number;
   categoryName: string;
@@ -45,6 +43,7 @@ export interface Product {
   currentUserFavedDate: string | null;
   comments: unknown | null;
   pictures: unknown | null;
+  sales: number;
 }
 
 interface ProductStore {

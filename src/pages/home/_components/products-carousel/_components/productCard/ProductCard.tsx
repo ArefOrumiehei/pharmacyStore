@@ -16,7 +16,7 @@ type ProductCardProps = {
 
 const ProductCard: React.FC<ProductCardProps> = ({ productData }) => {
   const inStock = productData.isInStock ?? true;
-  const stockCount = productData.inStockQty ?? null;
+  const stockCount = productData.invQty ?? null;
   const isLowStock = inStock && stockCount !== null && stockCount > 0 && stockCount <= 10;
 
   return (

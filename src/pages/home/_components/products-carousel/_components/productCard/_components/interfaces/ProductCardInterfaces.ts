@@ -14,8 +14,8 @@ export interface ProductCardImageProps {
 
 export interface ProductPriceBlockProps {
   inStock: boolean;
-  price: string | number;
-  priceWithDiscount?: string | number;
+  price: number;
+  priceWithDiscount?: number;
   hasDiscount?: boolean;
 }
 

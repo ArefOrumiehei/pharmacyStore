@@ -1,4 +1,4 @@
-import { toPersianDigits } from "smart-persian-tools";
+import { formatCurrency } from "smart-persian-tools";
 import type { ProductPriceBlockProps } from "../interfaces/ProductCardInterfaces";
 
 export default function ProductPriceBlock({ inStock, price, priceWithDiscount, hasDiscount }: ProductPriceBlockProps) {
@@ -9,11 +9,11 @@ export default function ProductPriceBlock({ inStock, price, priceWithDiscount, h
       {hasDiscount && priceWithDiscount ? (
         <>
           <span className="text-[8px] sm:text-xs text-gray-400 line-through truncate">
-            {toPersianDigits(price)}
+            {formatCurrency(price, "toman", false)}
           </span>
           <div className="flex items-baseline gap-0.5 sm:gap-1">
             <span className="text-xs sm:text-base font-black text-blue-800 truncate">
-              {toPersianDigits(priceWithDiscount)}
+              {formatCurrency(priceWithDiscount, "toman", false)}
             </span>
             <span className="text-[8px] sm:text-xs text-gray-500 whitespace-nowrap">تومان</span>
           </div>
@@ -21,7 +21,7 @@ export default function ProductPriceBlock({ inStock, price, priceWithDiscount, h
       ) : (
         <div className="flex items-baseline gap-0.5 sm:gap-1">
           <span className="text-xs sm:text-base font-black text-blue-800 truncate">
-            {toPersianDigits(price)}
+            {formatCurrency(price, "toman", false)}
           </span>
           <span className="text-[8px] sm:text-xs text-gray-500 whitespace-nowrap">تومان</span>
         </div>

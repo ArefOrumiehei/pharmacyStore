@@ -16,7 +16,7 @@ export default function MiniAddToCartControl({ product }: MiniAddToCartControlPr
 
   const [isPending, setIsPending] = useState(false);
 
-  const inStockQty = product.inStockQty ?? 0;
+  const inStockQty = product.invQty ?? 0;
   const isGuest = !accessToken;
   console.log(isGuest)
 
@@ -37,7 +37,7 @@ export default function MiniAddToCartControl({ product }: MiniAddToCartControlPr
         priceWithDiscount: product.priceWithDiscount,
         qty:               1,
         hasDiscount:       product.hasDiscount,
-        invQty:            product.inStockQty,
+        invQty:            product.invQty,
       });
 
       return;
