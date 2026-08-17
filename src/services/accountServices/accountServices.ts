@@ -23,28 +23,22 @@ export interface IAddress {
 }
 
 export interface IOrderItem {
-    id: number;
     orderId: number;
     productId: number;
     productName: string;
     productPicture: string;
-    productFullPath: string;
+    productFullSlug: string;
     qty: number;
     unitPrice: number;
-    unitPriceDisplay: string;
     discountRate: number;
-    discountRateDisplay: string;
     totalPriceWithDiscount: number;
-    totalPriceWithDiscountDisplay: string;
 }
 
 export interface IOrder {
     id: number;
     userId: number;
     creationDate: string;
-    creationDateDisplay: string;
     lastModifiedDate: string;
-    lastModifiedDateDisplay: string;
     sortDate: string;
     status: number;
     statusTitle: string;
@@ -52,15 +46,11 @@ export interface IOrder {
     paymentMethodInt: number;
     postTrackingNumber: string;
     totalAmount: number;
-    totalAmountDisplay: string;
     discountAmount: number;
-    discountAmountDisplay: string;
     couponCode: string;
     appliedCouponId: number;
     orderCouponAmount: number;
-    orderCouponAmountDisplay: string;
     payAmount: number;
-    payAmountDisplay: string;
     items: IOrderItem[];
     itemsCount: number;
     receiverFullName: string;
@@ -77,7 +67,6 @@ export interface ILatestOrder {
     status: number;
     statusTitle: string;
     payAmount: number;
-    payAmountDisplay: string;
     itemsCount: number;
 }
 

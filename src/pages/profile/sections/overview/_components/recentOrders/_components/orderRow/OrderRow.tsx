@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { IconShoppingBag } from "@tabler/icons-react";
-import { toPersianDigits } from "smart-persian-tools";
+import { formatCurrency, toPersianDigits } from "smart-persian-tools";
 import { FALLBACK_STATUS, STATUS_CONFIG } from "@/pages/profile/constants/Constants";
 import type { ILatestOrder } from "@/services/accountServices/accountServices";
 
@@ -28,7 +28,7 @@ export default function OrderRow({ order }: { order: ILatestOrder }) {
       </div>
       <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
         <p className="text-xs sm:text-sm font-semibold text-blue-800 hidden sm:block">
-          {toPersianDigits(order.payAmountDisplay)} ت
+          {formatCurrency(order.payAmount, "toman", false)} ت
         </p>
         <span className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border whitespace-nowrap ${s.class}`}>
           <StatusIcon size={10} className="sm:w-3 sm:h-3" />

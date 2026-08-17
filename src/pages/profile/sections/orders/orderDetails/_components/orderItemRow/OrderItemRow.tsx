@@ -1,11 +1,11 @@
 import { Link } from "react-router";
 import { IconPill } from "@tabler/icons-react";
-import { toPersianDigits } from "smart-persian-tools";
+import { formatCurrency, toPersianDigits } from "smart-persian-tools";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import type { IOrderItem } from "@/services/accountServices/accountServices";
 
 export default function OrderItemRow({ item }: { item: IOrderItem }) {
-  const splitedFullSlug = item.productFullPath.split("/");
+  const splitedFullSlug = item.productFullSlug.split("/");
   const catgSlug = splitedFullSlug[0] + "/" + splitedFullSlug[1] + "/" + splitedFullSlug[2];
   const productSlug = splitedFullSlug[3];
 
@@ -30,21 +30,21 @@ export default function OrderItemRow({ item }: { item: IOrderItem }) {
             {item.productName}
           </Link>
         </p>
-        {item.discountRateDisplay !== "0%" && (
+        {item.discountRate !== 0 && (
           <span className="text-[10px] sm:text-xs text-rose-500 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-md mt-0.5 inline-block">
-            {toPersianDigits(item.discountRateDisplay)} تخفیف
+            {toPersianDigits(item.discountRate)} تخفیف
           </span>
         )}
       </div>
 
       <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
         <p className="text-xs sm:text-sm font-bold text-blue-800 whitespace-nowrap">
-          {toPersianDigits(item.totalPriceWithDiscountDisplay)} ت
+          {formatCurrency(item.totalPriceWithDiscount, "toman", false)} ت
         </p>
         <p className="text-[10px] sm:text-xs text-gray-400 flex flex-row-reverse gap-1 whitespace-nowrap">
           <span>{toPersianDigits(item.qty)}</span>
           ×
-          <span>{toPersianDigits(item.unitPriceDisplay)}</span>
+          <span>{formatCurrency(item.unitPrice, "toman", false)}</span>
         </p>
       </div>
     </div>
