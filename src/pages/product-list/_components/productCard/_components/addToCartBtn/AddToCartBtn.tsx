@@ -16,7 +16,7 @@ export default function AddToCartBtn({ product }: MiniAddToCartControlProps) {
 
     const [isPending, setIsPending] = useState(false);
 
-    const inStockQty = product.inStockQty ?? 0;
+    const inStockQty = product.invQty ?? 0;
     const isGuest = !accessToken;
 
     const qty = useMemo(() => {
@@ -36,7 +36,7 @@ export default function AddToCartBtn({ product }: MiniAddToCartControlProps) {
                 priceWithDiscount: product.priceWithDiscount,
                 qty:               1,
                 hasDiscount:       product.hasDiscount,
-                invQty:            product.inStockQty,
+                invQty:            product.invQty,
             });
         }
         setIsPending(true);
