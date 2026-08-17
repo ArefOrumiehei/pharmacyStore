@@ -2,6 +2,7 @@
 import { IconWorld, IconDroplet, IconListDetails } from "@tabler/icons-react";
 import type { IProductSpecifications } from "../../types/productPageTypes";
 import SectionTitle from "../../../../components/common/sectionTitle/SectionTitle";
+import { toPersianDigits } from "smart-persian-tools";
 
 const FIELD_CONFIG: {
     key: "countryOfOrigin" | "productForm";
@@ -29,7 +30,7 @@ function SpecItem({
             <div className="min-w-0">
                 <p className="text-[10px] sm:text-xs text-gray-400">{label}</p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-700 mt-0.5 truncate">
-                    {value}
+                    {toPersianDigits(value)}
                 </p>
             </div>
         </div>
@@ -100,7 +101,7 @@ export default function ProductSpecifications({
                                             {key}
                                         </span>
                                         <span className="font-semibold text-gray-700 truncate">
-                                            {String(value)}
+                                            {toPersianDigits(String(value))}
                                         </span>
                                     </div>
                                 ))}

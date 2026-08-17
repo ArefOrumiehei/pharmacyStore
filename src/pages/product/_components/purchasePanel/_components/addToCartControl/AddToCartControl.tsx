@@ -25,7 +25,7 @@ export default function AddToCartControl({ product }: AddToCartControlProps) {
 
     const [justAdded, setJustAdded] = useState(false);
 
-    const inStockQty = product.inStockQty ?? 0;
+    const inStockQty = product.invQty ?? 0;
     const isGuest = !accessToken;
 
     const qty = useMemo(() => {
@@ -45,7 +45,7 @@ export default function AddToCartControl({ product }: AddToCartControlProps) {
                 priceWithDiscount: product.priceWithDiscount,
                 qty:               1,
                 hasDiscount:       product.hasDiscount,
-                invQty:            product.inStockQty,
+                invQty:            product.invQty,
             });
         } else {
             await addToCart(product.id, 1);

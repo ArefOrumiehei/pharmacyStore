@@ -1,5 +1,5 @@
 import type { PriceDisplayProps } from "@/pages/product/types/productPageTypes";
-import { toPersianDigits } from "smart-persian-tools";
+import { formatCurrency, toPersianDigits } from "smart-persian-tools";
 
 export default function PriceDisplay({ isLoaded, product, displayPrice }: PriceDisplayProps) {
   if (!isLoaded) {
@@ -16,7 +16,7 @@ export default function PriceDisplay({ isLoaded, product, displayPrice }: PriceD
       {product?.hasDiscount && (
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm text-gray-400 line-through truncate">
-            {toPersianDigits(product.price)} تومان
+            {formatCurrency(product.price, "toman", false)}
           </span>
           <span className="flex items-center gap-0.5 text-[10px] sm:text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">
             {toPersianDigits(product.discountRate)}٪ تخفیف
@@ -25,7 +25,7 @@ export default function PriceDisplay({ isLoaded, product, displayPrice }: PriceD
       )}
       <div className="flex items-baseline gap-1 sm:gap-1.5 min-w-0">
         <span className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-800 truncate">
-          {toPersianDigits(displayPrice ?? "")}
+          {formatCurrency(displayPrice ?? 0, "toman", false)}
         </span>
         <span className="text-xs sm:text-sm text-gray-400 flex-shrink-0">تومان</span>
       </div>

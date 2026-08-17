@@ -90,7 +90,7 @@ export interface RatingStarsProps {
 export interface PurchasePanelProps {
   isLoaded: boolean;
   product: Product | null;
-  displayPrice?: string | number;
+  displayPrice?: number;
 }
 
 export interface StockBadgeProps {
@@ -111,7 +111,7 @@ export interface QuantityStepperProps {
 export interface PriceDisplayProps {
   isLoaded: boolean;
   product: Product | null;
-  displayPrice?: string | number;
+  displayPrice?: number;
 }
 
 export interface AddToCartControlProps {
