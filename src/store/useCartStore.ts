@@ -184,7 +184,11 @@ export const useCartStore = create<CartState>((set, get) => ({
         try {
             const res = await addProductToCart(productId, qty);
             await get().fetchCart(true);
-            toast.success(res.message || "محصول به سبد خرید اضافه شد");
+            if (res.success) {
+                // toast.success(res.message);
+            } else {
+                toast.warning(res.message);
+            }
         } catch (err) {
             toast.error(extractMessage(err, "خطا در افزودن محصول"));
         } finally {
@@ -325,7 +329,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         const updated = get().guestCart.filter((i) => i.productId !== productId);
         saveGuestCart(updated);
         set({ guestCart: updated });
-        toast.success("محصول از سبد خرید حذف شد");
+        // toast.success("محصول از سبد خرید حذف شد");
     },
 
     // ── Guest cart: clear ─────────────────────────────────────────────────────
