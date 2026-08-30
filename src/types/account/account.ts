@@ -1,4 +1,5 @@
 // api/Account Types and Interfaces
+import type { CommentStatus } from "@/pages/profile/sections/comments/_components/commentCard/_components/commentStatusBadge/CommentStatusBadge";
 
 // User
 export interface IUserProfile {
@@ -95,6 +96,7 @@ export interface IUserComments {
   productName: string;
   categoryName: string;
   categoryFullSlug: string;
+  status: CommentStatus;
 }
 
 // Addresses
