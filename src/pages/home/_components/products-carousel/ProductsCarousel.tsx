@@ -110,6 +110,10 @@ function ProductsCarousel({
     const { scrollRef, atStart, atEnd, scrollBy, dragHandlers } =
         useHorizontalDragScroll<HTMLDivElement>([products]);
 
+    if (isEmpty) {
+        return null;
+    }
+        
     return (
         <div
             className={`relative w-full rounded-lg sm:rounded-xl overflow-hidden ${s.wrapper}`}
