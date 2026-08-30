@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useProductStore } from "@/store/useProductsStore";
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 import ConfirmModal from "@/components/common/confirmModal/ConfirmModal";
 import FavoritesHeader from "./_components/favoritesHeader/FavoritesHeader";
 import FavoritesEmptyState from "./_components/favoritesEmptyState/FavoritesEmptyState";
@@ -12,14 +12,18 @@ export default function Favorites() {
     const { removeFromFavorites, loading } = useProductStore();
     const { fetchUserFavorites, userFavorites } = useUserStore();
 
-    const [pendingRemoveItem, setPendingRemoveItem] = useState<any | null>(null);
+    const [pendingRemoveItem, setPendingRemoveItem] = useState<any | null>(
+        null
+    );
     const [removing, setRemoving] = useState(false);
 
     useEffect(() => {
         fetchUserFavorites();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const favorites: any[] = Array.isArray(userFavorites) ? (userFavorites as any[]) : [];
+    const favorites: any[] = Array.isArray(userFavorites)
+        ? (userFavorites as any[])
+        : [];
 
     const handleConfirmRemove = async () => {
         if (!pendingRemoveItem) return;
@@ -43,15 +47,22 @@ export default function Favorites() {
 
     return (
         <div className="flex flex-col gap-3.5 sm:gap-5">
-            <FavoritesHeader count={favorites.length} showCount={favorites.length > 0} />
+            <FavoritesHeader
+                count={favorites.length}
+                showCount={favorites.length > 0}
+            />
 
             {favorites.length === 0 ? (
                 <FavoritesEmptyState />
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
-                {favorites.map((item) => (
-                    <FavoriteCard key={item.id} item={item} onRemoveClick={setPendingRemoveItem} />
-                ))}
+                    {favorites.map((item) => (
+                        <FavoriteCard
+                            key={item.id}
+                            item={item}
+                            onRemoveClick={setPendingRemoveItem}
+                        />
+                    ))}
                 </div>
             )}
 

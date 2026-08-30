@@ -1,5 +1,5 @@
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 
 export default function UserInfo() {
   const { user } = useUserStore();

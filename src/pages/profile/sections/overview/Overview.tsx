@@ -6,7 +6,7 @@ import {
     IconCircleCheck,
     IconRotateClockwise,
 } from "@tabler/icons-react";
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 import type { StatItem } from "./_components/statsGrid/_components/statCard/StatCard";
 
 // Components

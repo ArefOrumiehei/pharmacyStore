@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useCommentStore } from "@/store/useCommentsStore";
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 import CommentForm from "./commentForm/CommentForm";
 import CommentsList from "./commentsList/CommentsList";
 import type { CommentsSectionProps, ProductComment } from "../../types/productPageTypes";

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 import { changePasswordSchema, mobileSchema, profileSchema, setPasswordSchema, type ChangePasswordFormValues, type MobileFormValues, type ProfileFormValues, type SetPasswordFormValues } from "../../constants/Constants";
 import { AccountHeader } from "./_components/accountHeader/AccountHeader";
 import { PersonalInfoSection } from "./_components/personalInfoSection/PersonalInfoSection";

@@ -8,7 +8,7 @@ import {
   IconLogin,
   IconX,
 } from "@tabler/icons-react";
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 import type { MobileBottomBarProps } from "../../types/HeaderTypes";
 
 export default function MobileBottomBar({ onCategoriesOpen, categoriesOpen, searchOpen, onSearchToggle }: MobileBottomBarProps) {

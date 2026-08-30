@@ -55,8 +55,11 @@ export function CartItemRow({ item, loading, onIncrease, onDecrease, onRemove }:
 
           {hasDiscount ? (
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-gray-400 line-through">{formatCurrency(unitPriceNum, "toman", false)}</span>
-              <span className="text-xs font-bold text-rose-600">{formatCurrency(discountedPriceNum)}</span>
+              <p className="text-xs text-gray-400">قیمت واحد:</p>
+              <div className="flex items-center flex-col min-[360px]:flex-row gap-2">
+                <span className="text-xs text-gray-400 line-through">{formatCurrency(unitPriceNum, "toman", false)}</span>
+                <span className="text-xs font-bold text-rose-600">{formatCurrency(discountedPriceNum)}</span>
+              </div>
             </div>
           ) : (
             <p className="text-xs text-gray-400 mt-0.5">قیمت واحد: {formatCurrency(unitPriceNum)}</p>
