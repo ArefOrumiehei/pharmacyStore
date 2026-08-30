@@ -18,7 +18,6 @@ export default function MiniAddToCartControl({ product }: MiniAddToCartControlPr
 
   const inStockQty = product.invQty ?? 0;
   const isGuest = !accessToken;
-  console.log(isGuest)
 
   const qty = useMemo(() => {
     if (isGuest) return guestCart.find((i) => i.productId === product.id)?.qty ?? 0;
