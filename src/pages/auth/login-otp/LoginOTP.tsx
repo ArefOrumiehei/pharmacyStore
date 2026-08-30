@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 import {
     IconPhone,
     IconLoader2,
     IconArrowRight,
     IconRefresh,
 } from "@tabler/icons-react";
+import { resetLogoutGuard } from "@/apis/apiInstance";
 
 // ─── OTP digit input ──────────────────────────────────────────────────────────
 
@@ -198,6 +199,7 @@ export default function LoginOTP() {
         if (res) {
             await fetchUser();
             navigate(redirectTo, { replace: true });
+            resetLogoutGuard()
         }
     };
 

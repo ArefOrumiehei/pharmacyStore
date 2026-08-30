@@ -5,6 +5,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock, IconAlertCircle } from "@tabler/icons-react";
 import { useState } from "react";
+import { resetLogoutGuard } from "@/apis/apiInstance";
 
 const loginSchema = z.object({
   usernameOrMobile: z.string().min(2, "نام کاربری یا شماره موبایل الزامی است"),
@@ -41,6 +42,7 @@ export default function Login() {
         rememberMe: data.rememberMe,
       });
       navigate(redirectTo, { replace: true });
+      resetLogoutGuard()
     } catch (err) {
       setError("root", {
         message: err instanceof Error ? err.message : "خطایی رخ داده است. لطفاً دوباره تلاش کنید",

@@ -122,7 +122,6 @@ export const useAuthStore = create<AuthState>()(
             },
 
             // ── Refresh token ─────────────────────────────────────────────────
-
             refresh: async () => {
                 const token = get().refreshToken;
                 if (!token) return null;
@@ -133,9 +132,10 @@ export const useAuthStore = create<AuthState>()(
                     set((s) => ({ ...applyTokens(res), loading: { ...s.loading, refresh: false } }));
                     return res;
                 } catch (err) {
-                    set({ accessToken: null, refreshToken: null, loading: DEFAULT_LOADING });
-                    toast.error(extractMessage(err, "نشست منقضی شد، دوباره وارد شوید"));
-                    return null;
+                    // Clear tokens locally, but let apiInstance's interceptor own the
+                    // toast + logout + redirect — don't duplicate that here.
+                    set((s) => ({ accessToken: null, refreshToken: null, loading: { ...s.loading, refresh: false } }));
+                    throw err;
                 }
             },
 

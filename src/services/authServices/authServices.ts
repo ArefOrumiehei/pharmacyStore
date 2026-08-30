@@ -1,4 +1,4 @@
-import apiInstance from "@/apis/apiInstance";
+import apiInstance, { type ApiRequestConfig } from "@/apis/apiInstance";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,11 @@ export const authLogin = async (params: IAuthLoginParams): Promise<IApiResponse<
 };
 
 export const authRefreshToken = async (refreshToken: string): Promise<IAuthTokenResponse> => {
-  const res = await apiInstance.post("/api/Auth/refresh", { refreshToken });
+  const res = await apiInstance.post<IApiResponse<IAuthTokenResponse>>(
+    "/api/Auth/refresh",
+    { refreshToken },
+    { _isRefreshRequest: true } as ApiRequestConfig
+  );
   return res.data.data;
 };
 

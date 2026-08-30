@@ -10,9 +10,10 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const IMAGE_BASE = import.meta.env.VITE_IMAGE_BASE;
 
 /* ────────── TYPES ─────────────────── */
-type ApiRequestConfig = InternalAxiosRequestConfig & {
+export type ApiRequestConfig = InternalAxiosRequestConfig & {
   isFormDataRequest?: boolean;
   _retry?: boolean;
+  _isRefreshRequest?: boolean;
 };
 
 interface QueueEntry {
@@ -28,7 +29,7 @@ let hasLoggedOut = false;
 const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((entry) => {
     if (error) entry.reject(error);
-    else       entry.resolve(token!);
+    else entry.resolve(token!);
   });
   failedQueue = [];
 };
@@ -46,11 +47,22 @@ const handleLogout = () => {
   useAuthStore.getState().logout();
 };
 
+export const resetLogoutGuard = () => {
+  hasLoggedOut = false;
+};
+
+const sessionExpiredAndLogout = (error: unknown) => {
+  toast.error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
+  handleLogout();
+  redirectTo("/login");
+  return Promise.reject(error);
+};
+
 /* ────── INSTANCE ──────────────────── */
 const apiInstance = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
-  withCredentials: true
+  withCredentials: true,
 });
 
 /* ───  REQUEST INTERCEPTOR ─────────── */
@@ -82,48 +94,56 @@ apiInstance.interceptors.response.use(
 
   async (error: AxiosError) => {
     const originalRequest = error.config as ApiRequestConfig;
-    const status          = error.response?.status;
+    const status = error.response?.status ?? error.status;
 
-    /* ── 500 Internal Server Error
-          Global exception middleware caught an unhandled exception.
-          Likely transient — show "try again in a moment" page. ── */
+    /* ── 500 Internal Server Error ── */
     if (status === 500) {
       redirectTo("/server-error");
       return new Promise(() => {});
     }
 
-    /* ── 503 Service Unavailable
-          Planned maintenance or server is intentionally down.
-          Show full maintenance page. ── */
+    /* ── 503 Service Unavailable ── */
     if (status === 503) {
       redirectTo("/maintenance");
       return new Promise(() => {});
     }
 
-    /* ── 502 / 504 Gateway errors
-         Upstream / proxy issues — treat same as maintenance. ── */
+    /* ── 502 / 504 Gateway errors ── */
     if (status === 502 || status === 504) {
       redirectTo("/maintenance");
       return new Promise(() => {});
     }
 
-    /* ── 401 Unauthorized → refresh token, retry once ── */
-    if (status === 401 && !originalRequest._retry) {
+    /* ── 401 Unauthorized ── */
+    if (status === 401) {
+      // The refresh endpoint itself failed with 401 — never re-enter this
+      // logic for it. Reject and let the caller's catch (below) log out.
+      if (originalRequest._isRefreshRequest) {
+        return Promise.reject(error);
+      }
+
+      // Already retried once after a refresh and STILL 401 → token is
+      // genuinely invalid. Don't loop — log out.
+      if (originalRequest._retry) {
+        return sessionExpiredAndLogout(error);
+      }
+
       originalRequest._retry = true;
 
-      const authStore    = useAuthStore.getState();
+      const authStore = useAuthStore.getState();
       const refreshToken = authStore.refreshToken;
 
       if (!refreshToken) {
-        handleLogout();
-        return Promise.reject(error);
+        return sessionExpiredAndLogout(error);
       }
 
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((newToken) => {
-          originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+          const headers = AxiosHeaders.from(originalRequest.headers);
+          headers.set("Authorization", `Bearer ${newToken}`);
+          originalRequest.headers = headers;
           return apiInstance(originalRequest);
         });
       }
@@ -131,25 +151,25 @@ apiInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res      = await authStore.refresh();
+        const res = await authStore.refresh();
         const newToken = res?.accessToken;
 
         processQueue(null, newToken);
         isRefreshing = false;
 
-        originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+        const headers = AxiosHeaders.from(originalRequest.headers);
+        headers.set("Authorization", `Bearer ${newToken}`);
+        originalRequest.headers = headers;
         return apiInstance(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         isRefreshing = false;
-        handleLogout();
-        return Promise.reject(refreshError);
+        return sessionExpiredAndLogout(refreshError);
       }
     }
 
     /* ── Network error while authenticated ── */
     if (error.code === "ERR_NETWORK" && originalRequest?.headers?.Authorization) {
-      // handleLogout();
       toast.warning("خطا در برقرای ارتباط");
     }
 
