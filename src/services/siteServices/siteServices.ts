@@ -53,7 +53,7 @@ export interface IAboutUsData {
 export interface IFAQItems {
   question: string;
   answer: string;
-  value: string;
+  faqId: number;
 }
 
 export interface IFAQData {

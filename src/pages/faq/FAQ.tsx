@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
@@ -10,24 +11,31 @@ import { IconHelpCircle } from "@tabler/icons-react";
 import { useFAQQuery } from "@/queries/useSiteSettingsQueries";
 
 export default function FAQ() {
-    const { data: faqData, isLoading} = useFAQQuery();
+    const { data: faqData, isLoading } = useFAQQuery();
     const [searchParams] = useSearchParams();
-    const targetValue = searchParams.get("q");
+    const targetValue = searchParams.get("q"); // string | null
 
-    // Open the targeted item (or first item by default)
-    const [openItem, setOpenItem] = useState<string>(targetValue ?? "");
+    // Accordion value must be a string — keep openItem as string throughout
+    const [openItem, setOpenItem] = useState<string | undefined>(
+        targetValue ?? undefined
+    );
 
-    // Refs for each accordion item so we can scroll to them
     const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const skeletonItems = Array.from({ length: 4 });
+    const items = faqData?.items ?? [];
+
+    // Default to the first loaded item if nothing was requested via ?q=
+    useEffect(() => {
+        if (!targetValue && !openItem && items.length > 0) {
+            setOpenItem(String(items[0].faqId));
+        }
+    }, [items, targetValue, openItem]);
 
     useEffect(() => {
         if (!targetValue) return;
 
-        // Set the item open
         setOpenItem(targetValue);
 
-        // Scroll to it after a short delay to let the accordion open first
         const timer = setTimeout(() => {
             const el = itemRefs.current[targetValue];
             if (el) {
@@ -82,33 +90,36 @@ export default function FAQ() {
                         value={openItem}
                         onValueChange={setOpenItem}
                     >
-                        {faqData?.items?.map((item, index) => (
-                            <AccordionItem
-                                key={index}
-                                value={item.value}
-                                className={
-                                    index !== faqData?.items?.length - 1
-                                        ? "border-b border-blue-50"
-                                        : "border-none"
-                                }
-                                ref={(el) => {
-                                    itemRefs.current[item.value] = el;
-                                }}
-                            >
-                                <AccordionTrigger
-                                    className={`px-4 sm:px-6 py-4 text-sm font-semibold hover:no-underline transition-colors duration-150 text-right ${
-                                        openItem === item.value
-                                            ? "text-blue-800 bg-blue-50/70"
-                                            : "text-gray-700 hover:text-blue-800 hover:bg-blue-50/50"
-                                    }`}
+                        {items.map((item, index) => {
+                            const idStr = String(item.faqId);
+                            return (
+                                <AccordionItem
+                                    key={idStr}
+                                    value={idStr}
+                                    className={
+                                        index !== items.length - 1
+                                            ? "border-b border-blue-50"
+                                            : "border-none"
+                                    }
+                                    ref={(el) => {
+                                        itemRefs.current[idStr] = el;
+                                    }}
                                 >
-                                    {item.question}
-                                </AccordionTrigger>
-                                <AccordionContent className="px-4 sm:px-6 pb-4 text-sm text-gray-500 leading-7">
-                                    {item.answer}
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
+                                    <AccordionTrigger
+                                        className={`px-4 sm:px-6 py-4 text-sm font-semibold hover:no-underline transition-colors duration-150 text-right ${
+                                            openItem === idStr
+                                                ? "text-blue-800 bg-blue-50/70"
+                                                : "text-gray-700 hover:text-blue-800 hover:bg-blue-50/50"
+                                        }`}
+                                    >
+                                        {item.question}
+                                    </AccordionTrigger>
+                                    <AccordionContent className="px-4 sm:px-6 pb-4 text-sm text-gray-500 leading-7">
+                                        {item.answer}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            );
+                        })}
                     </Accordion>
                 )}
             </div>
