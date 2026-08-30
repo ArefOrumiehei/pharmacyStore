@@ -7,7 +7,7 @@ import {
 } from "@/queries/useHomeQueries";
 
 // Stores
-import { useUserStore } from "@/store/useAccountStore";
+import { useUserStore } from "@/store/account/useAccountStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
 
