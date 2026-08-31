@@ -1,20 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
-import { getSlides } from "@/services/slide_services/slideServices";
-
-export interface Slide {
-  btnText: string 
-  heading: string 
-  link: string 
-  picture: string
-  pictureAlt: string
-  pictureTitle: string
-  text: string
-  title: string
-}
+import { getSlides, type ISlide } from "@/services/slide_services/slideServices";
 
 interface SlideStore {
-  slides: Slide | null | any;
+  slides: ISlide | null | any;
   loading: boolean;
   error: string | null;
   fetchSlides: () => Promise<void>;
