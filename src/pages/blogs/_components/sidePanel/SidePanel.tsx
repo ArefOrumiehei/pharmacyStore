@@ -17,6 +17,12 @@ export default function SidePanel({
     error?: string | null;
     variant: "topRated" | "mostViewed";
 }) {
+    const isEmpty = !loading && (!articles || articles.length === 0);
+
+    if (isEmpty) {
+        return null;
+    }
+    
     return (
         <div className="bg-white border border-blue-100 rounded-2xl overflow-hidden">
             <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-blue-50">
