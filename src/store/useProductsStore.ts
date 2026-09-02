@@ -30,6 +30,7 @@ export interface Product {
     discountExpireDate: string | null;
     isInStock: boolean;
     invQty: number;
+    discountedQty: number;
     category: string;
     categoryId: number;
     categoryName: string;

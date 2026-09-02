@@ -37,6 +37,8 @@ export default function MiniAddToCartControl({ product }: MiniAddToCartControlPr
         qty:               1,
         hasDiscount:       product.hasDiscount,
         invQty:            product.invQty,
+        discountRate:      product.discountRate,
+        discountedQty:     product.discountedQty
       });
 
       return;

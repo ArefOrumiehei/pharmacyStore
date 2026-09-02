@@ -17,17 +17,16 @@ import {
 export type { Cart, CartItem };
 
 export interface GuestCartItem {
-    cartKey?: string;
     productId: number;
     productName: string;
     picture: string;
     qty: number;
-    invQty?: number;
+    invQty: number;
     unitPrice: number;
-    priceWithDiscount?: number;
-    discountRate?: number;
-    discountedQty?: number;
-    hasDiscount?: boolean;
+    priceWithDiscount: number;
+    discountRate: number;
+    discountedQty: number;
+    hasDiscount: boolean;
 }
 
 type CartState = {

@@ -37,13 +37,16 @@ export default function AddToCartBtn({ product }: MiniAddToCartControlProps) {
                 qty:               1,
                 hasDiscount:       product.hasDiscount,
                 invQty:            product.invQty,
+                discountRate:      product.discountRate,
+                discountedQty:     product.discountedQty
             });
-        }
-        setIsPending(true);
-        try {
-            await addToCart(product.id, 1);
-        } finally {
-            setIsPending(false);
+        } else {
+            setIsPending(true);
+            try {
+                await addToCart(product.id, 1);
+            } finally {
+                setIsPending(false);
+            }
         }
     }, [isGuest, product, addToCart, addToGuestCart]);
 

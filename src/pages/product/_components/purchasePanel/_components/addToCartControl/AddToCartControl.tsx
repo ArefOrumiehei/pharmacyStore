@@ -46,6 +46,8 @@ export default function AddToCartControl({ product }: AddToCartControlProps) {
                 qty:               1,
                 hasDiscount:       product.hasDiscount,
                 invQty:            product.invQty,
+                discountRate:      product.discountRate,
+                discountedQty:     product.discountedQty
             });
         } else {
             await addToCart(product.id, 1);
