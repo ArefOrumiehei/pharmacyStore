@@ -52,7 +52,7 @@ export const resetLogoutGuard = () => {
 };
 
 const sessionExpiredAndLogout = (error: unknown) => {
-  toast.error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
+  // toast.error("نشست شما منقضی شده است، لطفاً دوباره وارد شوید");
   handleLogout();
   redirectTo("/login");
   return Promise.reject(error);
