@@ -1,7 +1,7 @@
 import type { CartItem } from "../types/cart";
 
 export function itemHasActiveDiscount(item: CartItem): boolean {
-  return !!item.hasDiscount && !!item.priceWithDiscount && (item.discountedQty ?? 0) > 0;
+  return !!item.hasDiscount && !!item.priceWithDiscount;
 }
 
 export function getDiscountedQty(item: CartItem): number {
