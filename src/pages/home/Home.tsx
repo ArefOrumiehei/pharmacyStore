@@ -16,10 +16,12 @@ import BannerSlider from "@/pages/home/_components/banner-slider/BannerSlider";
 import Categories from "./_components/categories/Categories";
 import ProductsCarousel from "./_components/products-carousel/ProductsCarousel";
 import LatestArticles from "./_components/latest-articles/LatestArticles";
+import { useCartStore } from "@/store/useCartStore";
 
 function Home() {
     const { fetchUser } = useUserStore();
     const { accessToken } = useAuthStore();
+    const { fetchCart } = useCartStore();
 
     const { data: latestArrivals, isLoading: loadingLatest } = useLatestArrivals();
     const { data: topRated, isLoading: loadingTopRated } = useTopRated();
@@ -27,7 +29,10 @@ function Home() {
     const { data: randomRecommendation, isLoading: loadingRandom } = useRandomRecommendation();
 
     useEffect(() => {
-        if (accessToken) fetchUser();
+        if (accessToken) {
+            fetchUser();
+            fetchCart();
+        } 
     }, [accessToken]);
 
     return (
