@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IconWorld, IconDroplet, IconListDetails } from "@tabler/icons-react";
+import { IconWorld, IconDroplet, IconListDetails, IconWeight } from "@tabler/icons-react";
 import type { IProductSpecifications } from "../../types/productPageTypes";
 import SectionTitle from "../../../../components/common/sectionTitle/SectionTitle";
 import { toPersianDigits } from "smart-persian-tools";
 
 const FIELD_CONFIG: {
-    key: "countryOfOrigin" | "productForm";
+    key: "countryOfOrigin" | "productForm" | "productWeight";
     label: string;
     icon: React.ComponentType<{ size?: number; className?: string }>;
 }[] = [
     { key: "countryOfOrigin", label: "کشور سازنده", icon: IconWorld },
     { key: "productForm", label: "نوع محصول", icon: IconDroplet },
+    { key: "productWeight", label: "وزن محصول", icon: IconWeight },
 ];
 
 function SpecItem({
@@ -68,7 +69,7 @@ export default function ProductSpecifications({
             ) : (
                 <div className="mt-3 sm:mt-4 flex flex-col gap-3 sm:gap-4">
                     {mainItems.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                             {mainItems.map((item) => (
                                 <SpecItem
                                     key={item.key}
