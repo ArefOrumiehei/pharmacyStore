@@ -5,8 +5,7 @@ Disallow: /checkout
 Disallow: /cart
 Disallow: /login
 Disallow: /api/
-Disallow: /blog/search
 Disallow: /maintenance
 Disallow: /server-error
 
-Sitemap: https://yoursite.com/sitemap.xml
+Sitemap: https://supplus.ir/sitemap.xml
