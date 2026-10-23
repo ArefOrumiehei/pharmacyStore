@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { IconEye, IconEyeOff, IconLoader2, IconUser, IconLock, IconAlertCircle } from "@tabler/icons-react";
 import { useState } from "react";
 import { resetLogoutGuard } from "@/apis/apiInstance";
+import Seo from "@/components/seo/Seo";
 
 const loginSchema = z.object({
   usernameOrMobile: z.string().min(2, "نام کاربری یا شماره موبایل الزامی است"),
@@ -52,6 +53,7 @@ export default function Login() {
 
   return (
     <>
+      <Seo noindex title="ورود" />
       {/* Header */}
       <div className="text-center mb-7">
         <h1 className="text-2xl font-bold text-blue-800">خوش برگشتید!</h1>

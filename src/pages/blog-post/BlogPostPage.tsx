@@ -9,6 +9,8 @@ import { IMAGE_BASE } from "@/apis/apiInstance";
 import type { IArticle } from "@/services/articleServices/articleServices";
 import { useArticleStore } from "@/store/useArticlsStore";
 import { toPersianDigits } from "smart-persian-tools";
+import Seo from "@/components/seo/Seo";
+import { stripHtml } from "@/utils/stripeHtml";
 
 // ─── Content renderer ─────────────────────────────────────────────────────────
 
@@ -170,7 +172,22 @@ export default function BlogPostPage() {
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-5">
-
+      {article && (
+        <Seo
+          title={`${article.title} | مجله فارماپلاس`}
+          description={stripHtml(article.metaDescription ?? article.shortDescription).slice(0, 155)}
+          image={article.picture ? `${IMAGE_BASE}${article.picture}` : undefined}
+          type="article"
+          jsonLd={{
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: article.title,
+            image: article.picture ? `${IMAGE_BASE}${article.picture}` : undefined,
+            datePublished: article.publishDate,
+            dateModified: article.publishDate,
+          }}
+        />
+      )}
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-xs text-gray-400 flex-wrap">
         <Link to="/blog" className="hover:text-blue-800 transition-colors">مجله سلامت</Link>

@@ -1,4 +1,5 @@
 import SectionTitle from "@/components/common/sectionTitle/SectionTitle";
+import Seo from "@/components/seo/Seo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAboutUsQuery } from "@/queries/useSiteSettingsQueries";
 import {
@@ -53,6 +54,10 @@ export default function AboutUs() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-12" dir="rtl">
+      <Seo
+        title="درباره ما | فارماپلاس"
+        description="با فارماپلاس، داستان ما و ارزش‌هایی که در ارائه خدمات دارویی و سلامت دنبال می‌کنیم بیشتر آشنا شوید."
+      />
       {/* Header */}
       <div className="text-center mb-10 space-y-3">
         <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto">

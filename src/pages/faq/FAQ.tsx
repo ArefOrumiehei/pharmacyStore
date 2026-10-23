@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/accordion";
 import { IconHelpCircle } from "@tabler/icons-react";
 import { useFAQQuery } from "@/queries/useSiteSettingsQueries";
+import Seo from "@/components/seo/Seo";
 
 export default function FAQ() {
     const { data: faqData, isLoading } = useFAQQuery();
@@ -48,6 +49,10 @@ export default function FAQ() {
 
     return (
         <div className="container mx-auto max-w-3xl px-4 py-12" dir="rtl">
+            <Seo
+                title="سوالات متداول | فارماپلاس"
+                description="پاسخ سوالات رایج درباره ثبت سفارش، پرداخت، ارسال و مرجوعی کالا در فارماپلاس."
+            />
             {/* Header */}
             <div className="text-center mb-10 space-y-3">
                 <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto">

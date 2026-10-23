@@ -2,6 +2,7 @@ import { IconMail, IconPhone, IconMapPin, IconClock } from "@tabler/icons-react"
 import { useSiteGlobalSettingQuery } from "@/queries/useSiteSettingsQueries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toPersianDigits } from "smart-persian-tools";
+import Seo from "@/components/seo/Seo";
 
 export default function ContactUs() {
   // const [submitted, setSubmitted] = useState(false);
@@ -51,6 +52,10 @@ export default function ContactUs() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-12" dir="rtl">
+      <Seo
+        title="تماس با ما | فارماپلاس"
+        description="راه‌های ارتباط با پشتیبانی فارماپلاس: شماره تماس، آدرس و فرم ارسال پیام."
+      />
       {/* Header */}
       <div className="text-center mb-10 space-y-3">
         <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto">

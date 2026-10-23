@@ -5,6 +5,7 @@ import {
   IconClock,
   IconShieldCheck,
 } from "@tabler/icons-react";
+import Seo from "@/components/seo/Seo";
 
 export default function Maintenance() {
   return (
@@ -13,6 +14,7 @@ export default function Maintenance() {
       dir="rtl"
       style={{ background: "linear-gradient(135deg, #eff6ff 0%, #f8fafc 50%, #eff6ff 100%)" }}
     >
+      <Seo noindex title="در حال بروزرسانی | فارماپلاس" />
       {/* ── Decorative background circles ── */}
       <div
         className="absolute top-[-120px] left-[-120px] w-[400px] h-[400px] rounded-full opacity-20 pointer-events-none"

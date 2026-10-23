@@ -9,6 +9,7 @@ import {
     IconRefresh,
 } from "@tabler/icons-react";
 import { resetLogoutGuard } from "@/apis/apiInstance";
+import Seo from "@/components/seo/Seo";
 
 // ─── OTP digit input ──────────────────────────────────────────────────────────
 
@@ -221,6 +222,7 @@ export default function LoginOTP() {
 
     return (
         <>
+            <Seo noindex title="ورود" />
             {/* Header */}
             <div className="text-center mb-8">
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4">

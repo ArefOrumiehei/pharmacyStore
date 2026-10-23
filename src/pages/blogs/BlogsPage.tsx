@@ -9,6 +9,7 @@ import FeaturedCard from "./_components/featuredCard/FeaturedCard";
 import BlogCard from "./_components/blogCard/BlogCard";
 import SidePanel from "./_components/sidePanel/SidePanel";
 import BlogGridSkeleton from "./_components/skeletons/BlogGridSkeleton";
+import Seo from "@/components/seo/Seo";
 
 export default function BlogsPage() {
     const navigate = useNavigate();
@@ -44,6 +45,10 @@ export default function BlogsPage() {
 
     return (
         <div className="flex flex-col gap-6 sm:gap-8">
+            <Seo
+                title="مجله سلامت | فارماپلاس"
+                description="مقالات آموزشی درباره دارو، مکمل‌ها، پوست و مو و سبک زندگی سالم."
+            />
             {/* Page header */}
             <div className="text-center space-y-2 py-2 sm:py-4">
                 <h1 className="text-2xl sm:text-3xl font-bold text-blue-800">مجله سلامت فارماپلاس</h1>

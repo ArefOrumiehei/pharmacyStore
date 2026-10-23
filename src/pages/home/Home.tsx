@@ -17,6 +17,7 @@ import Categories from "./_components/categories/Categories";
 import ProductsCarousel from "./_components/products-carousel/ProductsCarousel";
 import LatestArticles from "./_components/latest-articles/LatestArticles";
 import { useCartStore } from "@/store/useCartStore";
+import Seo from "@/components/seo/Seo";
 
 function Home() {
     const { fetchUser } = useUserStore();
@@ -37,6 +38,10 @@ function Home() {
 
     return (
         <div className="flex flex-col gap-6 w-full px-3 sm:px-4 py-4">
+            <Seo
+                title="فارماپلاس | خرید آنلاین دارو و محصولات سلامتی"
+                description="فارماپلاس؛ خرید آنلاین دارو، مکمل، محصولات آرایشی و بهداشتی و مراقبت از پوست و مو با ارسال سریع به سراسر کشور."
+            />
             <BannerSlider />
             <Categories />
 

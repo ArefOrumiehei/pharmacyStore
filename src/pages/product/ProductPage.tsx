@@ -17,9 +17,12 @@ import { useProductStore } from "@/store/useProductsStore";
 
 // Types
 import type { ProductComment, ProductImage } from "./types/productPageTypes";
+import Seo from "@/components/seo/Seo";
+import { IMAGE_BASE } from "@/apis/apiInstance";
+import NotFound from "../not-found/NotFound";
 
 export default function ProductPage() {
-  const { fetchProductByName, product } = useProductStore();
+  const { fetchProductByName, product, productNotFound } = useProductStore();
 
   const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
   const [activeImage, setActiveImage] = useState(0);
@@ -49,9 +52,43 @@ export default function ProductPage() {
   }, [product]);
 
   const displayPrice = useMemo(() => (product?.hasDiscount ? product.priceWithDiscount : product?.price), [product]);
+  const metaDescription = (product?.shortDescription ?? "")
+  .replace(/<[^>]*>/g, " ")
+  .replace(/\s+/g, " ")
+  .trim()
+  .slice(0, 155);
+
+  if (productNotFound) return <NotFound />;
 
   return (
     <div className="flex flex-col gap-6 w-full py-6" dir="rtl">
+      {product ? 
+        <Seo
+          title={`${product.name} | فارماپلاس`}
+          description={metaDescription}
+          image={`${IMAGE_BASE}${product.picture}`}
+          type="product"
+          jsonLd={{
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.name,
+            image: `${IMAGE_BASE}${product.picture}`,
+            description: metaDescription,
+            offers: {
+              "@type": "Offer",
+              price: (displayPrice ?? 0) * 10,
+              priceCurrency: "IRR",
+              availability: product.isInStock
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+            },
+          }}
+        /> 
+        : productNotFound ?
+        <Seo noindex title="محصول پیدا نشد" description="این محصول وجود ندارد یا حذف شده است." />
+        :
+        null
+      }
       <Breadcrumb categories={decodedCatgSlug} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_280px] gap-4">
@@ -74,8 +111,8 @@ export default function ProductPage() {
 
       {isLoaded ? (
         <ProductTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
           description={product.description ?? ""}
           productId={product.id}
           comments={Array.isArray(product.comments) ? (product.comments as ProductComment[]) : []}

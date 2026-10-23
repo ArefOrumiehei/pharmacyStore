@@ -6,6 +6,7 @@ import CategoryTabs from "../blogs/_components/categoryTabs/CategoryTabs";
 import BlogGridSkeleton from "../blogs/_components/skeletons/BlogGridSkeleton";
 import BlogCard from "../blogs/_components/blogCard/BlogCard";
 import { useArticleSearchStore } from "@/store/useArticleSearchStore";
+import Seo from "@/components/seo/Seo";
 
 export default function BlogSearchResult() {
     const navigate = useNavigate();
@@ -52,6 +53,7 @@ export default function BlogSearchResult() {
 
     return (
         <div className="flex flex-col gap-6 sm:gap-8">
+            <Seo noindex title="نتایج جستجوی مقالات | فارماپلاس" />
             {/* Page header */}
             <div className="space-y-3 py-2 sm:py-4">
                 <Link

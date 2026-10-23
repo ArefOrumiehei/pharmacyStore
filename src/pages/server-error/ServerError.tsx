@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { IconRefresh, IconArrowLeft, IconCloudOff } from "@tabler/icons-react";
+import Seo from "@/components/seo/Seo";
 
 export default function ServerError() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function ServerError() {
         background: "linear-gradient(135deg, #f0f9ff 0%, #f8fafc 50%, #f0f9ff 100%)",
       }}
     >
+      <Seo noindex title="خطای سرور | فارماپلاس" />
       {/* ── Decorative bg ── */}
       <div
         className="absolute top-[-100px] left-[-100px] w-[360px] h-[360px] rounded-full opacity-[0.15] pointer-events-none"

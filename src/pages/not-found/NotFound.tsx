@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router";
 import { IconHome, IconArrowRight, IconPill, IconSearch } from "@tabler/icons-react";
+import Seo from "@/components/seo/Seo";
 
 export default function NotFound() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen w-full bg-white overflow-hidden relative flex" dir="rtl">
-
+      <Seo noindex title="صفحه یافت نشد" />
       {/* ── Left panel — decorative ── */}
       <div
         className="hidden lg:flex flex-col items-center justify-center w-[42%] relative overflow-hidden"

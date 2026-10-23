@@ -3,6 +3,7 @@ import { IconTag, IconCategory } from "@tabler/icons-react";
 import { useProductCategoryByName } from "@/queries/useProductCatgsQueries";
 import { IMAGE_BASE } from "@/apis/apiInstance";
 import Breadcrumb from "@/components/common/breadcrumb/Breadcrumb";
+import Seo from "@/components/seo/Seo";
 
 const resolveImage = (path?: string | null) => (path ? `${IMAGE_BASE}/${path}` : null);
 
@@ -23,6 +24,12 @@ function CategoryPage() {
 
     return (
         <div className="flex flex-col gap-8 sm:gap-10 pb-10 px-2 mt-6">
+            {catgData && (
+                <Seo
+                    title={`خرید ${catgData.name} | فارماپلاس`}
+                    description={`مشاهده و خرید آنلاین ${catgData.name} با قیمت مناسب و ارسال سریع از فارماپلاس.`}
+                />
+            )}
             <Breadcrumb categories={catgData.name} />
 
             {/* Hero */}

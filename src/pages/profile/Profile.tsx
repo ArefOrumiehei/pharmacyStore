@@ -10,6 +10,7 @@ import { MOBILE_HIDE_SIDEBAR_PATTERNS } from "./constants/Constants";
 // Components
 import ConfirmModal from "@/components/common/confirmModal/ConfirmModal";
 import ProfileSidebar from "./_components/profileSidebar/ProfileSidebar";
+import Seo from "@/components/seo/Seo";
 
 export default function Profile() {
   const { logout } = useAuthStore();
@@ -34,6 +35,7 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto py-4 sm:py-8 px-3 sm:px-4" dir="rtl">
+      <Seo noindex title="حساب کاربری | فارماپلاس" />
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[280px_1fr]">
         <ProfileSidebar
           hideOnMobile={hideSidebarOnMobile}

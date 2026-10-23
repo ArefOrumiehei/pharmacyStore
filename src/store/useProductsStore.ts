@@ -9,6 +9,7 @@ import {
 } from "@/services/productServices/productServices";
 import { create } from "zustand";
 import { useUserStore } from "./account/useAccountStore";
+import axios from "axios";
 
 export interface Product {
     id: number;
@@ -18,16 +19,16 @@ export interface Product {
     pictureTitle: string;
     slug: string;
     brand: string;
-    shortDescription: string | null;
-    description: string | null;
-    specifications: string | null;
-    keywords: string | null;
+    shortDescription: string;
+    description: string;
+    specifications: string;
+    keywords: string;
     metaDescription: string;
     price: number;
     priceWithDiscount: number;
     discountRate: number;
     hasDiscount: boolean;
-    discountExpireDate: string | null;
+    discountExpireDate: string;
     isInStock: boolean;
     invQty: number;
     discountedQty: number;
@@ -57,6 +58,7 @@ interface ProductStore {
     loading: boolean;
     searchLoading: boolean;
     error: string | null;
+    productNotFound: boolean,
 
     fetchProductByName: (productName: string) => Promise<void>;
     fetchLatestArrivals: () => Promise<void>;
@@ -78,13 +80,17 @@ export const useProductStore = create<ProductStore>((set) => ({
     loading: false,
     searchLoading: false,
     error: null,
+    productNotFound: false,
 
     fetchProductByName: async (productName: string) => {
-        set({ loading: true, product: null, error: null });
+        set({ loading: true, product: null, error: null, productNotFound: false, });
         try {
             const data = await getProductByName(productName);
             set({ product: data, loading: false });
         } catch (err) {
+            if (axios.isAxiosError(err) && err.response?.status === 404) {
+                set({ productNotFound: true });
+            }
             const message =
                 err instanceof Error ? err.message : "خطای ناشناخته";
             set({ error: message, loading: false });

@@ -1,10 +1,12 @@
 import { Outlet } from "react-router";
 import { IconPill } from "@tabler/icons-react";
 import { Link } from "react-router";
+import Seo from "@/components/seo/Seo";
 
 const AuthLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-blue-50/50 px-4 py-12" dir="rtl">
+      <Seo noindex title="ورود به حساب کاربری | فارماپلاس" />
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2 mb-8">
         <div className="w-9 h-9 rounded-xl bg-blue-800 flex items-center justify-center">

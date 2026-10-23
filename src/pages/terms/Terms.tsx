@@ -1,4 +1,5 @@
 import SectionTitle from "@/components/common/sectionTitle/SectionTitle";
+import Seo from "@/components/seo/Seo";
 import { useTermsQuery } from "@/queries/useSiteSettingsQueries";
 import { IconFileText } from "@tabler/icons-react";
 
@@ -7,6 +8,10 @@ export default function Terms() {
   
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12" dir="rtl">
+      <Seo
+        title="قوانین و مقررات | فارماپلاس"
+        description="شرایط و قوانین استفاده از خدمات فارماپلاس و خرید از فروشگاه."
+      />
       {/* Header */}
       <div className="text-center mb-10 space-y-3">
         <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto">

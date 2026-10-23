@@ -14,6 +14,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Seo from "@/components/seo/Seo";
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
@@ -104,6 +105,7 @@ function OtpInput({
 
     return (
         <div className="flex gap-2 justify-center" dir="ltr">
+            <Seo noindex title="فراموشی رمز" />
             {digits.map((d, i) => (
                 <input
                     key={i}

@@ -17,6 +17,7 @@ import ProductCard from "./_components/productCard/ProductCard";
 import Pagination from "./_components/pagination/Pagination";
 import MobileFilterDrawer from "./_components/mobileFilterDrawer/MobileFilterDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
+import Seo from "@/components/seo/Seo";
 
 
 export default function ProductListPage() {
@@ -87,9 +88,15 @@ export default function ProductListPage() {
     }, []);
 
     const pageTitle = categorySlug?.replace(/-/g, " ") ?? (searchParams.get("q") ? `نتایج جستجو برای "${searchParams.get("q")}"` : "همه محصولات");
+    const hasSearchQuery = !!searchParams.get("q");
 
     return (
         <div className="w-full py-6 px-2" dir="rtl">
+            <Seo
+                noindex={hasSearchQuery}
+                title="محصولات | فارماپلاس"
+                description="مشاهده و خرید آنلاین انواع دارو، مکمل و محصولات سلامت با امکان فیلتر بر اساس برند و دسته‌بندی."
+            />
             <Breadcrumb categories={params["*"] ?? ""} />
 
             {/* Top bar */}
