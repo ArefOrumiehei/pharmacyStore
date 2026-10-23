@@ -1,4 +1,5 @@
 import apiInstance from "@/apis/apiInstance";
+import { getDeviceId } from "@/utils/deviceId";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,7 +64,9 @@ export const getArticleBySlugAndCatgSlug = async (
   catgSlug:    string,
 ): Promise<IArticle> => {
   const res = await apiInstance.get<IApiResponse<IArticle>>(
-    `/api/Article/${catgSlug}/${articleSlug}`,
+    `/api/Article/${catgSlug}/${articleSlug}`, {
+      headers: { "x-device-id": getDeviceId() },
+    },
   );
   return res.data.data;
 };

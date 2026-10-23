@@ -1,8 +1,11 @@
 import apiInstance from "@/apis/apiInstance";
 import type { Product } from "@/store/useProductsStore";
+import { getDeviceId } from "@/utils/deviceId";
 
 export const getProductByName = async (productName: string): Promise<Product> => {
-  const res = await apiInstance.get(`/api/Product/${productName}`);
+  const res = await apiInstance.get(`/api/Product/${productName}`, {
+    headers: { "x-device-id": getDeviceId() },
+  });
   return res.data.data;
 };
 
