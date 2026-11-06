@@ -1,10 +1,15 @@
 import ShareButton from "../shareBtn/ShareBtn";
 import FavoriteBtn from "../favoriteBtn/FavoriteBtn";
 import type { ProductHeaderProps } from "@/pages/product/types/productPageTypes";
+import { useAuthStore } from "@/store/useAuthStore";
 
+export default function ProductHeader({
+  isLoaded,
+  product,
+  isFavorite,
+}: ProductHeaderProps) {
+  const { accessToken } = useAuthStore();
 
-
-export default function ProductHeader({ isLoaded, product, isFavorite }: ProductHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-2 sm:gap-3">
       {isLoaded ? (
@@ -25,10 +30,12 @@ export default function ProductHeader({ isLoaded, product, isFavorite }: Product
             }}
             btnStyle="icon"
           />
-          <FavoriteBtn
-            productId={product.id}
-            initialIsFavorite={isFavorite}
-          />
+          {accessToken && (
+            <FavoriteBtn
+              productId={product.id}
+              initialIsFavorite={isFavorite}
+            />
+          )}
         </div>
       )}
     </div>
