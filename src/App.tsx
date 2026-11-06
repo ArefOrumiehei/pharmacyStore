@@ -34,7 +34,6 @@ const Terms           = lazy(() => import('./pages/terms/Terms'))
 const ReturnPolicy    = lazy(() => import('./pages/returnPolicy/ReturnPolicy'))
 const ProductListPage = lazy(() => import('./pages/product-list/ProductListPage'))
 const ProductPage     = lazy(() => import('./pages/product/ProductPage'))
-const BrandPage       = lazy(() => import('./pages/brand/BrandPage'))
 const CategoryPage    = lazy(() => import('./pages/category/CategoryPage'))
 const NotFound        = lazy(() => import('./pages/not-found/NotFound'))
 
@@ -121,7 +120,6 @@ function App() {
               <Route path="return-policy" element={<ReturnPolicy />} />
               <Route path="plp/*" element={<ProductListPage />} />
               <Route path="product/:catgSlug/:pSlug" element={<ProductPage />} />
-              <Route path="brand/:brandSlug" element={<BrandPage />} />
               <Route path="category/:catgSlug" element={<CategoryPage />} />
 
               {/* Checkout */}
