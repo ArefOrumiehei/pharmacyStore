@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
@@ -13,6 +12,7 @@ import Seo from "@/components/seo/Seo";
 
 export default function FAQ() {
     const { data: faqData, isLoading } = useFAQQuery();
+    const faqs = Array.isArray(faqData) ? faqData : [];
     const [searchParams] = useSearchParams();
     const targetValue = searchParams.get("q"); // string | null
 
@@ -23,14 +23,6 @@ export default function FAQ() {
 
     const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const skeletonItems = Array.from({ length: 4 });
-    const items = faqData?.items ?? [];
-
-    // Default to the first loaded item if nothing was requested via ?q=
-    useEffect(() => {
-        if (!targetValue && !openItem && items.length > 0) {
-            setOpenItem(String(items[0].faqId));
-        }
-    }, [items, targetValue, openItem]);
 
     useEffect(() => {
         if (!targetValue) return;
@@ -95,14 +87,14 @@ export default function FAQ() {
                         value={openItem}
                         onValueChange={setOpenItem}
                     >
-                        {items.map((item, index) => {
+                        {faqs.map((item, index) => {
                             const idStr = String(item.faqId);
                             return (
                                 <AccordionItem
                                     key={idStr}
                                     value={idStr}
                                     className={
-                                        index !== items.length - 1
+                                        index !== faqs.length - 1
                                             ? "border-b border-blue-50"
                                             : "border-none"
                                     }
