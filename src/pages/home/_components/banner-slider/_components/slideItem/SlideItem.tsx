@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 import { ChevronLeft } from "lucide-react";
 import { IMAGE_BASE } from "@/apis/apiInstance";
-import type { Slide } from "@/store/useSideStore";
+import type { ISlide } from "@/services/slide_services/slideServices";
 
-export default function SlideItem({ slide }: { slide: Slide }) {
+export default function SlideItem({ slide }: { slide: ISlide }) {
   const hasContent = slide.heading || slide.title || slide.text || slide.btnText;
 
   return (

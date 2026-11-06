@@ -3,14 +3,8 @@ import { IconPill } from "@tabler/icons-react";
 
 export default function BlogHeaderTopBar({
     isBlogPost,
-    search,
-    onSearchChange,
-    onSearchSubmit,
 }: {
     isBlogPost: boolean;
-    search: string;
-    onSearchChange: (v: string) => void;
-    onSearchSubmit: (e: React.FormEvent) => void;
 }) {
     // const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 

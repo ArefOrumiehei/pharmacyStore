@@ -1,13 +1,11 @@
-import { Outlet, useLocation, useNavigate } from "react-router";
-import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router";
+import { useEffect } from "react";
 import { useArticleCategoriesStore } from "@/store/useArticleCategoriesStore";
 
 import BlogHeaderTopBar from "./_components/blogHeaderTopBar/BlogHeaderTopBar";
 import BlogFooter from "./_components/blogFooter/BlogFooter";
 
 export default function BlogLayout() {
-    const [search, setSearch] = useState("");
-    const navigate = useNavigate();
     const location = useLocation();
     const isBlogPost = location.pathname.split("/").filter(Boolean).length > 1;
 
@@ -18,13 +16,6 @@ export default function BlogLayout() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (search.trim()) {
-            navigate(`/blog?q=${encodeURIComponent(search.trim())}`);
-            setSearch("");
-        }
-    };
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50/50" dir="rtl">
@@ -33,9 +24,6 @@ export default function BlogLayout() {
                 <div className="container mx-auto px-4">
                     <BlogHeaderTopBar
                         isBlogPost={isBlogPost}
-                        search={search}
-                        onSearchChange={setSearch}
-                        onSearchSubmit={handleSearch}
                     />
                 </div>
             </header>

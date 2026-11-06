@@ -46,6 +46,7 @@ export interface Product {
     comments: unknown | null;
     pictures: unknown | null;
     sales: number;
+    code: string;
 }
 
 interface ProductStore {
