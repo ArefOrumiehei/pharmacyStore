@@ -20,7 +20,7 @@ export default function CommentCard({
 }: CommentCardProps) {
     const hasReply = !!comment.reply;
 
-    const isDeleted = comment.status === "حدف شده";
+    const isDeleted = comment.status === 4;
 
     return (
         <div className="w-full min-w-0 bg-white border border-blue-100 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 flex flex-col gap-2.5 sm:gap-3">

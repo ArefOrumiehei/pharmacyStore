@@ -44,7 +44,7 @@ export default function OrderItemRow({ item }: { item: IOrderItem }) {
                 </p>
                 {item.discountRate !== 0 && (
                     <span className="text-[10px] sm:text-xs text-rose-500 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-md mt-0.5 inline-block">
-                        {toPersianDigits(item.discountRate)} تخفیف
+                        %{toPersianDigits(item.discountRate)} تخفیف
                     </span>
                 )}
             </div>
