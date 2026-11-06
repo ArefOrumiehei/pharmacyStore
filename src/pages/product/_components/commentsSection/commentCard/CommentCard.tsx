@@ -19,10 +19,12 @@ import ConfirmModal from "@/components/common/confirmModal/ConfirmModal";
 
 // Types
 import type { CommentCardProps } from "@/pages/product/types/productPageTypes";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function CommentCard({
   comment, currentUserId, onLike, onDislike, onEdit, onDelete, deleteLoading
 }: CommentCardProps) {
+
   const [menuOpen, setMenuOpen]     = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const menuRef                     = useRef<HTMLDivElement>(null);
@@ -162,8 +164,10 @@ function VoteButton({
 }: {
   icon: React.ReactNode; count: number; active?: boolean; activeClass: string; onClick: () => void;
 }) {
+  const { accessToken } = useAuthStore();
+
   return (
-    <button onClick={onClick} className={`flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm transition-colors ${active ? activeClass : "text-gray-400 hover:text-gray-600"}`}>
+    <button onClick={() => accessToken && onClick} className={`flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm transition-colors ${active ? activeClass : "text-gray-400 hover:text-gray-600"}`}>
       {icon}
       <span className="font-medium tabular-nums">{toPersianDigits(count)}</span>
     </button>
