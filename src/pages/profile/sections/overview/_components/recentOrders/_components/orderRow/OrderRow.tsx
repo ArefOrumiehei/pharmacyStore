@@ -28,7 +28,7 @@ export default function OrderRow({ order }: { order: ILatestOrder }) {
                         سفارش {toPersianDigits(order.id)}#
                     </p>
                     <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate">
-                        {toPersianDigits(order.creationDateDisplay)} •{" "}
+                        {toPersianDigits(order.creationDate)} •{" "}
                         {toPersianDigits(order.itemsCount)} محصول
                     </p>
                 </div>

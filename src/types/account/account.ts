@@ -62,7 +62,6 @@ export interface ILatestOrder {
   id: number;
   userId: number;
   creationDate: string;
-  creationDateDisplay: string;
   status: number;
   statusTitle: string;
   payAmount: number;
